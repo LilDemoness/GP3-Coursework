@@ -4,31 +4,28 @@
 #include "Window.h"
 #include "OpenGLContext.h"
 
-class DisplayFacade {
+class DisplayFacade
+{
 public:
-    // Default constructor
-    DisplayFacade();
-
-    // Constructor
     DisplayFacade(const std::string& title, const int width, const int height);
-
-    // Destructor
     ~DisplayFacade();
 
     // Resize the display
-    void resize(int newWidth, int newHeight);
+    void Resize(int newWidth, int newHeight);
 
     // Swap buffers
-    void swapBuffers();
+    void SwapBuffers();
 
     // Getters for screen dimensions
-    int getWidth() const;
-    int getHeight() const;
+    int get_width() const;
+    int get_height() const;
 
 private:
-    Window window;           // Window wrapper
-    OpenGLContext context;   // OpenGL context wrapper
+    DisplayFacade() = delete;
 
-    int screenWidth;         // Current width of the screen
-    int screenHeight;        // Current height of the screen
+    Window* window_;           // Window wrapper
+    OpenGLContext* context_;   // OpenGL context wrapper
+
+    int screen_width_;         // Current width of the screen
+    int screen_height_;        // Current height of the screen
 };

@@ -1,32 +1,38 @@
 #include "DisplayFacade.h"
 
 
-DisplayFacade::DisplayFacade()
-    : window("Default Title", 800, 600, SDL_WINDOW_OPENGL), context(window.getSDLWindow()), screenWidth(800), screenHeight(800) {                     // Initialize OpenGL context
+DisplayFacade::DisplayFacade(const std::string& title, const int width, const int height) :
+    window_(new Window(title, width, height, SDL_WINDOW_OPENGL)),
+    context_(new OpenGLContext(window_->getSDLWindow())),
+    screen_width_(width),
+    screen_height_(height)
+{}
+
+DisplayFacade::~DisplayFacade()
+{
+    // Ensure that we dispose of the Context before the Window (Reverse order from creation)
+    delete context_;
+    delete window_;
 }
 
-DisplayFacade::DisplayFacade(const std::string& title, const int width, const int height)
-    : window(title, width, height, SDL_WINDOW_OPENGL),
-    context(window.getSDLWindow()),
-    screenWidth(width),
-    screenHeight(height) {}
-
-DisplayFacade::~DisplayFacade() {}
-
-void DisplayFacade::resize(int newWidth, int newHeight) {
-    screenWidth = newWidth;
-    screenHeight = newHeight;
-    SDL_SetWindowSize(window.getSDLWindow(), newWidth, newHeight);
+void DisplayFacade::Resize(int newWidth, int newHeight)
+{
+    screen_width_ = newWidth;
+    screen_height_ = newHeight;
+    SDL_SetWindowSize(window_->getSDLWindow(), newWidth, newHeight);
 }
 
-void DisplayFacade::swapBuffers() {
-    context.swapBuffers(window.getSDLWindow());
+void DisplayFacade::SwapBuffers()
+{
+    context_->SwapBuffers(window_->getSDLWindow());
 }
 
-int DisplayFacade::getWidth() const {
-    return screenWidth;
-}
 
-int DisplayFacade::getHeight() const {
-    return screenHeight;
+int DisplayFacade::get_width() const 
+{
+    return screen_width_;
+}
+int DisplayFacade::get_height() const
+{
+    return screen_height_;
 }

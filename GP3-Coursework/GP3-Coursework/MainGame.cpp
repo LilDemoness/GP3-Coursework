@@ -1,42 +1,53 @@
 ﻿#include "MainGame.h"
 #include <iostream>
 
-MainGame::MainGame()
-    : _gameDisplay("OpenGL Game", 1024, 768), // Initialize the display wrapper
-    _gameState(GameState::PLAY) {}
+MainGame::MainGame() :
+    game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
+    game_state_(GameState::kPlay) 
+{}
+MainGame::~MainGame() 
+{}
 
-MainGame::~MainGame() {}
 
-void MainGame::run() {
-    initSystems();
-    gameLoop();
+void MainGame::Run()
+{
+    InitSystems();
+    GameLoop();
 }
 
-void MainGame::initSystems() {
+
+void MainGame::InitSystems()
+{
     glEnable(GL_DEPTH_TEST); // Enable Z-buffering
     glEnable(GL_CULL_FACE);  // Enable face culling
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Set clear color to black
 }
 
-void MainGame::gameLoop() {
-    while (_gameState != GameState::EXIT) {
-        processInput();
-        drawGame();
+void MainGame::GameLoop()
+{
+    while (game_state_ != GameState::kExit)
+    {
+        ProcessInput();
+        DrawGame();
     }
 }
 
-void MainGame::processInput() {
+void MainGame::ProcessInput()
+{
     SDL_Event evnt;
-    while (SDL_PollEvent(&evnt)) {
-        switch (evnt.type) {
+    while (SDL_PollEvent(&evnt))
+    {
+        switch (evnt.type)
+        {
         case SDL_QUIT:
-            _gameState = GameState::EXIT;
+            game_state_ = GameState::kExit;
             break;
         }
     }
 }
 
-void MainGame::drawGame() {
+void MainGame::DrawGame()
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear buffers
 
     
@@ -47,5 +58,5 @@ void MainGame::drawGame() {
     glVertex2f(0.0f, 0.5f);
     glEnd();
 
-    _gameDisplay.swapBuffers(); // Swap buffers via DisplayFacade
+    game_display_.SwapBuffers(); // Swap buffers via DisplayFacade
 }

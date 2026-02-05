@@ -4,7 +4,12 @@
 #include <GL/glew.h>
 #include "DisplayFacade.h" 
 
-enum class GameState{PLAY, EXIT};
+
+#define WINDOW_WIDTH 1024
+#define WINDOW_HEIGHT 768
+
+
+enum class GameState{kPlay, kExit};
 
 class MainGame
 {
@@ -12,17 +17,16 @@ public:
 	MainGame();
 	~MainGame();
 
-	void run();
+	void Run();
 
 private:
 
-	void initSystems();
-	void processInput();
-	void gameLoop();
-	void drawGame();
+	void InitSystems();
+	void ProcessInput();
+	void GameLoop();
+	void DrawGame();
 
-	DisplayFacade _gameDisplay;
-	GameState _gameState;
-
+	DisplayFacade game_display_;
+	GameState game_state_;
 };
 

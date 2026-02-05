@@ -2,13 +2,14 @@
 #include <SDL/SDL.h>
 #include <GL/glew.h>
 
-class OpenGLContext {
+class OpenGLContext
+{
 public:
     OpenGLContext(SDL_Window* window);
     ~OpenGLContext();
 
-    void swapBuffers(SDL_Window* window);
+    void SwapBuffers(SDL_Window* window);
 
 private:
-    SDL_GLContext glContext;
+    SDL_GLContext gl_context_;
 };
