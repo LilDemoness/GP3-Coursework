@@ -1,4 +1,6 @@
+#pragma once
 #include "OpenGLContext.h"
+
 #include <stdexcept>
 
 OpenGLContext::OpenGLContext(SDL_Window* window)

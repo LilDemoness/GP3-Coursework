@@ -18,7 +18,7 @@ Enums:
 Functions:
 - Pascal Case (Start with caps, first letter of words is capitalised)
 - Accessors & Mutators (Getters & Setters): Named like variables (E.g. int count -> set_count(int count))
-
+- Parameters are snake case, like non-private varaibles
  
 ## Shader Notes:
 

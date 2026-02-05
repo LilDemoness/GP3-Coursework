@@ -1,9 +1,11 @@
+#pragma once
 #include "Window.h"
+
 #include <iostream>
 
 Window::Window(const std::string& title, int width, int height, Uint32 flags) :
-    width(width),
-    height(height)
+    width_(width),
+    height_(height)
 {
     // Ensure SDL is initialized before creating the window
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)

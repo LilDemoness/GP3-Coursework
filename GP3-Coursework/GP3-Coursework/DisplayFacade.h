@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
 #include "Window.h"
 #include "OpenGLContext.h"
+#include <string>
 
 class DisplayFacade
 {
@@ -10,13 +10,12 @@ public:
     DisplayFacade(const std::string& title, const int width, const int height);
     ~DisplayFacade();
 
-    // Resize the display
-    void Resize(int newWidth, int newHeight);
-
-    // Swap buffers
+    void ClearDisplay();
     void SwapBuffers();
 
-    // Getters for screen dimensions
+
+    void Resize(int newWidth, int newHeight);
+
     int get_width() const;
     int get_height() const;
 

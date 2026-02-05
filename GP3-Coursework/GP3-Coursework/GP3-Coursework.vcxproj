@@ -74,14 +74,25 @@
     <ClCompile Include="DisplayFacade.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OpenGLContext.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="VertexAttribute.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisplayFacade.h" />
     <ClInclude Include="MainGame.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="OpenGLContext.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VertexAttribute.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\res\shader.frag" />
+    <None Include="..\res\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

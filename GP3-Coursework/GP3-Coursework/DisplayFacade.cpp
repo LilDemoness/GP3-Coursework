@@ -1,3 +1,4 @@
+#pragma once
 #include "DisplayFacade.h"
 
 
@@ -15,16 +16,26 @@ DisplayFacade::~DisplayFacade()
     delete window_;
 }
 
+
+void DisplayFacade::ClearDisplay()
+{
+    // Note: Move to context?
+    // Clear colour and depth buffer - set colour to colour defined in glClearColor
+    glClearDepth(1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+}
+void DisplayFacade::SwapBuffers()
+{
+    context_->SwapBuffers(window_->getSDLWindow());
+}
+
+
 void DisplayFacade::Resize(int newWidth, int newHeight)
 {
     screen_width_ = newWidth;
     screen_height_ = newHeight;
     SDL_SetWindowSize(window_->getSDLWindow(), newWidth, newHeight);
-}
-
-void DisplayFacade::SwapBuffers()
-{
-    context_->SwapBuffers(window_->getSDLWindow());
 }
 
 

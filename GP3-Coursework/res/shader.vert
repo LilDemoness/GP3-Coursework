@@ -1,8 +1,8 @@
-#version 120
+#version 400 core
 
-attribute vec3 position;
+layout (location = 0) in vec3 VertexPosition;
 
 void main()
 {
-	gl_Position = vec4(position, 1.0);
+	gl_Position = vec4(VertexPosition, 1.0);
 }

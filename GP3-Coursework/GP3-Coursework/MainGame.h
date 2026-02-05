@@ -2,7 +2,9 @@
 
 #include <SDL\SDL.h>
 #include <GL/glew.h>
-#include "DisplayFacade.h" 
+#include "DisplayFacade.h"
+#include "Shader.h"
+#include "Mesh.h"
 
 
 #define WINDOW_WIDTH 1024
@@ -20,7 +22,6 @@ public:
 	void Run();
 
 private:
-
 	void InitSystems();
 	void ProcessInput();
 	void GameLoop();
@@ -28,5 +29,8 @@ private:
 
 	DisplayFacade game_display_;
 	GameState game_state_;
+
+	Shader shader_;
+	Mesh mesh_;
 };
 
