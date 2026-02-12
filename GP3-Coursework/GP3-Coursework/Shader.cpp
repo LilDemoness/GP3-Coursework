@@ -8,7 +8,7 @@ Shader::Shader(const std::string& shared_file_path)
 	shader_id_ = glCreateProgram();
 
 
-	// Load our shaders (Vertex + (Geometry if it exists) + Fragment.
+	// Load our shaders (Vertex + (Geometry if it exists) + Fragment).
 	int loaded_shaders = 0;
 	std::string loaded_shader;
 
@@ -17,7 +17,7 @@ Shader::Shader(const std::string& shared_file_path)
 		shaders_[loaded_shaders++] = CreateShader(shared_file_path + ".vert", loaded_shader, GL_VERTEX_SHADER);
 	else
 		std::cout << "Failed to load Vertex Shader" << std::endl;	// Vertex shader failed to load.
-	
+
 	// Geometry (Optional).
 	if (TryLoadShader(shared_file_path + ".geom", loaded_shader))
 		shaders_[loaded_shaders++] = CreateShader(shared_file_path + ".geom", loaded_shader, GL_GEOMETRY_SHADER);
@@ -58,12 +58,12 @@ void Shader::InitialiseShaders(const std::string& shader_name, const unsigned in
 
 
 	// Associate the location of our uniform variables within the programmes.
-	uniforms_[kMVPMatrix]	= glGetUniformLocation(shader_id_, "transform");
+	uniforms_[kMVPMatrix] = glGetUniformLocation(shader_id_, "transform");
 	uniforms_[kModelMatrix] = glGetUniformLocation(shader_id_, "modelMatrix");
-	uniforms_[kViewMatrix]	= glGetUniformLocation(shader_id_, "viewMatrix");
-	uniforms_[kNormalMatrix]= glGetUniformLocation(shader_id_, "normalMatrix");
-	uniforms_[kIVPMatrix]	= glGetUniformLocation(shader_id_, "inverseViewProjectionMatrix");
-	uniforms_[kIPMatrix]	= glGetUniformLocation(shader_id_, "inverseProjectionMatrix");
+	uniforms_[kViewMatrix] = glGetUniformLocation(shader_id_, "viewMatrix");
+	uniforms_[kNormalMatrix] = glGetUniformLocation(shader_id_, "normalMatrix");
+	uniforms_[kIVPMatrix] = glGetUniformLocation(shader_id_, "inverseViewProjectionMatrix");
+	uniforms_[kIPMatrix] = glGetUniformLocation(shader_id_, "inverseProjectionMatrix");
 }
 
 
@@ -73,6 +73,11 @@ void Shader::Bind()
 	CheckShaderError(shader_id_, GL_VALIDATE_STATUS, true, "Error: Shader not valid");	// Shader Validation Error.
 
 	glUseProgram(shader_id_);	// Installs the program object specified by the program as part of the rendering state.
+}
+void Shader::Update(const Transform& transform, const Camera& camera)
+{
+	glm::mat4 mvp = camera.get_view_projection() * transform.get_model();
+	glUniformMatrix4fv(uniforms_[kMVPMatrix], 1, GLU_FALSE, &mvp[0][0]);
 }
 
 
@@ -113,7 +118,7 @@ bool Shader::TryLoadShader(const std::string& file_name, std::string& shader)
 	{
 		return false;
 	}
-	
+
 	shader = output;
 	return true;
 }

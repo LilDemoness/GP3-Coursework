@@ -1,8 +1,8 @@
 #pragma once
 
+#include <string>
 #include "Window.h"
 #include "OpenGLContext.h"
-#include <string>
 
 class DisplayFacade
 {
@@ -13,8 +13,8 @@ public:
     void ClearDisplay();
     void SwapBuffers();
 
-
     void Resize(int newWidth, int newHeight);
+
 
     int get_width() const;
     int get_height() const;
@@ -22,9 +22,9 @@ public:
 private:
     DisplayFacade() = delete;
 
-    Window* window_;           // Window wrapper
-    OpenGLContext* context_;   // OpenGL context wrapper
+    Window* window_;            // Window wrapper
+    OpenGLContext* context_;    // OpenGL context wrapper
 
-    int screen_width_;         // Current width of the screen
-    int screen_height_;        // Current height of the screen
+    int screen_width_;          // Current width of the screen
+    int screen_height_;         // Current height of the screen
 };

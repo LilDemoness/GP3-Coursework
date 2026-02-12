@@ -14,69 +14,92 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Header Files\Display">
-      <UniqueIdentifier>{dcf52a5c-58c7-4942-9d82-98136703b769}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Game">
-      <UniqueIdentifier>{9148b71e-420e-418f-bff7-416ac58599a1}</UniqueIdentifier>
+      <UniqueIdentifier>{c64f4eab-1595-425f-84d4-28f7b982457d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Display">
-      <UniqueIdentifier>{d0574161-ca6c-414a-8571-ba4c56947d33}</UniqueIdentifier>
+      <UniqueIdentifier>{70d403ca-a01e-4a84-9eae-21a0d8afaa9d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Game">
-      <UniqueIdentifier>{bfd4d677-717e-4528-870b-e80e9ad841f2}</UniqueIdentifier>
+      <UniqueIdentifier>{a4b51647-272e-4169-a6b8-eb0caed8691b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game">
+      <UniqueIdentifier>{0c7bd25b-150c-45ef-a788-87f28a1cc80f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DisplayFacade.cpp">
-      <Filter>Source Files\Display</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files\Display</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenGLContext.cpp">
-      <Filter>Source Files\Display</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DisplayFacade.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLContext.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.c">
+      <Filter>Header Files</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="obj_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VertexAttribute.cpp">
+    <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainGame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DisplayFacade.h">
+      <Filter>Header Files\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="MainGame.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
       <Filter>Header Files\Display</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLContext.h">
       <Filter>Header Files\Display</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Header Files\Display</Filter>
-    </ClInclude>
-    <ClInclude Include="Vertex.h">
+    <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VertexAttribute.h">
+    <ClInclude Include="obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\res\monkey3.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <SDL/SDL.h>
 #include <GL/glew.h>
 
@@ -9,8 +8,10 @@ public:
     OpenGLContext(SDL_Window* window);
     ~OpenGLContext();
 
-    void SwapBuffers(SDL_Window* window);
+    void swapBuffers(SDL_Window* window);
 
 private:
+    OpenGLContext() = delete;
+
     SDL_GLContext gl_context_;
 };

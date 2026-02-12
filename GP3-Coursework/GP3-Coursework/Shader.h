@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Transform.h"
+#include "Camera.h"
 #include <string>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -12,9 +14,10 @@ class Shader
 {
 public:
 	Shader(const std::string& shared_file_path);
-	~Shader();
+    ~Shader();
 
 	void Bind();
+	void Update(const Transform& transform, const Camera& camera);
 
 	bool TryLoadShader(const std::string& file_name, std::string& shader);
 	void CheckShaderError(GLuint shader, GLuint flag, bool is_program, const std::string& error_message);
@@ -22,7 +25,7 @@ public:
 
 protected:
 private:
-	static const unsigned int kNumShaders = 2;	// Max number of shader files per shader.
+	static const unsigned int kNumShaders = 3;	// Max number of shader files per shaders.
 
 	enum
 	{
@@ -39,8 +42,7 @@ private:
 
 	void InitialiseShaders(const std::string& shader_name, const unsigned int& shader_count);
 
-
-	GLuint shader_id_;	// Track the shader programme.
+	GLuint shader_id_;	// Track the shader program.
 	GLuint shaders_[kNumShaders];	// Array of shaders.
 	GLuint uniforms_[kNumUniforms];	// Number of uniform variables.
 
@@ -188,4 +190,3 @@ public:
 		}
 	}
 };
-
