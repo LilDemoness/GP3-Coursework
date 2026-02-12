@@ -1,11 +1,15 @@
 #pragma once
 #include <SDL\SDL.h>
 #include <GL/glew.h>
+#include <iostream>
+#include <string>
 #include "Shader.h"
+#include "ShaderManager.h"
 #include "Mesh.h"
 #include "Texture.h"
-#include "transform.h"
-#include "DisplayFacade.h" 
+#include "Transform.h"
+#include "DisplayFacade.h"
+#include "Camera.h"
 
 
 #define WINDOW_WIDTH 1280
@@ -32,8 +36,7 @@ private:
 	Mesh mesh_1_;
 	Mesh mesh_2_;
 	Camera my_camera_;
-	Texture texture_; 
-	Shader shader_;
+	Texture texture_;
 	Transform transform_;
 
 	float counter_;
