@@ -16,7 +16,7 @@ public:
 
 
 	// Creates a simple triangle mesh.
-	static Mesh CreateTriangleMesh();
+	static Mesh* CreateTriangleMesh();
 
 
 	void Draw();

@@ -31,7 +31,7 @@ Mesh::~Mesh()
 }
 
 
-Mesh Mesh::CreateTriangleMesh()
+Mesh* Mesh::CreateTriangleMesh()
 {
     Vertex vertices[3] = {
         Vertex(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),  // Bottom Left
@@ -44,7 +44,7 @@ Mesh Mesh::CreateTriangleMesh()
     unsigned int numVertices = sizeof(vertices) / sizeof(vertices[0]);
     unsigned int numIndices = sizeof(indices) / sizeof(indices[0]);
 
-    return Mesh(vertices, numVertices, indices, numIndices);
+    return new Mesh(vertices, numVertices, indices, numIndices);
 }
 
 

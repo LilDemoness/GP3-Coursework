@@ -5,11 +5,15 @@
 
 MainGame::MainGame()
 	: game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
-	  game_state_(GameState::PLAY), counter_(0.0f),
+	  game_state_(GameState::PLAY),
+	  counter_(0.0f),
+	  delta_time_(0.0f),
+	  last_frame_start_time_(0.0f),
+
 	  my_camera_(glm::vec3(0, 0, -5), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f),
 	  texture_("..\\res\\bricks.jpg"),
-      mesh_1_(Mesh::CreateTriangleMesh()),
-      mesh_2_("..\\res\\monkey3.obj")
+      object_1_(Mesh::CreateTriangleMesh()),
+      object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f))
 {
 	ShaderManager::get_instance().LoadShader("DefaultShader", "..\\res\\shader");
 }
@@ -35,8 +39,20 @@ void MainGame::GameLoop()
 {
 	while (game_state_ != GameState::EXIT)
 	{
+		// Cache the high resolution time at the start of the frame.
+		Uint64 start = SDL_GetPerformanceCounter();
+		CalculateDeltaTime(start);
+
+
+		// Handle the frame.
 		ProcessInput();
 		DrawGame();
+
+
+		// Limit and (optionally) display our framerate.
+		counter_ += delta_time_;
+		CapFramerate(start);
+		//DisplayFramerate(start);
 	}
 }
 
@@ -61,27 +77,48 @@ void MainGame::DrawGame()
 {
 	game_display_.ClearDisplay();
 
-	std::shared_ptr<Shader> active_shader = ShaderManager::get_instance().GetActiveShader();
-	active_shader->Bind();
 
+	object_1_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
+	object_2_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
+
+	//std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().GetShader("OverrideShader");
 	texture_.Bind(0);
-	transform_.set_rot(glm::vec3(0.0,counter_ * 2, 0.0));
-	transform_.set_scale(glm::vec3(1.0, 1.0, 1.0));
 
-
-	transform_.set_pos(glm::vec3(0.0,0.0, 0.0));
-	active_shader->Update(transform_, my_camera_);
-	mesh_1_.Draw();
-
-	transform_.set_pos(glm::vec3(2.0, 0.0, 0.0));
-	active_shader->Update(transform_, my_camera_);
-	mesh_2_.Draw();
-
-
-	counter_ = counter_ + 0.01f;
+	object_1_.Draw(my_camera_);
+	object_2_.Draw(my_camera_);
 				
 	//glEnableClientState(GL_COLOR_ARRAY); 
 	//glEnd();
 
 	game_display_.SwapBuffers();
 } 
+
+
+
+void MainGame::CalculateDeltaTime(Uint64 frame_start_time)
+{
+	delta_time_ = (frame_start_time - last_frame_start_time_) / (float)SDL_GetPerformanceFrequency();
+	last_frame_start_time_ = frame_start_time;
+}
+void MainGame::CapFramerate(Uint64 frame_start_time)
+{
+	// Cache the high resolution time after handling our frame.
+	Uint64 frame_end_time = SDL_GetPerformanceCounter();
+	float elapsed_ms = (frame_end_time - frame_start_time) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+
+	// Cap our framerate.
+	// Note: Can be innaccurate by a small amount for high framerates (E.g. 120FPS).
+	const float kDelayMS = (1.0f / (float)MAX_FRAMERATE) * 1000.0f;
+	float duration = std::floor(kDelayMS - elapsed_ms);
+	if (duration > 0)
+	{
+		SDL_Delay(duration);
+	}
+}
+void MainGame::DisplayFramerate(Uint64 frame_start_time)
+{
+	// Output our Framerate.
+	Uint64 frame_end_time = SDL_GetPerformanceCounter();
+	float elapsed_s = (frame_end_time - frame_start_time) / (float)SDL_GetPerformanceFrequency();
+	std::cout << "Current FPS: " << std::to_string(std::round(1.0 / elapsed_s)) << ". Delta Time: " << std::to_string(delta_time_) << std::endl;
+}
