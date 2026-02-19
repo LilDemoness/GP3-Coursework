@@ -10,13 +10,17 @@ struct Camera
 {
 public:
 	Camera(const glm::vec3& position, float field_of_view, float aspect, float near_clip, float far_clip)
-		: transform_(position, glm::vec3(0.0f), glm::vec3(1.0f)),
-		  projection_(glm::perspective(field_of_view, aspect, near_clip, far_clip)),
-		  near_clip_(near_clip),
-		  far_clip_(far_clip)
+		: transform_(new Transform(position, glm::vec3(0.0f), glm::vec3(1.0f))),
+		projection_(glm::perspective(field_of_view, aspect, near_clip, far_clip)),
+		near_clip_(near_clip),
+		far_clip_(far_clip)
 	{ }
+	~Camera()
+	{
+		delete transform_;
+	}
 
-	Transform get_transform() const { return transform_; }
+	Transform* get_transform() const { return transform_; }
 
 	inline glm::mat4 get_view_projection() const
 	{
@@ -25,7 +29,7 @@ public:
 	inline glm::mat4 get_projection() const { return projection_; }
 	inline glm::mat4 get_view() const
 	{
-		return glm::lookAt(transform_.get_pos(), transform_.get_pos() + transform_.get_forward(), transform_.get_up());
+		return glm::lookAt(transform_->get_pos(), transform_->get_pos() + transform_->get_forward(), transform_->get_up());
 	}
 
 
@@ -36,8 +40,9 @@ public:
 protected:
 private:
 	Camera() = delete;
+	Camera(Camera& other) = delete;
 
-	Transform transform_;
+	Transform* transform_;
 	glm::mat4 projection_;
 
 	float near_clip_, far_clip_;

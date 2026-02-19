@@ -9,8 +9,7 @@ GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& posit
 GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
 	: mesh_(mesh),
 	  transform_(position, rotation, scale)
-{
-}
+{}
 GameObject::~GameObject()
 {
 

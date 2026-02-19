@@ -22,7 +22,7 @@ public:
 	void Draw();
 
 private:
-	//Mesh(Mesh& other) = delete;
+	Mesh(Mesh& other) = delete;
 
 	void InitModel(const IndexedModel& model);
 

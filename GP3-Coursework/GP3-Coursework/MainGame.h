@@ -48,7 +48,7 @@ private:
 	GameState game_state_;
 	GameObject object_1_;
 	GameObject object_2_;
-	Camera my_camera_;
+	Camera camera_;
 	Texture texture_;
 
 
