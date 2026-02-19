@@ -1,10 +1,14 @@
 #pragma once
 
-#include "Transform.h"
-#include "Camera.h"
-#include <string>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "UBOManager.h"
+#include "Transform.h"
+#include "Camera.h"
+
+#include <string>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -17,11 +21,14 @@ public:
     ~Shader();
 
 	void Bind();
-	void Update(const Transform& transform, const Camera& camera);
+	void UpdateMatricesUBO(const Transform& transform, const Camera& camera);
 
 	bool TryLoadShader(const std::string& file_name, std::string& shader);
 	void CheckShaderError(GLuint shader, GLuint flag, bool is_program, const std::string& error_message);
 	GLuint CreateShader(const std::string& identifier, const std::string& text, unsigned int type);
+
+
+	inline GLuint get_id() const { return shader_id_; }
 
 protected:
 private:

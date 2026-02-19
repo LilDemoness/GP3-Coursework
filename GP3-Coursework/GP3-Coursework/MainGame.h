@@ -2,9 +2,11 @@
 
 #include <SDL\SDL.h>
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 #include "ShaderManager.h"
+#include "UBOManager.h"
 #include "GameObject.h"
 #include "Texture.h"
 #include "Transform.h"
@@ -34,6 +36,7 @@ public:
 
 private:
 	void InitSystems();
+	void InitUBOs();
 
 	void ProcessInput();
 	void GameLoop();

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Shader.h"
+#include "UBOManager.h"
+
 #include <unordered_map>
 #include <memory>
 #include <string>
 #include <iostream>
-#include "Shader.h"
 
 class ShaderManager
 {
@@ -18,6 +20,8 @@ public:
 	std::shared_ptr<Shader> GetActiveShader();
 
 	void Clear();
+
+	void BindAllShaders(const std::string& ubo_tag);
 
 private:
 	ShaderManager();

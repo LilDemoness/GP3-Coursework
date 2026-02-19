@@ -23,7 +23,7 @@ void GameObject::Draw(const Camera& camera)
 void GameObject::Draw(std::shared_ptr<Shader> shader, const Camera& camera)
 {
 	shader->Bind();
-	shader->Update(transform_, camera);
+	shader->UpdateMatricesUBO(transform_, camera);
 	mesh_->Draw();
 }
 

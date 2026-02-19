@@ -33,6 +33,23 @@ void MainGame::InitSystems()
 	glEnable(GL_DEPTH_TEST); // Enable Z-buffering.
 	glEnable(GL_CULL_FACE);  // Enable face culling.
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Set clear color to black.
+
+	InitUBOs();
+}
+void MainGame::InitUBOs()
+{
+	// Create our UBOs.
+	UBOManager::get_instance().CreateUBO(kMatricesTag, sizeof(glm::mat4) * 3, 0);
+
+	// Populate with initial data to ensure they aren't undefined.
+	const glm::mat4 kIdentity = glm::mat4(1.0f);
+	const size_t kMat4Size = sizeof(glm::mat4);
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, 0, glm::value_ptr(kIdentity), kMat4Size);
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, kMat4Size, glm::value_ptr(kIdentity), kMat4Size);
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, kMat4Size * 2, glm::value_ptr(kIdentity), kMat4Size);
+
+	// Bind UBO to shaders.
+	ShaderManager::get_instance().BindAllShaders(kMatricesTag);
 }
 
 void MainGame::GameLoop()
@@ -78,8 +95,8 @@ void MainGame::DrawGame()
 	game_display_.ClearDisplay();
 
 
-	//object_1_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
-	//object_2_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
+	object_1_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
+	object_2_.get_transform()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(180.0f * delta_time_));
 
 	//std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().GetShader("OverrideShader");
 	texture_.Bind(0);

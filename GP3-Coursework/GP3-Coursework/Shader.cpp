@@ -74,10 +74,13 @@ void Shader::Bind()
 
 	glUseProgram(shader_id_);	// Installs the program object specified by the program as part of the rendering state.
 }
-void Shader::Update(const Transform& transform, const Camera& camera)
+void Shader::UpdateMatricesUBO(const Transform& transform, const Camera& camera)
 {
-	glm::mat4 mvp = camera.get_view_projection() * transform.get_model();
-	glUniformMatrix4fv(uniforms_[kMVPMatrix], 1, GLU_FALSE, &mvp[0][0]);
+	const size_t kMat4Size = sizeof(glm::mat4);
+
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, 0, glm::value_ptr(transform.get_model()), kMat4Size);
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, kMat4Size, glm::value_ptr(camera.get_view()), kMat4Size);
+	UBOManager::get_instance().UpdateUBOData(kMatricesTag, kMat4Size * 2, glm::value_ptr(camera.get_projection()), kMat4Size);
 }
 
 

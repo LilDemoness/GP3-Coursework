@@ -64,3 +64,13 @@ void ShaderManager::Clear()
 {
 	shaders_.clear();
 }
+
+
+void ShaderManager::BindAllShaders(const std::string& ubo_tag)
+{
+	// Loop through all Shaders and bind our UBO.
+	for (auto const& [id, shader] : shaders_)
+	{
+		UBOManager::get_instance().BindUBOToShader(ubo_tag, shader->get_id(), ubo_tag);
+	}
+}
