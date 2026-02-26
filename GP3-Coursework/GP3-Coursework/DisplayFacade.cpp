@@ -16,20 +16,20 @@ DisplayFacade::~DisplayFacade()
 }
 
 
-void DisplayFacade::ClearDisplay()
+void DisplayFacade::clear_display()
 {
     // Note: Move to context?
-    // Clear colour and depth buffer - set colour to colour defined in glClearColor
+    // clear colour and depth buffer - set colour to colour defined in glClearColor
     glClearDepth(1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-void DisplayFacade::SwapBuffers()
+void DisplayFacade::swap_buffers()
 {
-    context_->swapBuffers(window_->get_SDL_window());
+    context_->swap_buffers(window_->get_SDL_window());
 }
 
 
-void DisplayFacade::Resize(int newWidth, int newHeight)
+void DisplayFacade::resize(int newWidth, int newHeight)
 {
     screen_width_ = newWidth;
     screen_height_ = newHeight;

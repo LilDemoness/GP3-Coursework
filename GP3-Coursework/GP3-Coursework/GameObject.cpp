@@ -16,15 +16,15 @@ GameObject::~GameObject()
 }
 
 
-void GameObject::Draw(const Camera& camera)
+void GameObject::draw(const Camera& camera)
 {
-	Draw(ShaderManager::get_instance().GetActiveShader(), camera);
+	draw(ShaderManager::get_instance().get_active_shader(), camera);
 }
-void GameObject::Draw(std::shared_ptr<Shader> shader, const Camera& camera)
+void GameObject::draw(std::shared_ptr<Shader> shader, const Camera& camera)
 {
-	shader->Bind();
-	shader->UpdateMatricesUBO(transform_, camera);
-	mesh_->Draw();
+	shader->bind();
+	shader->update_matrices_ubo(transform_, camera);
+	mesh_->draw();
 }
 
 

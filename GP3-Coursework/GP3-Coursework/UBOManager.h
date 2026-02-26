@@ -11,11 +11,11 @@ class UBOManager
 public:
 	static UBOManager& get_instance();
 
-	void CreateUBO(const std::string& tag, const size_t size, const GLuint binding_point);
-	void UpdateUBOData(const std::string& tag, const size_t offset, const void* data, const size_t data_size);
-	void BindUBOToShader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name);
+	void create_ubo(const std::string& tag, const size_t size, const GLuint binding_point);
+	void create_ubo_data(const std::string& tag, const size_t offset, const void* data, const size_t data_size);
+	void bind_ubo_to_shader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name);
 
-	void Clear();	// Cleanup all UBOs.
+	void clear();	// Cleanup all UBOs.
 
 
 

@@ -10,10 +10,10 @@ public:
     DisplayFacade(const std::string& title, const int width, const int height);
     ~DisplayFacade();
 
-    void ClearDisplay();
-    void SwapBuffers();
+    void clear_display();
+    void swap_buffers();
 
-    void Resize(int newWidth, int newHeight);
+    void resize(int newWidth, int newHeight);
 
 
     int get_width() const;

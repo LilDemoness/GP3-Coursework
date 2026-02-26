@@ -16,12 +16,12 @@ Mesh::Mesh(Vertex* vertices, unsigned int num_vertices, unsigned int* indices, u
         model.indices.push_back(indices[i]);
     }
 
-    InitModel(model);
+    init_model(model);
 }
 Mesh::Mesh(const std::string& file_name)
 {
     IndexedModel model = OBJModel(file_name).ToIndexedModel();
-    InitModel(model);
+    init_model(model);
 }
 Mesh::~Mesh()
 {
@@ -31,7 +31,7 @@ Mesh::~Mesh()
 }
 
 
-Mesh* Mesh::CreateTriangleMesh()
+Mesh* Mesh::create_triangle_mesh()
 {
     Vertex vertices[3] = {
         Vertex(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),  // Bottom Left
@@ -48,7 +48,7 @@ Mesh* Mesh::CreateTriangleMesh()
 }
 
 
-void Mesh::InitModel(const IndexedModel& model)
+void Mesh::init_model(const IndexedModel& model)
 {
     draw_count_ = model.indices.size();
 
@@ -109,7 +109,7 @@ void Mesh::InitModel(const IndexedModel& model)
     glBindVertexArray(0);
 }
 
-void Mesh::Draw()
+void Mesh::draw()
 {
     glBindVertexArray(vertex_array_object_);
     glDrawElements(GL_TRIANGLES, draw_count_, GL_UNSIGNED_INT, 0);

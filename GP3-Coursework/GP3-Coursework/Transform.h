@@ -38,7 +38,7 @@ public:
 		this->pos_ = new_pos;
 
 		// Set our children's position.
-		for (int i = 0; i < this->GetChildCount(); ++i)
+		for (int i = 0; i < this->get_child_count(); ++i)
 		{
 			this->get_child(i)->set_pos(this->get_child(i)->get_pos() + offset);
 		}
@@ -69,13 +69,13 @@ public:
 	inline void set_euler_angles(const glm::vec3& new_rot) { this->set_rot(glm::quat(new_rot)); }
 	inline void set_rot(const glm::quat& new_rot)
 	{
-		glm::quat rotation_difference = Diff(rot_, new_rot);
+		glm::quat rotation_difference = diff(rot_, new_rot);
 
 		// Set our rotation.
 		this->rot_ = new_rot;
 
 		// Update our children's rotation.
-		for (int i = 0; i < this->GetChildCount(); ++i)
+		for (int i = 0; i < this->get_child_count(); ++i)
 		{
 			Transform* child = this->get_child(i);
 
@@ -92,7 +92,7 @@ public:
 
 			// --- Child Rotation ---
 			// Update the child's rotation.
-			glm::quat new_rot = Add(glm::inverse(rotation_difference), child->get_rot());
+			glm::quat new_rot = add(glm::inverse(rotation_difference), child->get_rot());
 			child->set_rot(new_rot);
 		}
 	}
@@ -108,7 +108,7 @@ public:
 		this->scale_ = new_scale;
 
 		// Update our children's scale & relative positions.
-		for (int i = 0; i < this->GetChildCount(); ++i)
+		for (int i = 0; i < this->get_child_count(); ++i)
 		{
 			Transform* child = this->get_child(i);
 
@@ -138,7 +138,7 @@ public:
 		kWorldSpace
 	};
 
-	void Rotate(glm::vec3 axis, float angle, RotationSpace rotationSpace = RotationSpace::kLocalSpace)
+	void rotate(glm::vec3 axis, float angle, RotationSpace rotationSpace = RotationSpace::kLocalSpace)
 	{
 		if (rotationSpace == RotationSpace::kWorldSpace)
 		{
@@ -149,11 +149,11 @@ public:
 
 		// Calculate and set our new rotation (Second Rot * First Rot).
 		glm::quat orientation_quaternion = glm::angleAxis(angle, glm::normalize(axis));
-		this->set_rot(Add(rot_, orientation_quaternion));
+		this->set_rot(add(rot_, orientation_quaternion));
 	}
-	void RotateAroundPoint(glm::vec3 point, glm::vec3 rotation_axis, float angle)
+	void rotate_around_point(glm::vec3 point, glm::vec3 rotation_axis, float angle)
 	{
-		// Rotate our position around the specified point.
+		// rotate our position around the specified point.
 		glm::quat position_orientation_quaternion = glm::angleAxis(angle, glm::normalize(rotation_axis));
 		glm::vec3 rotated_point = point + (position_orientation_quaternion * (this->get_pos() - point));
 		this->set_pos(rotated_point);
@@ -162,12 +162,12 @@ public:
 		rotation_axis = rot_ * rotation_axis;
 
 		// Apply our rotation.
-		this->set_rot(Add(rot_, glm::angleAxis(-angle, glm::normalize(rotation_axis))));
+		this->set_rot(add(rot_, glm::angleAxis(-angle, glm::normalize(rotation_axis))));
 	}
 
 
 	// Transform Hierarchy.
-	bool HasParent() const { return parent_ != nullptr; }
+	bool has_parent() const { return parent_ != nullptr; }
 	Transform* get_parent() const { return parent_; }
 	bool set_parent(Transform* new_parent, bool reset_position = false)
 	{
@@ -178,7 +178,7 @@ public:
 			return false;
 		}
 		// We cannot set ourselves to the child of an object which we are the parent of (Whether immediately or not).
-		if (new_parent->IsChildOf(this))
+		if (new_parent->is_child_of(this))
 		{
 			return false;
 		}
@@ -188,14 +188,14 @@ public:
 		// Remove ourselves from our old parent.
 		if (parent_ != nullptr)
 		{
-			parent_->RemoveChild(this);
+			parent_->remove_child(this);
 		}
 
 		// Set our parent.
 		parent_ = new_parent;
 
 		// Notify our new parent that we are now it's child.
-		parent_->AddChild(this);
+		parent_->add_child(this);
 
 		// Zero our local position (If resired).
 		if (reset_position)
@@ -208,7 +208,7 @@ public:
 	/*
 		Check if the passed transform is a parent of this transform (Either immediately or further up the hierarchy).
 	*/
-	bool IsChildOf(const Transform* possible_parent) const
+	bool is_child_of(const Transform* possible_parent) const
 	{
 		Transform* current_transform = this->parent_;
 
@@ -228,15 +228,15 @@ public:
 	}
 
 
-	int GetChildCount() const { return children_.size(); }
+	int get_child_count() const { return children_.size(); }
 	Transform* get_child(const int& index) const { return children_[index]; }
 	/*
 		Check if the passed transform is a child of this transform.
 	*/
-	bool HasChild(const Transform* possible_child) const
+	bool has_child(const Transform* possible_child) const
 	{
-		// By using 'IsChildOf', we only check parents, which there are likely to be less of than children.
-		return possible_child->IsChildOf(this);
+		// By using 'is_child_of', we only check parents, which there are likely to be less of than children.
+		return possible_child->is_child_of(this);
 
 		/*// Check this transform.
 		if (this == possible_child)
@@ -245,9 +245,9 @@ public:
 		}
 
 		// Check each child.
-		for (int i = 0; i < this->GetChildCount(); ++i)
+		for (int i = 0; i < this->get_child_count(); ++i)
 		{
-			if (this->get_child(i)->HasChild(possible_child))
+			if (this->get_child(i)->has_child(possible_child))
 			{
 				return true;
 			}
@@ -272,15 +272,15 @@ private:
 	std::vector<Transform*> children_;
 
 
-	void AddChild(Transform* new_child) { children_.push_back(new_child); }
+	void add_child(Transform* new_child) { children_.push_back(new_child); }
 	/*
 		Remove a child from a transform.
 		Note: Doesn't unset the child's parent.
 	*/
-	void RemoveChild(Transform* child_to_remove) { children_.erase(std::remove(children_.begin(), children_.end(), child_to_remove), children_.end()); }
+	void remove_child(Transform* child_to_remove) { children_.erase(std::remove(children_.begin(), children_.end(), child_to_remove), children_.end()); }
 
 
 	// Quaternion Helper Functions.
-	inline glm::quat Diff(glm::quat to, glm::quat from) const { return to * glm::inverse(from); }
-	inline glm::quat Add(glm::quat start, glm::quat diff) const { return diff * start; }
+	inline glm::quat diff(glm::quat to, glm::quat from) const { return to * glm::inverse(from); }
+	inline glm::quat add(glm::quat start, glm::quat diff) const { return diff * start; }
 };

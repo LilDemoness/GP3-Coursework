@@ -24,7 +24,7 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-enum class GameState{PLAY, EXIT};
+enum class GameState{kPlay, kExit};
 
 class MainGame
 {
@@ -35,16 +35,16 @@ public:
 	void Run();
 
 private:
-	void InitSystems();
-	void InitUBOs();
+	void init_systems();
+	void init_UBOs();
 
-	void ProcessInput();
-	void GameLoop();
-	void DrawGame();
+	void process_input();
+	void game_loop();
+	void draw_game();
 
-	void CalculateDeltaTime(Uint64 frame_start_time);
-	void CapFramerate(Uint64 frame_start_time);
-	void DisplayFramerate(Uint64 frame_start_time);
+	void calculate_delta_time(Uint64 frame_start_time);
+	void cap_framerate(Uint64 frame_start_time);
+	void display_framerate(Uint64 frame_start_time);
 
 
 	DisplayFacade game_display_;

@@ -24,7 +24,7 @@ OpenGLContext::~OpenGLContext()
     SDL_GL_DeleteContext(gl_context_);
 }
 
-void OpenGLContext::swapBuffers(SDL_Window* window_)
+void OpenGLContext::swap_buffers(SDL_Window* window_)
 {
     SDL_GL_SwapWindow(window_);
 }

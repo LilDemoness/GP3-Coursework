@@ -13,15 +13,15 @@ class ShaderManager
 public:
 	static ShaderManager& get_instance();
 
-	std::shared_ptr<Shader> LoadShader(const std::string& tag, const std::string& shared_file_path);
-	std::shared_ptr<Shader> GetShader(const std::string& tag);
+	std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& shared_file_path);
+	std::shared_ptr<Shader> get_shader(const std::string& tag);
 
-	void SetActiveShader(const std::string& tag);
-	std::shared_ptr<Shader> GetActiveShader();
+	void set_active_shader(const std::string& tag);
+	std::shared_ptr<Shader> get_active_shader();
 
-	void Clear();
+	void clear();
 
-	void BindAllShaders(const std::string& ubo_tag);
+	void bind_all_shaders(const std::string& ubo_tag);
 
 private:
 	ShaderManager();

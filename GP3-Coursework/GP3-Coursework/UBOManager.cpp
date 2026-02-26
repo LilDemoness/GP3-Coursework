@@ -24,7 +24,7 @@ UBOManager& UBOManager::get_instance()
 // @param tag A unique identifier for the UBO.
 // @param size The total size of the UBO, in bytes.
 // @param binding_point The binding index that links the UBO to shaders.
-void UBOManager::CreateUBO(const std::string& tag, const size_t size, const GLuint binding_point)
+void UBOManager::create_ubo(const std::string& tag, const size_t size, const GLuint binding_point)
 {
 	// Check if a UBO with this tag already exists.
 	if (ubos_.find(tag) != ubos_.end())
@@ -36,7 +36,7 @@ void UBOManager::CreateUBO(const std::string& tag, const size_t size, const GLui
 	// Create & Setup the UBO.
 	GLuint ubo;
 	glGenBuffers(1, &ubo); // Generate a buffer for the UBO. 
-	glBindBuffer(GL_UNIFORM_BUFFER, ubo); // Bind the buffer for modification.
+	glBindBuffer(GL_UNIFORM_BUFFER, ubo); // bind the buffer for modification.
 	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW); // Allocate memory for the UBO.
 	glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, ubo); // Link UBO to binding point.
 	glBindBuffer(GL_UNIFORM_BUFFER, 0); // Unbind UBO after setup.
@@ -53,7 +53,7 @@ void UBOManager::CreateUBO(const std::string& tag, const size_t size, const GLui
 // @param offset The byte offset within the UBO to start updating data.
 // @param data Pointer to the data being sent to the GPU.
 // @param data_size The size of the data being sent, in bytes.
-void UBOManager::UpdateUBOData(const std::string& tag, const size_t offset, const void* data, const size_t data_size)
+void UBOManager::create_ubo_data(const std::string& tag, const size_t offset, const void* data, const size_t data_size)
 {
 	// Check if a UBO with this tag already exists.
 	if (ubos_.find(tag) == ubos_.end())
@@ -62,7 +62,7 @@ void UBOManager::UpdateUBOData(const std::string& tag, const size_t offset, cons
 		return;
 	}
 
-	// Bind the UBO and update the specified section.
+	// bind the UBO and update the specified section.
 	glBindBuffer(GL_UNIFORM_BUFFER, ubos_[tag].buffer_id);
 	glBufferSubData(GL_UNIFORM_BUFFER, offset, data_size, data);
 	// Unbind after update.
@@ -75,7 +75,7 @@ void UBOManager::UpdateUBOData(const std::string& tag, const size_t offset, cons
 // @param ubo_tag The identifier of the UBO in the UBOManager.
 // @param shader_id The OpenGL shader program ID.
 // @param ubo_name The name of the uniform block in the shader.
-void UBOManager::BindUBOToShader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name)
+void UBOManager::bind_ubo_to_shader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name)
 {
 	// Check if a UBO with this tag already exists.
 	if (ubos_.find(ubo_tag) == ubos_.end())
@@ -92,14 +92,14 @@ void UBOManager::BindUBOToShader(const std::string& ubo_tag, const GLuint shader
 		return;
 	}
 
-	// Bind the uniform block to the UBO's binding point.
+	// bind the uniform block to the UBO's binding point.
 	glUniformBlockBinding(shader_id, block_index, ubos_[ubo_tag].binding_point);
 }
 
 
 // Deletes all stored Uniform Buffer Objects (UBOs) and clears the manager.
 // This frees GPU Memory and should be used when cleaning up the application or unloading assets.
-void UBOManager::Clear()
+void UBOManager::clear()
 {
 	// Delete all UBO Buffers.
 	for (auto const& [tag, ubo_data] : ubos_)
@@ -107,6 +107,6 @@ void UBOManager::Clear()
 		glDeleteBuffers(1, &ubo_data.buffer_id);
 	}
 	
-	// Clear the map.
+	// clear the map.
 	ubos_.clear();
 }

@@ -8,7 +8,7 @@ public:
     OpenGLContext(SDL_Window* window);
     ~OpenGLContext();
 
-    void swapBuffers(SDL_Window* window);
+    void swap_buffers(SDL_Window* window);
 
 private:
     OpenGLContext() = delete;

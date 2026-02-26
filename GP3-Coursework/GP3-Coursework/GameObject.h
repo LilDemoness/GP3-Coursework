@@ -16,8 +16,8 @@ public:
 	~GameObject();
 
 
-	void Draw(const Camera& camera);
-	void Draw(std::shared_ptr<Shader> shader, const Camera& camera);
+	void draw(const Camera& camera);
+	void draw(std::shared_ptr<Shader> shader, const Camera& camera);
 
 	Transform* get_transform();	// Returns a pointer so that we can edit the original through the returned reference.
 	Mesh* get_mesh() const;

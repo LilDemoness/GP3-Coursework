@@ -2,9 +2,9 @@
 A repository for the work done on my Y4 Games Programming 3 module's labs and subsequent coursework
 
 
-# Naming Conventions
+# Conventions
 
-C++ Style Link: https://google.github.io/styleguide/cppguide.html
+C++ Style Link: https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md
 
 ## Quick Notes (C++)
 
@@ -14,9 +14,10 @@ Variables: Snake Case
 
 Enums:
 - Name enums like constants ('k' prefix), not macros (All caps)
+- Be specific when refering enums (Always use EnumName::kEnumValue)
 
 Functions:
-- Pascal Case (Start with caps, first letter of words is capitalised)
+- Snake Case (All lowercase, words separated by underscore)
 - Accessors & Mutators (Getters & Setters): Named like variables (E.g. int count -> set_count(int count))
 - Parameters are snake case, like non-private varaibles
  

@@ -20,12 +20,12 @@ public:
 	Shader(const std::string& shared_file_path);
     ~Shader();
 
-	void Bind();
-	void UpdateMatricesUBO(const Transform& transform, const Camera& camera);
+	void bind();
+	void update_matrices_ubo(const Transform& transform, const Camera& camera);
 
-	bool TryLoadShader(const std::string& file_name, std::string& shader);
-	void CheckShaderError(GLuint shader, GLuint flag, bool is_program, const std::string& error_message);
-	GLuint CreateShader(const std::string& identifier, const std::string& text, unsigned int type);
+	bool try_load_shader(const std::string& file_name, std::string& shader);
+	void check_shader_error(GLuint shader, GLuint flag, bool is_program, const std::string& error_message);
+	GLuint create_shader(const std::string& identifier, const std::string& text, unsigned int type);
 
 
 	inline GLuint get_id() const { return shader_id_; }
@@ -34,7 +34,7 @@ protected:
 private:
 	static const unsigned int kNumShaders = 3;	// Max number of shader files per shaders.
 
-	enum
+	enum Matrices
 	{
 		kMVPMatrix,
 		kModelMatrix,
@@ -47,11 +47,11 @@ private:
 		kNumUniforms,
 	};
 
-	void InitialiseShaders(const std::string& shader_name, const unsigned int& shader_count);
+	void initialise_shaders(const std::string& shader_name, const unsigned int& shader_count);
 
 	GLuint shader_id_;	// Track the shader program.
 	GLuint shaders_[kNumShaders];	// Array of shaders.
-	GLuint uniforms_[kNumUniforms];	// Number of uniform variables.
+	GLuint uniforms_[Matrices::kNumUniforms];	// Number of uniform variables.
 
 
 public:

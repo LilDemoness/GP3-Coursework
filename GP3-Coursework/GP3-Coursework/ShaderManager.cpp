@@ -13,7 +13,7 @@ ShaderManager::~ShaderManager()
 { }
 
 
-std::shared_ptr<Shader> ShaderManager::LoadShader(const std::string& tag, const std::string& shared_file_path)
+std::shared_ptr<Shader> ShaderManager::load_shader(const std::string& tag, const std::string& shared_file_path)
 {
 	if (shaders_.find(tag) != shaders_.end())
 	{
@@ -27,7 +27,7 @@ std::shared_ptr<Shader> ShaderManager::LoadShader(const std::string& tag, const 
 	shaders_[tag] = shader;
 	return shader;
 }
-std::shared_ptr<Shader> ShaderManager::GetShader(const std::string& tag)
+std::shared_ptr<Shader> ShaderManager::get_shader(const std::string& tag)
 {
 	if (shaders_.find(tag) == shaders_.end())
 	{
@@ -39,7 +39,7 @@ std::shared_ptr<Shader> ShaderManager::GetShader(const std::string& tag)
 }
 
 
-void ShaderManager::SetActiveShader(const std::string& tag)
+void ShaderManager::set_active_shader(const std::string& tag)
 {
 	if (tag.empty())
 	{
@@ -54,23 +54,23 @@ void ShaderManager::SetActiveShader(const std::string& tag)
 
 	default_active_shader_tag = tag;
 }
-std::shared_ptr<Shader> ShaderManager::GetActiveShader()
+std::shared_ptr<Shader> ShaderManager::get_active_shader()
 {
 	return shaders_[default_active_shader_tag];
 }
 
 
-void ShaderManager::Clear()
+void ShaderManager::clear()
 {
 	shaders_.clear();
 }
 
 
-void ShaderManager::BindAllShaders(const std::string& ubo_tag)
+void ShaderManager::bind_all_shaders(const std::string& ubo_tag)
 {
 	// Loop through all Shaders and bind our UBO.
 	for (auto const& [id, shader] : shaders_)
 	{
-		UBOManager::get_instance().BindUBOToShader(ubo_tag, shader->get_id(), ubo_tag);
+		UBOManager::get_instance().bind_ubo_to_shader(ubo_tag, shader->get_id(), ubo_tag);
 	}
 }

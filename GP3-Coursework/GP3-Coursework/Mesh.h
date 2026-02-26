@@ -16,15 +16,15 @@ public:
 
 
 	// Creates a simple triangle mesh.
-	static Mesh* CreateTriangleMesh();
+	static Mesh* create_triangle_mesh();
 
 
-	void Draw();
+	void draw();
 
 private:
 	Mesh(Mesh& other) = delete;
 
-	void InitModel(const IndexedModel& model);
+	void init_model(const IndexedModel& model);
 
 	GLuint vertex_array_object_ = 0;	// Vertex Array Object.
 	GLuint vertex_buffer_object_ = 0;	// Interleaved Vertex Buffer Object.
