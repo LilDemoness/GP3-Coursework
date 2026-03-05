@@ -34,6 +34,7 @@ void MainGame::init_systems()
 	glEnable(GL_CULL_FACE);  // Enable face culling.
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Set clear color to black.
 
+	load_dlls();
 	init_UBOs();
 }
 void MainGame::init_UBOs()
@@ -51,6 +52,20 @@ void MainGame::init_UBOs()
 	// bind UBO to shaders.
 	ShaderManager::get_instance().bind_all_shaders(kMatricesTag);
 }
+
+void MainGame::load_dlls()
+{
+	load_physics_engine_unsafe();
+}
+void MainGame::load_physics_engine_unsafe()
+{
+	DLLManager::get_instance().load_dll(PHYSICS_ENGINE_DLL_NAME);
+	HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "HelloWorld");
+
+	hello_world();
+}
+
+
 
 void MainGame::game_loop()
 {

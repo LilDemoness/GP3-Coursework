@@ -7,6 +7,7 @@
 #include "Shader.h"
 #include "ShaderManager.h"
 #include "UBOManager.h"
+#include "DLLManager.h"
 #include "GameObject.h"
 #include "Texture.h"
 #include "Transform.h"
@@ -24,6 +25,9 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
+#define PHYSICS_ENGINE_DLL_NAME "PhysicsEngine.dll"
+using HelloWorldFunc = void(*)();
+
 enum class GameState{kPlay, kExit};
 
 class MainGame
@@ -37,6 +41,10 @@ public:
 private:
 	void init_systems();
 	void init_UBOs();
+
+	void load_dlls();
+	void load_physics_engine_unsafe();
+
 
 	void process_input();
 	void game_loop();
