@@ -30,7 +30,7 @@ MainGame::MainGame()
 		SDLK_LSHIFT
 	});
 
-	camera_.get_transform()->set_parent(player_->get_transform());
+	camera_.get_transform()->set_parent(player_->get_transform(), true);
 	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 0.0f, -5.0f));
 }
 MainGame::~MainGame()

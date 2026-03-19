@@ -17,65 +17,52 @@ public:
 		velocity_(glm::vec3(0.0f)),
 		angular_velocity_(glm::vec3(0.0f))
 	{
-		this->pos_ = pos;
-		this->rot_ = glm::quat(rot);
-		this->scale_ = scale;
-
-		this->local_pos_ = glm::vec3(0.0f);
-		this->local_rot_ = glm::quat(glm::vec3(0.0f));
-		this->local_scale_ = glm::vec3(1.0f);
+		this->local_pos_ = pos;
+		this->local_rot_ = glm::quat(rot);
+		this->local_scale_ = scale;
 	}
 
 	inline glm::mat4 get_model() const
 	{
 		glm::mat4 posMat = glm::translate(get_pos());
-		glm::mat4 rotMat = glm::toMat4(glm::inverse(rot_)); // Rotation quaternion needs to be inversed before converted otherwise rotations are inverted (Idk why, poor self implementation probably).
-		glm::mat4 scaleMat = glm::scale(scale_);
+		glm::mat4 rotMat = glm::toMat4(glm::inverse(get_rot())); // Rotation quaternion needs to be inversed before converted otherwise rotations are inverted (Idk why, poor self implementation probably).
+		glm::mat4 scaleMat = glm::scale(get_scale());
 
 		return posMat * rotMat * scaleMat;
 	}
 
 
 	// ----- Position -----
-	inline glm::vec3 get_pos() const { return pos_; }
+	inline glm::vec3 get_pos() const
+	{
+		if (parent_ != nullptr)
+			return pos_local_to_world(local_pos_);
+		else
+			return local_pos_;
+	}
 	inline void set_pos(const glm::vec3& new_pos)
 	{
-		glm::vec3 offset = new_pos - this->pos_;
-
 		// Set our position.
-		this->pos_ = new_pos;
-
 		if (parent_ != nullptr)
-			local_pos_ = pos_world_to_local(new_pos);
+			set_local_pos(pos_world_to_local(new_pos));
+		else
+			set_local_pos(new_pos);
+	}
+	inline glm::vec3 get_local_pos() const { return local_pos_; }
+	inline void set_local_pos(const glm::vec3& new_local_pos)
+	{
+		local_pos_ = new_local_pos;
 
 		// Set our children's position.
 		for (int i = 0; i < this->get_child_count(); ++i)
 		{
-			this->get_child(i)->set_pos(this->get_child(i)->get_pos() + offset);
+			Transform* child = this->get_child(i);
+			child->set_local_pos(child->get_local_pos());
 		}
-	}
-	inline glm::vec3 get_local_pos()
-	{
-		if (parent_ == nullptr)
-			return get_pos();	// We have no parent. Our local position is our world position.
-
-		return local_pos_;
-	}
-	inline void set_local_pos(const glm::vec3& new_local_pos)
-	{
-		if (parent_ == nullptr)
-		{
-			// We have no parent. To change the local pos, just change the world pos.
-			this->set_pos(new_local_pos);
-			return;
-		}
-		// We have a parent.
-		// Update our actual position (Updates local pos automatically).
-		this->set_pos(pos_local_to_world(new_local_pos));
 	}
 	
 	
-	inline glm::vec3 pos_world_to_local(const glm::vec3& world_space)
+	inline glm::vec3 pos_world_to_local(const glm::vec3& world_space) const
 	{
 		glm::vec3 local_space = world_space;
 		local_space -= parent_->get_pos(); // Offset.
@@ -84,7 +71,7 @@ public:
 
 		return local_space;
 	}
-	inline glm::vec3 pos_local_to_world(const glm::vec3& local_space)
+	inline glm::vec3 pos_local_to_world(const glm::vec3& local_space) const
 	{
 		glm::vec3 world_space = local_space;
 		world_space = world_space * parent_->get_rot();	// Rotation.
@@ -96,17 +83,29 @@ public:
 
 
 	// ----- Rotation -----
-	inline glm::quat get_rot() const { return rot_; }
-	inline glm::vec3 get_euler_angles() const { return glm::eulerAngles(rot_); }
+	inline glm::quat get_rot() const
+	{
+		if (has_parent())
+			return diff(parent_->get_rot(), local_rot_);
+		else
+			return local_rot_;
+	}
+	inline glm::vec3 get_euler_angles() const { return glm::eulerAngles(get_rot()); }
 	inline void set_euler_angles(const float& pitch, const float& yaw, const float& roll) { this->set_rot(glm::quat(glm::vec3(pitch, yaw, roll))); }
 	inline void set_euler_angles(const glm::vec3& new_rot) { this->set_rot(glm::quat(new_rot)); }
 	inline void set_rot(const glm::quat& new_rot)
 	{
-		// Set our rotation.
-		this->rot_ = new_rot;
-
+		// Set our rotation through our local rotation.
 		if (parent_ != nullptr)
-			local_rot_ = diff(parent_->get_rot(), get_rot());
+			set_local_rot(diff(parent_->get_rot(), get_rot()));
+		else
+			set_local_rot(new_rot);
+	}
+
+	inline glm::quat get_local_rot() const { return local_rot_; }
+	inline void set_local_rot(glm::quat new_local_rot)
+	{
+		local_rot_ = new_local_rot;
 
 		// Update our children's rotation.
 		for (int i = 0; i < this->get_child_count(); ++i)
@@ -120,42 +119,31 @@ public:
 			// Update Child Rotation using their local rotation (Still the value from before we rotated).
 			glm::quat new_world_rot = add(this->get_rot(), child->get_local_rot());
 			child->set_rot(new_world_rot);
-
-			// Debug.
-			log_vec3(child->get_local_pos());
-			log_vec3(glm::degrees(glm::eulerAngles(child->get_rot())));
 		}
-	}
-
-	inline glm::quat get_local_rot() const
-	{
-		if (parent_ == nullptr)
-			return get_rot(); // We have no parent. Our local rotation is our world rotation.
-		return local_rot_;
-	}
-	inline void set_local_rot(glm::quat new_local_rot)
-	{
-		if (parent_ == nullptr)
-		{
-			// We have no parent. To change the local rot, just change the world rot.
-			set_rot(new_local_rot);
-			return;
-		}
-
-		// Update our actual rotation (Updates local rotation automatically).
-		set_rot(diff(new_local_rot, parent_->get_rot()));
 	}
 
 
 	// ----- Scale -----
-	inline glm::vec3 get_scale() const { return scale_; }
+	inline glm::vec3 get_scale() const
+	{
+		if (has_parent())
+			return parent_->get_scale() * local_scale_;
+		else
+			return local_scale_;
+	}
 	inline void set_scale(glm::vec3 new_scale)
 	{
 		// Set our scale.
-		this->scale_ = new_scale;
-
 		if (parent_ != nullptr)
-			local_scale_ = parent_->get_scale() * this->scale_;
+			set_local_scale(get_scale() / parent_->get_scale());
+		else
+			set_local_scale(new_scale);
+	}
+
+	inline glm::vec3 get_local_scale() const { return local_scale_; }
+	inline void set_local_scale(glm::vec3 new_local_scale)
+	{
+		local_scale_ = new_local_scale; 
 
 		// Update our children's scale & relative positions.
 		for (int i = 0; i < this->get_child_count(); ++i)
@@ -173,30 +161,11 @@ public:
 		}
 	}
 
-	inline glm::vec3 get_local_scale() const
-	{
-		if (parent_ == nullptr)
-			return get_scale(); // We have no parent. Our local scale is our world scale.
-		return local_scale_;
-	}
-	inline void set_local_scale(glm::vec3 new_local_scale)
-	{
-		if (parent_ == nullptr)
-		{
-			// We have no parent. To change the local scale, just change the world scale.
-			set_scale(new_local_scale);
-			return;
-		}
-
-		// Update our actual scale (Updates local scale automatically).
-		set_scale(parent_->get_scale() * new_local_scale);
-	}
-
 
 	// ----- Orientation -----
-	inline glm::vec3 get_forward() const { return glm::normalize(kWorldForward * this->rot_); }
-	inline glm::vec3 get_up() const { return glm::normalize(kWorldUp * this->rot_); }
-	inline glm::vec3 get_right() const { return glm::normalize(kWorldRight * this->rot_); }
+	inline glm::vec3 get_forward() const { return glm::normalize(kWorldForward * this->get_rot()); }
+	inline glm::vec3 get_up() const { return glm::normalize(kWorldUp * this->get_rot()); }
+	inline glm::vec3 get_right() const { return glm::normalize(kWorldRight * this->get_rot()); }
 
 	inline void set_forward(const glm::vec3 forward)
 	{
@@ -218,7 +187,7 @@ public:
 		{
 			// World Space Rotation.
 			// Transform the desired axis of rotation based on our current rotation.
-			axis = rot_ * axis;
+			axis = get_rot() * axis;
 		}
 
 		// Calculate and set our new rotation (Second Rot * First Rot).
@@ -227,7 +196,7 @@ public:
 	}
 	void rotate(glm::quat rotation)
 	{
-		this->set_rot(add(rot_, rotation));
+		this->set_rot(add(get_rot(), rotation));
 	}
 	void rotate_around_point(glm::vec3 point, glm::vec3 rotation_axis, float angle)
 	{
@@ -237,10 +206,10 @@ public:
 		this->set_pos(rotated_point);
 
 		// Transform the desired axis of rotation based on our current rotation.
-		rotation_axis = rot_ * rotation_axis;
+		rotation_axis = get_rot() * rotation_axis;
 
 		// Apply our rotation.
-		this->set_rot(add(rot_, glm::angleAxis(-angle, glm::normalize(rotation_axis))));
+		this->set_rot(add(get_rot(), glm::angleAxis(-angle, glm::normalize(rotation_axis))));
 	}
 	void rotate_around_point(glm::vec3 point, glm::quat rotation)
 	{
@@ -249,7 +218,7 @@ public:
 		this->set_pos(rotated_point);
 
 		// Apply our rotation.
-		this->set_rot(add(rot_, rotation));
+		this->set_rot(add(get_rot(), rotation));
 	}
 
 
@@ -264,7 +233,7 @@ public:
 	inline void add_torque(glm::vec3 torque, RotationSpace rotationSpace = RotationSpace::kLocalSpace)
 	{
 		if (rotationSpace == RotationSpace::kWorldSpace)
-			torque = rot_ * torque;
+			torque = get_rot() * torque;
 
 		this->angular_velocity_ += torque;
 	}
@@ -319,6 +288,7 @@ public:
 		else
 		{
 			// Update our local pos/rot/scale values.
+			std::cout << "Not Implemented Yet: Updating Local Values for Parenting" << std::endl;
 			local_pos_;
 			local_rot_;
 			local_scale_;
@@ -358,23 +328,6 @@ public:
 	{
 		// By using 'is_child_of', we only check parents, which there are likely to be less of than children.
 		return possible_child->is_child_of(this);
-
-		/*// Check this transform.
-		if (this == possible_child)
-		{
-			return true;
-		}
-
-		// Check each child.
-		for (int i = 0; i < this->get_child_count(); ++i)
-		{
-			if (this->get_child(i)->has_child(possible_child))
-			{
-				return true;
-			}
-		}
-
-		return false;*/
 	}
 
 protected:
@@ -383,9 +336,6 @@ private:
 	const glm::vec3 kWorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	const glm::vec3 kWorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
-	glm::vec3 pos_;
-	glm::quat rot_;
-	glm::vec3 scale_;
 
 	// If Has Parent: Local Space. Else: World Space
 	glm::vec3 local_pos_;
