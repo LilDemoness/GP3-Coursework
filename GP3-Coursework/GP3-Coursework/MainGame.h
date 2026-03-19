@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <thread>
 #include <chrono>
 #include <cmath>
@@ -43,27 +44,41 @@ private:
 	void init_UBOs();
 
 	void load_dlls();
-	void load_physics_engine_unsafe();
+	void load_physics_engine();
 
+
+	void game_loop();
+	void update_player();
 
 	void process_input();
-	void game_loop();
+	void handle_key_press(SDL_Keycode key);
+
 	void draw_game();
+
 
 	void calculate_delta_time(Uint64 frame_start_time);
 	void cap_framerate(Uint64 frame_start_time);
 	void display_framerate(Uint64 frame_start_time);
+	float get_refresh_rate();
 
 
 	DisplayFacade game_display_;
 	GameState game_state_;
 	GameObject object_1_;
 	GameObject object_2_;
+	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
+
+
+	// Physics Function References.
+	void (*set_forward_direction)(Transform*, glm::vec3) = nullptr;
+	void (*apply_force)(Transform*, float) = nullptr;
+	void (*update_physics)(Transform*, float) = nullptr;
 
 
 	float counter_;
 	float delta_time_;
 	Uint64 last_frame_start_time_;
+	float fixed_time_step_ = 60;	// Default 60 physics updates per second.
 };

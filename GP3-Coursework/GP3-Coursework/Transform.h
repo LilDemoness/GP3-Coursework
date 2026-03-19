@@ -11,7 +11,11 @@
 struct Transform
 {
 public:
-	Transform(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& rot = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f)) : parent_(nullptr), children_(std::vector<Transform*>())
+	Transform(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& rot = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f)) :
+		parent_(nullptr),
+		children_(std::vector<Transform*>()),
+		velocity_(glm::vec3(0.0f)),
+		angular_velocity_(glm::vec3(0.0f))
 	{
 		this->pos_ = pos;
 		this->rot_ = glm::quat(rot);
@@ -120,7 +124,8 @@ public:
 
 			// Update child scale (Done after position to allow for correct calculations with hierarchies).
 			// Multiply the child's scale by our new scale multiplier (New Scale / Old Scale).
-			child->set_scale(child->get_scale() * scale_multiplier);
+			glm::vec3 new_child_scale = child->get_scale() * scale_multiplier;
+			child->set_scale(new_child_scale);
 		}
 	}
 
@@ -129,6 +134,12 @@ public:
 	inline glm::vec3 get_forward() const { return glm::normalize(kWorldForward * this->rot_); }
 	inline glm::vec3 get_up() const { return glm::normalize(kWorldUp * this->rot_); }
 	inline glm::vec3 get_right() const { return glm::normalize(kWorldRight * this->rot_); }
+
+	inline void set_forward(const glm::vec3 forward)
+	{
+		//set_rot(glm::quat(forward, get_up()));
+		set_rot(glm::quat(forward, kWorldUp));
+	}
 
 
 
@@ -163,6 +174,25 @@ public:
 
 		// Apply our rotation.
 		this->set_rot(add(rot_, glm::angleAxis(-angle, glm::normalize(rotation_axis))));
+	}
+
+
+	// Velocity.
+	inline glm::vec3 get_velocity() const { return this->velocity_; }
+	inline void set_velocity(glm::vec3 new_velocity) { this->velocity_ = new_velocity; }
+
+	inline glm::vec3 set_angular_velocity() const { return this->angular_velocity_; }
+	inline void set_angular_velocity(glm::vec3 new_angular_velocity) { this->angular_velocity_ = new_angular_velocity; }
+
+	inline void add_force(glm::vec3 force) { this->velocity_ += force; }
+
+	void apply_physics(float delta_time)
+	{
+		this->pos_ += this->velocity_ * delta_time;
+
+		if (this->angular_velocity_ != glm::vec3(0.0f))
+			rotate(angular_velocity_, delta_time);
+		//this->rot_ = add(rot_, glm::quat(this->angular_velocity_ * delta_time));
 	}
 
 
@@ -266,6 +296,9 @@ private:
 	glm::quat rot_;
 	glm::vec3 scale_;
 
+	glm::vec3 velocity_;
+	glm::vec3 angular_velocity_;
+
 
 	// Hierarchy.
 	Transform* parent_;
@@ -279,6 +312,13 @@ private:
 	*/
 	void remove_child(Transform* child_to_remove) { children_.erase(std::remove(children_.begin(), children_.end(), child_to_remove), children_.end()); }
 
+
+	void log_vec3(glm::vec3 vector) { std::cout << vector.x << ", " << vector.y << ", " << vector.z << std::endl; }
+	void log_quat(glm::quat quaternion)
+	{
+		glm::vec3 vector = glm::eulerAngles(quaternion);
+		std::cout << vector.x << ", " << vector.y << ", " << vector.z << std::endl;
+	}
 
 	// Quaternion Helper Functions.
 	inline glm::quat diff(glm::quat to, glm::quat from) const { return to * glm::inverse(from); }

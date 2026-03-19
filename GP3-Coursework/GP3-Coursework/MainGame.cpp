@@ -13,9 +13,12 @@ MainGame::MainGame()
 	  camera_(glm::vec3(0, 0, -5), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f),
 	  texture_("..\\res\\bricks.jpg"),
       object_1_(Mesh::create_triangle_mesh()),
-      object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f))
+      object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
+      player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f)))
 {
 	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
+
+	fixed_time_step_ = 1.0f / get_refresh_rate();
 }
 MainGame::~MainGame()
 {
@@ -55,14 +58,25 @@ void MainGame::init_UBOs()
 
 void MainGame::load_dlls()
 {
-	load_physics_engine_unsafe();
+	load_physics_engine();
 }
-void MainGame::load_physics_engine_unsafe()
+void MainGame::load_physics_engine()
 {
 	DLLManager::get_instance().load_dll(PHYSICS_ENGINE_DLL_NAME);
-	HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "HelloWorld");
+	HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "hello_world");
+	//HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "HelloWorld");
 
-	hello_world();
+	if (hello_world)
+		hello_world();
+	else
+		std::cerr << "Failed to retrieve the Hello World function from PhysicsDLL" << std::endl;
+
+	set_forward_direction = DLLManager::get_instance().get_function<void(*)(Transform*, glm::vec3)>(PHYSICS_ENGINE_DLL_NAME, "set_forward_direction");
+	apply_force = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "apply_thrust");
+	update_physics = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
+
+	if (!set_forward_direction || !apply_force || !update_physics)
+		std::cerr << "Failed to load physics functions" << std::endl;
 }
 
 
@@ -78,6 +92,7 @@ void MainGame::game_loop()
 
 		// Handle the frame.
 		process_input();
+		update_player();
 		draw_game();
 
 
@@ -87,6 +102,15 @@ void MainGame::game_loop()
 		//DisplayFramerate(start);
 	}
 }
+
+void MainGame::update_player()
+{
+	if (!player_)
+		return;
+
+	player_->get_transform()->apply_physics(delta_time_);
+}
+
 
 void MainGame::process_input()
 {
@@ -99,9 +123,34 @@ void MainGame::process_input()
 			case SDL_QUIT:
 				game_state_ = GameState::kExit;
 				break;
+			case SDL_KEYDOWN:
+				handle_key_press(evnt.key.keysym.sym);
+				break;
 		}
+	}	
+}
+void MainGame::handle_key_press(SDL_Keycode key)
+{
+	if (!player_)
+		return;
+
+	switch (key)
+	{
+	case SDLK_w:	// Move Forward.
+		if (apply_force)
+			apply_force(player_->get_transform(), 1.0f);
+		break;
+	case SDLK_s:	// Move Back.
+		if (apply_force)
+			apply_force(player_->get_transform(), -1.0f);
+		break;
+	case SDLK_a:	// Rotate Right.
+		player_->get_transform()->set_angular_velocity(glm::radians(glm::vec3(0.0f, -15.0f, 0.0f)));
+		break;
+	case SDLK_d:	// Rotate Left.
+		player_->get_transform()->set_angular_velocity(glm::radians(glm::vec3(0.0f, 15.0f, 0.0f)));
+		break;
 	}
-	
 }
 
 
@@ -118,12 +167,13 @@ void MainGame::draw_game()
 
 	object_1_.draw(camera_);
 	object_2_.draw(camera_);
+	player_->draw(camera_);
 				
 	//glEnableClientState(GL_COLOR_ARRAY); 
 	//glEnd();
 
 	game_display_.swap_buffers();
-} 
+}
 
 
 
@@ -153,4 +203,18 @@ void MainGame::display_framerate(Uint64 frame_start_time)
 	Uint64 frame_end_time = SDL_GetPerformanceCounter();
 	float elapsed_s = (frame_end_time - frame_start_time) / (float)SDL_GetPerformanceFrequency();
 	std::cout << "Current FPS: " << std::to_string(std::round(1.0 / elapsed_s)) << ". Delta Time: " << std::to_string(delta_time_) << std::endl;
+}
+
+
+float MainGame::get_refresh_rate()
+{
+	SDL_DisplayMode display_mode;
+	if (SDL_GetCurrentDisplayMode(0, &display_mode) == 0 && display_mode.refresh_rate > 0)
+	{
+		return static_cast<float>(display_mode.refresh_rate);
+	}
+
+	const float kDefaultRefreshRate = 60.0f;
+	std::cout << "Failed to retrieve monitor Refresh Rate. Defaulting to " << kDefaultRefreshRate << std::endl;
+	return kDefaultRefreshRate;
 }
