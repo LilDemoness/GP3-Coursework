@@ -11,6 +11,12 @@
 
 extern "C" PHYSICS_API void hello_world();
 
-extern "C" PHYSICS_API void set_forward_direction(Transform* transform, glm::vec3 forward);
-extern "C" PHYSICS_API void apply_thrust(Transform* transform, float thrust_amount);
+
+extern "C" PHYSICS_API void add_thrust(Transform* transform, float thrust_amount);
+
+extern "C" PHYSICS_API void add_pitch(Transform* transform, float pitch_radians);
+extern "C" PHYSICS_API void add_yaw(Transform* transform, float yaw_radians);
+extern "C" PHYSICS_API void add_roll(Transform* transform, float roll_radians);
+
+
 extern "C" PHYSICS_API void update_physics(Transform* transform, float delta_time);

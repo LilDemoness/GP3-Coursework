@@ -13,6 +13,7 @@
 #include "Transform.h"
 #include "DisplayFacade.h"
 #include "Camera.h"
+#include "InputManager.h"
 
 #include <iostream>
 #include <string>
@@ -50,8 +51,8 @@ private:
 	void game_loop();
 	void update_player();
 
+	void process_input_events();
 	void process_input();
-	void handle_key_press(SDL_Keycode key);
 
 	void draw_game();
 
@@ -72,8 +73,11 @@ private:
 
 
 	// Physics Function References.
-	void (*set_forward_direction)(Transform*, glm::vec3) = nullptr;
-	void (*apply_force)(Transform*, float) = nullptr;
+	void (*add_thrust)(Transform*, float) = nullptr;
+	void (*add_pitch)(Transform*, float) = nullptr;
+	void (*add_yaw)(Transform*, float) = nullptr;
+	void (*add_roll)(Transform*, float) = nullptr;
+
 	void (*update_physics)(Transform*, float) = nullptr;
 
 
