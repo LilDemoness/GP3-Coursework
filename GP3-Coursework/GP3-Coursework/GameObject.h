@@ -3,6 +3,7 @@
 #include <string>
 #include "Mesh.h"
 #include "Transform.h"
+#include "Collider.h"
 #include "ShaderManager.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -11,18 +12,20 @@
 class GameObject
 {
 public:
-	GameObject(const std::string& mesh_file_name, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f));
-	GameObject(Mesh* mesh, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f));
+	GameObject(const std::string& mesh_file_name, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
+	GameObject(Mesh* mesh, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
 	~GameObject();
 
 
 	void draw(const Camera& camera);
-	void draw(std::shared_ptr<Shader> shader, const Camera& camera);
+	void draw(const Camera& camera, std::shared_ptr<Shader> shader);
 
-	Transform* get_transform();	// Returns a pointer so that we can edit the original through the returned reference.
+	Transform* get_transform() const;
+	Collider* get_collider() const;
 	Mesh* get_mesh() const;
 
 private:
-	Transform transform_;	// Can change to a pointer if we need 'get_transform()' to be const.
+	std::shared_ptr<Transform> transform_;
+	std::shared_ptr<Collider> collider_;
 	Mesh* mesh_;	// SharedPtr for when meshes can be shared?
 };

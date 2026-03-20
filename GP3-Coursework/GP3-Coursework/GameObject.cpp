@@ -2,13 +2,15 @@
 
 #include "GameObject.h"
 
-GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
-	: mesh_(new Mesh(mesh_file_name)),
-      transform_(position, rotation, scale)
+GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const float collision_radius) :
+	mesh_(new Mesh(mesh_file_name)),
+	transform_(std::make_shared<Transform>(position, rotation, scale)),
+	collider_(std::make_shared<Collider>(transform_, collision_radius))
 {}
-GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
-	: mesh_(mesh),
-	  transform_(position, rotation, scale)
+GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const float collision_radius) :
+	mesh_(mesh),
+	transform_(std::make_shared<Transform>(position, rotation, scale)),
+	collider_(std::make_shared<Collider>(transform_, collision_radius))
 {}
 GameObject::~GameObject()
 {
@@ -18,15 +20,16 @@ GameObject::~GameObject()
 
 void GameObject::draw(const Camera& camera)
 {
-	draw(ShaderManager::get_instance().get_active_shader(), camera);
+	draw(camera, ShaderManager::get_instance().get_active_shader());
 }
-void GameObject::draw(std::shared_ptr<Shader> shader, const Camera& camera)
+void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader)
 {
 	shader->bind();
-	shader->update_matrices_ubo(transform_, camera);
+	shader->update_matrices_ubo(transform_.get(), camera);
 	mesh_->draw();
 }
 
 
-Transform* GameObject::get_transform() { return &transform_; }
+Transform* GameObject::get_transform() const { return transform_.get(); }
+Collider* GameObject::get_collider() const { return collider_.get(); }
 Mesh* GameObject::get_mesh() const { return mesh_; }

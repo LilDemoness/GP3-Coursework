@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{9bd35a72-60d1-4850-99a4-8fd51a6dfa4f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Collisions">
+      <UniqueIdentifier>{4a748cbd-b2f8-4ac7-9d79-b80af83c0d56}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -134,17 +137,21 @@
     <ClInclude Include="InputManager.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="..\res\monkey3.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
+    <ClInclude Include="Collider.h">
+      <Filter>Header Files\Collisions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\shader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\SolidColourShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\SolidColourShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

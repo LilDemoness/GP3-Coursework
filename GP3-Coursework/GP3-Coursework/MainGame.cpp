@@ -11,14 +11,18 @@ MainGame::MainGame()
 	  last_frame_start_time_(0.0f),
 
 	  texture_("..\\res\\bricks.jpg"),
-      object_1_(Mesh::create_triangle_mesh()),
-      object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
-      //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
-      player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
+      //object_1_(Mesh::create_triangle_mesh()),
+      //object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
+      object_1_("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
+      object_2_("..\\res\\cube1m.obj", glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
+	  marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
+      player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
+      //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	  camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
 {
 	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
+	ShaderManager::get_instance().load_shader("SolidColor", "..\\res\\SolidColourShader");
 
 	fixed_time_step_ = 1.0f / get_refresh_rate();
 
@@ -84,15 +88,15 @@ void MainGame::load_physics_engine()
 	else
 		std::cerr << "Failed to retrieve the Hello World function from PhysicsDLL" << std::endl;
 
-	add_thrust = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "add_thrust");
-	add_pitch = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "add_pitch");
-	add_yaw = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "add_yaw");
-	add_roll = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
+	add_thrust = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_thrust");
+	add_pitch = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_pitch");
+	add_yaw = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_yaw");
+	add_roll = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
 
-	update_physics = DLLManager::get_instance().get_function<void(*)(Transform*, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
+	update_physics = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
 
-	if (!add_thrust || !add_pitch || !add_yaw || !add_roll || !update_physics)
-		std::cerr << "Failed to load physics functions" << std::endl;
+	check_collisions_radius = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
+	check_collisions_aabb = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
 }
 
 
@@ -112,7 +116,11 @@ void MainGame::game_loop()
 
 		//player_->get_transform()->rotate(glm::radians(glm::vec3(45.0f, 45.0f, 0.0f) * delta_time_));
 		//camera_.get_transform()->rotate_around_point(glm::vec3(0.0f), glm::radians(glm::vec3(180.0f, 0.0f, 0.0f) * delta_time_));
+		//object_1_.get_transform()->rotate(glm::vec3(0.25f, 1.0f, 0.0f), glm::radians(45.0f) * delta_time_);
+		object_2_.get_transform()->set_pos(glm::vec3(glm::sin(glm::radians(counter_ * 45.0f)) * 1.0f + 1.5f, 0.75f, 0.5f));
 		update_player();
+		object_1_.get_collider()->update_bounds();
+		object_2_.get_collider()->update_bounds();
 		draw_game();
 
 
@@ -132,6 +140,7 @@ void MainGame::update_player()
 		update_physics(player_->get_transform(), delta_time_);
 
 	player_->get_transform()->apply_physics(delta_time_);
+	player_->get_collider()->update_bounds();
 }
 
 
@@ -187,12 +196,39 @@ void MainGame::draw_game()
 {
 	game_display_.clear_display();
 
-	//std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().get_shader("OverrideShader");
+	std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().get_shader("SolidColor");
 	texture_.bind(0);
 
-	object_1_.draw(camera_);
-	object_2_.draw(camera_);
+	if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
+		override_shader->set_vec3("color", glm::vec3(1.0f));
+	else
+		override_shader->set_vec3("color", glm::vec3(0.5f));
+	object_1_.draw(camera_, override_shader);
+
+	if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
+		override_shader->set_vec3("color", glm::vec3(1.0f));
+	else
+		override_shader->set_vec3("color", glm::vec3(0.5f));
+	object_2_.draw(camera_, override_shader);
+
 	player_->draw(camera_);
+
+	int modulus = static_cast<int>(floorf(counter_ / 2.0f)) % 8;
+	glm::vec3 half_extents = object_1_.get_collider()->get_aabb_half_extents();
+	marker_.get_transform()->set_pos(glm::vec3(half_extents.x, half_extents.y, -half_extents.z));
+	/*switch (modulus)
+	{
+	case 0: marker_.get_transform()->set_pos(glm::vec3(half_extents.x, half_extents.y, -half_extents.z)); break;
+	case 1: marker_.get_transform()->set_pos(glm::vec3(-half_extents.x, half_extents.y, -half_extents.z)); break;
+	case 2: marker_.get_transform()->set_pos(glm::vec3(half_extents.x, -half_extents.y, -half_extents.z)); break;
+	case 3: marker_.get_transform()->set_pos(glm::vec3(-half_extents.x, -half_extents.y, -half_extents.z)); break;
+	case 4: marker_.get_transform()->set_pos(glm::vec3(half_extents.x, half_extents.y, half_extents.z)); break;
+	case 5: marker_.get_transform()->set_pos(glm::vec3(-half_extents.x, half_extents.y, half_extents.z)); break;
+	case 6: marker_.get_transform()->set_pos(glm::vec3(half_extents.x, -half_extents.y, half_extents.z)); break;
+	case 7: marker_.get_transform()->set_pos(glm::vec3(-half_extents.x, -half_extents.y, half_extents.z)); break;
+	}*/
+	marker_.draw(camera_);
+
 				
 	//glEnableClientState(GL_COLOR_ARRAY); 
 	//glEnd();

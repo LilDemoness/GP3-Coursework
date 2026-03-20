@@ -250,7 +250,7 @@ public:
 	// Transform Hierarchy.
 	bool has_parent() const { return parent_ != nullptr; }
 	Transform* get_parent() const { return parent_; }
-	bool set_parent(Transform* new_parent, bool reset_local_values = false)
+	bool set_parent(Transform* const new_parent, const bool reset_local_values = false)
 	{
 		// -- Error Prevention --
 		// We cannot set ourselves to our own parent.

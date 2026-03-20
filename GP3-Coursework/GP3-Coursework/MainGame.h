@@ -67,18 +67,22 @@ private:
 	GameState game_state_;
 	GameObject object_1_;
 	GameObject object_2_;
+	GameObject marker_;
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
 
 
 	// Physics Function References.
-	void (*add_thrust)(Transform*, float) = nullptr;
-	void (*add_pitch)(Transform*, float) = nullptr;
-	void (*add_yaw)(Transform*, float) = nullptr;
-	void (*add_roll)(Transform*, float) = nullptr;
+	void (*add_thrust)(Transform* const, float) = nullptr;
+	void (*add_pitch)(Transform* const, float) = nullptr;
+	void (*add_yaw)(Transform* const, float) = nullptr;
+	void (*add_roll)(Transform* const, float) = nullptr;
 
-	void (*update_physics)(Transform*, float) = nullptr;
+	void (*update_physics)(Transform* const, float) = nullptr;
+
+	bool (*check_collisions_radius)(const Collider* const, const Collider* const) = nullptr;
+	bool (*check_collisions_aabb)(const Collider* const, const Collider* const) = nullptr;
 
 
 	float counter_;

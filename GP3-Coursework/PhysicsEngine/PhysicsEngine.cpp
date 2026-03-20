@@ -10,27 +10,27 @@ extern "C" PHYSICS_API void hello_world()
 }
 
 
-extern "C" PHYSICS_API void add_thrust(Transform* transform, float thrust_amount)
+extern "C" PHYSICS_API void add_thrust(Transform* const transform, float thrust_amount)
 {
 	transform->add_force(transform->get_forward() * thrust_amount);
 
 }
 
-extern "C" PHYSICS_API void add_pitch(Transform* transform, float pitch_radians)
+extern "C" PHYSICS_API void add_pitch(Transform* const transform, float pitch_radians)
 {
 	transform->add_torque(glm::vec3(pitch_radians, 0.0f, 0.0f));
 }
-extern "C" PHYSICS_API void add_yaw(Transform* transform, float yaw_radians)
+extern "C" PHYSICS_API void add_yaw(Transform* const transform, float yaw_radians)
 {
 	transform->add_torque(glm::vec3(0.0f, yaw_radians, 0.0f));
 }
-extern "C" PHYSICS_API void add_roll(Transform* transform, float roll_radians)
+extern "C" PHYSICS_API void add_roll(Transform* const transform, float roll_radians)
 {
 	transform->add_torque(glm::vec3(0.0f, 0.0f, roll_radians));
 }
 
 
-extern "C" PHYSICS_API void update_physics(Transform* transform, float delta_time)
+extern "C" PHYSICS_API void update_physics(Transform* const transform, float delta_time)
 {
 	const float kBasicallyZeroSqrLength = 0.01f * 0.01f;
 
@@ -62,4 +62,25 @@ extern "C" PHYSICS_API void update_physics(Transform* transform, float delta_tim
 	{
 		transform->set_angular_velocity(glm::normalize(transform->get_angular_velocity()) * kMaxAngularVelocityMagnitude);
 	}
+}
+
+
+
+extern "C" PHYSICS_API bool check_collisions_radius(const Collider* const a, const Collider* const b)
+{
+	float sqrDistance = glm::distance2(a->get_transform()->get_pos(), b->get_transform()->get_pos());
+	float twinRadii = a->get_radius() + b->get_radius();
+	return sqrDistance < (twinRadii * twinRadii);
+}
+extern "C" PHYSICS_API bool check_collisions_aabb(const Collider* const a, const Collider* const b)
+{
+	glm::vec3 a_pos = a->get_transform()->get_pos();
+	glm::vec3 a_half_extents = a->get_aabb_half_extents();
+
+	glm::vec3 b_pos = b->get_transform()->get_pos();
+	glm::vec3 b_half_extents = b->get_aabb_half_extents();
+
+	return glm::abs(a_pos.x - b_pos.x) < (a_half_extents.x + b_half_extents.x)
+		&& glm::abs(a_pos.y - b_pos.y) < (a_half_extents.y + b_half_extents.y)
+		&& glm::abs(a_pos.z - b_pos.z) < (a_half_extents.z + b_half_extents.z);
 }
