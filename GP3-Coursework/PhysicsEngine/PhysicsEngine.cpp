@@ -84,3 +84,39 @@ extern "C" PHYSICS_API bool check_collisions_aabb(const Collider* const a, const
 		&& glm::abs(a_pos.y - b_pos.y) < (a_half_extents.y + b_half_extents.y)
 		&& glm::abs(a_pos.z - b_pos.z) < (a_half_extents.z + b_half_extents.z);
 }
+
+
+// Adaptation Source Link: 'https://leanrada.com/notes/sweep-and-prune-2/'.
+extern "C" PHYSICS_API void sweep_and_prune(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>& overlapping)
+{
+	for (int i = 1; i < edges.size(); ++i)
+	{
+		for (int j = i - 1; j >= 0; --j)
+		{
+			if (edges[j]->get_x_position() < edges[j + 1]->get_x_position())
+				break;
+			std::cout << "Swap" << std::endl;
+
+			// Sort.
+			std::iter_swap(edges.begin() + j, edges.begin() + j + 1);
+
+			// ----- Collision Detection -----
+			if (edges[j]->is_left && !edges[j + 1]->is_left)
+			{
+				// Now overlapping.
+				std::cout << "Overlap" << std::endl;
+
+				std::pair<Collider*, Collider*> key = std::make_pair(edges[j]->collider, edges[j + 1]->collider);
+				overlapping.insert(key);
+			}
+			else if (!edges[j]->is_left && edges[j + 1]->is_left)
+			{
+				// No longer overlapping.
+				std::cout << "Removed Overlap" << std::endl;
+
+				std::pair<Collider*, Collider*> key = std::make_pair(edges[j]->collider, edges[j + 1]->collider);
+				overlapping.erase(key);
+			}
+		}
+	}
+}

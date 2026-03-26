@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <glm\glm.hpp>
 #include <memory>
 
@@ -17,6 +18,8 @@ public:
 	}
 	~Collider()
 	{}
+
+
 
 	const float get_radius() const { return radius_; }
 	// Updates this collider's AABB bounding box's half extents.

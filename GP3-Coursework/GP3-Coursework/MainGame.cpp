@@ -2,7 +2,6 @@
 
 #include "MainGame.h"
 
-
 MainGame::MainGame()
 	: game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
 	  game_state_(GameState::kPlay),
@@ -16,7 +15,8 @@ MainGame::MainGame()
       object_1_("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
       object_2_("..\\res\\cube1m.obj", glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
 	  marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
-      player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
+      //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
+      player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
       //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	  camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
@@ -34,6 +34,13 @@ MainGame::MainGame()
 		SDLK_LSHIFT
 	});
 
+	edges_ = std::vector<Edge*>
+	{
+		new Edge(object_1_.get_collider(), true),	new Edge(object_1_.get_collider(), false),
+		new Edge(object_2_.get_collider(), true),	new Edge(object_2_.get_collider(), false),
+		new Edge(player_->get_collider(), true),	new Edge(player_->get_collider(), false),
+	};
+
 	camera_.get_transform()->set_parent(player_->get_transform(), true);
 	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 0.0f, -5.0f));
 }
@@ -41,6 +48,7 @@ MainGame::~MainGame()
 {
 	ShaderManager::get_instance().clear();
 }
+
 
 void MainGame::Run()
 {
@@ -97,6 +105,8 @@ void MainGame::load_physics_engine()
 
 	check_collisions_radius = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
 	check_collisions_aabb = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
+
+	sweep_and_prune = DLLManager::get_instance().get_function<bool(*)(std::vector<Edge*>&edges, std::set<std::pair<Collider*, Collider*>>&)>(PHYSICS_ENGINE_DLL_NAME, "sweep_and_prune");
 }
 
 
@@ -117,10 +127,15 @@ void MainGame::game_loop()
 		//player_->get_transform()->rotate(glm::radians(glm::vec3(45.0f, 45.0f, 0.0f) * delta_time_));
 		//camera_.get_transform()->rotate_around_point(glm::vec3(0.0f), glm::radians(glm::vec3(180.0f, 0.0f, 0.0f) * delta_time_));
 		//object_1_.get_transform()->rotate(glm::vec3(0.25f, 1.0f, 0.0f), glm::radians(45.0f) * delta_time_);
-		object_2_.get_transform()->set_pos(glm::vec3(glm::sin(glm::radians(counter_ * 45.0f)) * 1.0f + 1.5f, 0.75f, 0.5f));
+		object_2_.get_transform()->set_pos(glm::vec3(glm::sin(glm::radians(counter_ * 45.0f + 270.0f)) * 3.0f, 0.75f, 0.5f));
 		update_player();
 		object_1_.get_collider()->update_bounds();
 		object_2_.get_collider()->update_bounds();
+		player_->get_collider()->update_bounds();
+
+		if (sweep_and_prune)
+			sweep_and_prune(edges_, overlapping_);
+
 		draw_game();
 
 
@@ -199,7 +214,7 @@ void MainGame::draw_game()
 	std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().get_shader("SolidColor");
 	texture_.bind(0);
 
-	if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
+	/*if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
 		override_shader->set_vec3("color", glm::vec3(1.0f));
 	else
 		override_shader->set_vec3("color", glm::vec3(0.5f));
@@ -209,9 +224,29 @@ void MainGame::draw_game()
 		override_shader->set_vec3("color", glm::vec3(1.0f));
 	else
 		override_shader->set_vec3("color", glm::vec3(0.5f));
+	object_2_.draw(camera_, override_shader);*/
+
+	bool player_overlapped = false, obj_1_overlapped = false, obj_2_overlapped = false;
+	for (std::pair<Collider*, Collider*> overlap : overlapping_)
+	{
+		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
+			continue;
+
+		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider())
+			player_overlapped = true;
+		if (overlap.first == object_1_.get_collider() || overlap.second == object_1_.get_collider())
+			obj_1_overlapped = true;
+		if (overlap.first == object_2_.get_collider() || overlap.second == object_2_.get_collider())
+			obj_2_overlapped = true;
+	}
+	override_shader->set_vec3("color", glm::vec3((1.0f * obj_1_overlapped) / 2.0f + 0.5f));
+	object_1_.draw(camera_, override_shader);
+
+	override_shader->set_vec3("color", glm::vec3((1.0f * obj_2_overlapped) / 2.0f + 0.5f));
 	object_2_.draw(camera_, override_shader);
 
-	player_->draw(camera_);
+	override_shader->set_vec3("color", glm::vec3((1.0f * player_overlapped) / 2.0f + 0.5f));
+	player_->draw(camera_, override_shader);
 
 	int modulus = static_cast<int>(floorf(counter_ / 2.0f)) % 8;
 	glm::vec3 half_extents = object_1_.get_collider()->get_aabb_half_extents();
@@ -278,4 +313,20 @@ float MainGame::get_refresh_rate()
 	const float kDefaultRefreshRate = 60.0f;
 	std::cout << "Failed to retrieve monitor Refresh Rate. Defaulting to " << kDefaultRefreshRate << std::endl;
 	return kDefaultRefreshRate;
+}
+
+
+void MainGame::insertion_sort_edges(std::vector<Edge*>& edges)
+{
+	for (int i = 1; i < edges.size(); ++i)
+	{
+		for (int j = i - 1; j >= 0; --j)
+		{
+			if (edges[j]->get_x_position() < edges[j + 1]->get_x_position())
+				break;
+
+			// Sort.
+			std::iter_swap(edges.begin() + j, edges.begin() + j + 1);
+		}
+	}
 }

@@ -140,6 +140,9 @@
     <ClInclude Include="Collider.h">
       <Filter>Header Files\Collisions</Filter>
     </ClInclude>
+    <ClInclude Include="Edge.h">
+      <Filter>Header Files\Collisions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">

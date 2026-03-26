@@ -14,6 +14,7 @@
 #include "DisplayFacade.h"
 #include "Camera.h"
 #include "InputManager.h"
+#include "Edge.h"
 
 #include <iostream>
 #include <string>
@@ -21,6 +22,7 @@
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <set>
 
 
 #define MAX_FRAMERATE 60
@@ -63,6 +65,9 @@ private:
 	float get_refresh_rate();
 
 
+	void insertion_sort_edges(std::vector<Edge*>& edges);
+
+
 	DisplayFacade game_display_;
 	GameState game_state_;
 	GameObject object_1_;
@@ -71,6 +76,10 @@ private:
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
+
+
+	std::vector<Edge*> edges_;
+	std::set<std::pair<Collider*, Collider*>> overlapping_;
 
 
 	// Physics Function References.
@@ -83,6 +92,8 @@ private:
 
 	bool (*check_collisions_radius)(const Collider* const, const Collider* const) = nullptr;
 	bool (*check_collisions_aabb)(const Collider* const, const Collider* const) = nullptr;
+
+	bool (*sweep_and_prune)(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>&) = nullptr;
 
 
 	float counter_;
