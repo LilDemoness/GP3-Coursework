@@ -34,6 +34,9 @@
     <Filter Include="Header Files\Collisions">
       <UniqueIdentifier>{4a748cbd-b2f8-4ac7-9d79-b80af83c0d56}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ObjectPooling">
+      <UniqueIdentifier>{0c577ec6-80fc-4f9a-a89d-9502f81ea518}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -142,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="Edge.h">
       <Filter>Header Files\Collisions</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectPool.h">
+      <Filter>Header Files\ObjectPooling</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

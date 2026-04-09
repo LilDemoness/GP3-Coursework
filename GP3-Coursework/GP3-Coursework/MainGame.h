@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "InputManager.h"
 #include "Edge.h"
+#include "ObjectPool.h"
 
 #include <iostream>
 #include <string>
@@ -41,6 +42,9 @@ public:
 	~MainGame();
 
 	void Run();
+	std::shared_ptr<GameObject> create_projectile();
+	void on_get_projectile(std::shared_ptr<GameObject> projectile_instance);
+	void on_release_projectile(std::shared_ptr<GameObject> projectile_instance);
 
 private:
 	void init_systems();
@@ -65,6 +69,7 @@ private:
 	float get_refresh_rate();
 
 
+
 	void insertion_sort_edges(std::vector<Edge*>& edges);
 
 
@@ -76,6 +81,10 @@ private:
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
+
+
+	ObjectPool<GameObject> projectiles_pool_test_;
+	std::vector<std::shared_ptr<GameObject>> active_projectiles_;
 
 
 	std::vector<Edge*> edges_;
@@ -90,8 +99,8 @@ private:
 
 	void (*update_physics)(Transform* const, float) = nullptr;
 
-	bool (*check_collisions_radius)(const Collider* const, const Collider* const) = nullptr;
-	bool (*check_collisions_aabb)(const Collider* const, const Collider* const) = nullptr;
+	bool (*check_collisions_radius)(Collider* const, Collider* const) = nullptr;
+	bool (*check_collisions_aabb)(Collider* const, Collider* const) = nullptr;
 
 	bool (*sweep_and_prune)(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>&) = nullptr;
 

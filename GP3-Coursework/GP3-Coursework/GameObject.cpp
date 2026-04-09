@@ -2,12 +2,12 @@
 
 #include "GameObject.h"
 
-GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const float collision_radius) :
+GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius) :
 	mesh_(new Mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	collider_(std::make_shared<Collider>(transform_, collision_radius))
 {}
-GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const float collision_radius) :
+GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius) :
 	mesh_(mesh),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	collider_(std::make_shared<Collider>(transform_, collision_radius))

@@ -156,6 +156,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="ObjectPool.h" />
     <ClInclude Include="obj_loader.h" />
     <ClInclude Include="OpenGLContext.h" />
     <ClInclude Include="resource.h" />

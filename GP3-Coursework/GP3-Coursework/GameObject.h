@@ -12,8 +12,8 @@
 class GameObject
 {
 public:
-	GameObject(const std::string& mesh_file_name, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
-	GameObject(Mesh* mesh, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
+	GameObject(const std::string& mesh_file_name, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
+	GameObject(Mesh* mesh, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), const float collision_radius = 0.5f);
 	~GameObject();
 
 

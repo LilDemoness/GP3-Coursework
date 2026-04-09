@@ -2,24 +2,26 @@
 
 #include "MainGame.h"
 
-MainGame::MainGame()
-	: game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
-	  game_state_(GameState::kPlay),
-	  counter_(0.0f),
-	  delta_time_(0.0f),
-	  last_frame_start_time_(0.0f),
+MainGame::MainGame() :
+	game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
+	game_state_(GameState::kPlay),
+	counter_(0.0f),
+	delta_time_(0.0f),
+	last_frame_start_time_(0.0f),
 
-	  texture_("..\\res\\bricks.jpg"),
-      //object_1_(Mesh::create_triangle_mesh()),
-      //object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
-      object_1_("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
-      object_2_("..\\res\\cube1m.obj", glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
-	  marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
-      //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
-      player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
-      //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
+    texture_("..\\res\\bricks.jpg"),
+    //object_1_(Mesh::create_triangle_mesh()),
+    //object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
+    object_1_("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
+    object_2_("..\\res\\cube1m.obj", glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
+    marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
+    //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
+    player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
+    //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
 
-	  camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
+	//projectiles_pool_test_(create_projectile),
+
+	camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
 {
 	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
 	ShaderManager::get_instance().load_shader("SolidColor", "..\\res\\SolidColourShader");
@@ -31,8 +33,14 @@ MainGame::MainGame()
 		// Rotation.
 		SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_q, SDLK_e,
 		// Movement.
-		SDLK_LSHIFT
+		SDLK_LSHIFT,
+		// Projectile Tests.
+		SDLK_1, SDLK_2
 	});
+
+	//projectiles_pool_test_(ObjectPool<GameObject>(std::bind(&MainGame::callback_test, this))),
+	projectiles_pool_test_ = ObjectPool<GameObject>(std::bind(&MainGame::create_projectile, this), std::bind(&MainGame::on_get_projectile, this, std::placeholders::_1), std::bind(&MainGame::on_release_projectile, this, std::placeholders::_1), nullptr);
+	//projectiles_pool_test_.register_callback<MainGame>(this, &MainGame::callback_test);
 
 	edges_ = std::vector<Edge*>
 	{
@@ -47,6 +55,10 @@ MainGame::MainGame()
 MainGame::~MainGame()
 {
 	ShaderManager::get_instance().clear();
+
+	for (std::shared_ptr<GameObject> val : active_projectiles_)
+		projectiles_pool_test_.release(val);
+	active_projectiles_.clear();
 }
 
 
@@ -103,8 +115,8 @@ void MainGame::load_physics_engine()
 
 	update_physics = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
 
-	check_collisions_radius = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
-	check_collisions_aabb = DLLManager::get_instance().get_function<bool(*)(const Collider* const, const Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
+	check_collisions_radius = DLLManager::get_instance().get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
+	check_collisions_aabb = DLLManager::get_instance().get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
 
 	sweep_and_prune = DLLManager::get_instance().get_function<bool(*)(std::vector<Edge*>&edges, std::set<std::pair<Collider*, Collider*>>&)>(PHYSICS_ENGINE_DLL_NAME, "sweep_and_prune");
 }
@@ -152,15 +164,24 @@ void MainGame::update_player()
 		return;
 
 	if (update_physics)
+	{
 		update_physics(player_->get_transform(), delta_time_);
+		for (auto projectile : active_projectiles_)
+			update_physics(projectile->get_transform(), delta_time_);
+	}
 
 	player_->get_transform()->apply_physics(delta_time_);
-	player_->get_collider()->update_bounds();
+	//player_->get_collider()->update_bounds();
+
+	for (auto projectile : active_projectiles_)
+		projectile->get_transform()->apply_physics(delta_time_);
 }
 
 
 void MainGame::process_input_events()
 {
+	InputManager::get_instance().prepare_to_process_input();
+	
 	// Get and process events
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt))
@@ -204,6 +225,15 @@ void MainGame::process_input()
 		add_roll(player_->get_transform(), rotation_speed);
 	if (instance.get_key_held(SDLK_e) && add_roll)
 		add_roll(player_->get_transform(), -rotation_speed);
+
+
+	if (instance.get_key_pressed(SDLK_1))
+		active_projectiles_.emplace(active_projectiles_.end(), projectiles_pool_test_.get());
+	if (instance.get_key_pressed(SDLK_2))
+	{
+		for (int i = active_projectiles_.size() - 1; i >= 0; --i)
+			projectiles_pool_test_.release(active_projectiles_[i]);
+	}
 }
 
 
@@ -247,6 +277,9 @@ void MainGame::draw_game()
 
 	override_shader->set_vec3("color", glm::vec3((1.0f * player_overlapped) / 2.0f + 0.5f));
 	player_->draw(camera_, override_shader);
+
+	for (auto val : active_projectiles_)
+		val->draw(camera_);
 
 	int modulus = static_cast<int>(floorf(counter_ / 2.0f)) % 8;
 	glm::vec3 half_extents = object_1_.get_collider()->get_aabb_half_extents();
@@ -314,6 +347,42 @@ float MainGame::get_refresh_rate()
 	std::cout << "Failed to retrieve monitor Refresh Rate. Defaulting to " << kDefaultRefreshRate << std::endl;
 	return kDefaultRefreshRate;
 }
+
+
+std::shared_ptr<GameObject> MainGame::create_projectile()
+{
+	return std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f);
+}
+void MainGame::on_get_projectile(std::shared_ptr<GameObject> projectile_instance)
+{
+	Transform* player_transform = player_->get_transform();
+	projectile_instance->get_transform()->set_pos(player_transform->get_pos());
+	projectile_instance->get_transform()->set_rot(player_transform->get_rot());
+
+	if (add_thrust)
+		add_thrust(projectile_instance->get_transform(), 15.0f);
+}
+void MainGame::on_release_projectile(std::shared_ptr<GameObject> projectile_instance)
+{
+	int index = -1;
+	for (int i = 0; i < active_projectiles_.size(); ++i)
+	{
+		if (active_projectiles_[i] == projectile_instance)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		std::cerr << "Failed to find projectile to erase" << std::endl;
+		return;
+	}
+
+	active_projectiles_.erase(active_projectiles_.begin() + index);
+}
+
 
 
 void MainGame::insertion_sort_edges(std::vector<Edge*>& edges)

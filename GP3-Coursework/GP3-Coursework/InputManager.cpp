@@ -16,6 +16,10 @@ InputManager& InputManager::get_instance()
 }
 
 
+void InputManager::prepare_to_process_input()
+{
+	recently_pressed_keys_.clear();
+}
 void InputManager::process_input(const SDL_Event& event)
 {
 	// Key Pressed States.
@@ -23,6 +27,11 @@ void InputManager::process_input(const SDL_Event& event)
 	{
 		if (key_to_held_state_.find(event.key.keysym.sym) != key_to_held_state_.end())
 		{
+			if (event.type == SDL_KEYDOWN && !key_to_held_state_[event.key.keysym.sym])
+			{
+				recently_pressed_keys_.insert(event.key.keysym.sym);
+			}
+
 			key_to_held_state_[event.key.keysym.sym] = event.type == SDL_KEYDOWN;
 		}
 	}
@@ -61,4 +70,8 @@ const bool InputManager::get_key_held(const SDL_Keycode keycode) const
 		return false;
 
 	return iterator->second;
+}
+const bool InputManager::get_key_pressed(const SDL_Keycode keycode) const
+{
+	return recently_pressed_keys_.find(keycode) != recently_pressed_keys_.end();
 }

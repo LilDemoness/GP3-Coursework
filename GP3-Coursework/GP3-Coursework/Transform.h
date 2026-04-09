@@ -11,16 +11,15 @@
 struct Transform
 {
 public:
-	Transform(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& rot = glm::vec3(0.0f), const glm::vec3& scale = glm::vec3(1.0f)) :
+	Transform(const glm::vec3& pos = glm::vec3(0.0f), const glm::quat& rot = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f)) :
 		parent_(nullptr),
 		children_(std::vector<Transform*>()),
 		velocity_(glm::vec3(0.0f)),
-		angular_velocity_(glm::vec3(0.0f))
-	{
-		this->local_pos_ = pos;
-		this->local_rot_ = glm::quat(rot);
-		this->local_scale_ = scale;
-	}
+		angular_velocity_(glm::vec3(0.0f)),
+		local_pos_(pos),
+		local_rot_(rot),
+		local_scale_(scale)
+	{}
 
 	inline glm::mat4 get_model() const
 	{
