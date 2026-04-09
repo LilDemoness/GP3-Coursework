@@ -152,6 +152,7 @@
     <ClInclude Include="DisplayFacade.h" />
     <ClInclude Include="DLLManager.h" />
     <ClInclude Include="Edge.h" />
+    <ClInclude Include="Event.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="MainGame.h" />

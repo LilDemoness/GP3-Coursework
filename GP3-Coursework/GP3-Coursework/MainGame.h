@@ -42,9 +42,6 @@ public:
 	~MainGame();
 
 	void Run();
-	std::shared_ptr<GameObject> create_projectile();
-	void on_get_projectile(std::shared_ptr<GameObject> projectile_instance);
-	void on_release_projectile(std::shared_ptr<GameObject> projectile_instance);
 
 private:
 	void init_systems();
@@ -69,6 +66,12 @@ private:
 	float get_refresh_rate();
 
 
+	std::shared_ptr<GameObject> create_projectile();
+	void on_get_projectile(std::shared_ptr<GameObject> projectile_instance);
+	void on_release_projectile(std::shared_ptr<GameObject> projectile_instance);
+
+	void fire_projectile();
+	void release_projectiles();
 
 	void insertion_sort_edges(std::vector<Edge*>& edges);
 

@@ -6,7 +6,12 @@ InputManager::InputManager() :
 	receiving_mouse_input_(false)
 { }
 InputManager::~InputManager()
-{ }
+{
+	for (auto val : key_to_on_pressed_event_map_)
+	{
+		val.second.unsubscribe_all();
+	}
+}
 
 
 InputManager& InputManager::get_instance()
@@ -16,27 +21,24 @@ InputManager& InputManager::get_instance()
 }
 
 
-void InputManager::prepare_to_process_input()
-{
-	recently_pressed_keys_.clear();
-}
-void InputManager::process_input(const SDL_Event& event)
+void InputManager::process_input_event(const SDL_Event& event)
 {
 	// Key Pressed States.
 	if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
 	{
-		if (key_to_held_state_.find(event.key.keysym.sym) != key_to_held_state_.end())
-		{
-			if (event.type == SDL_KEYDOWN && !key_to_held_state_[event.key.keysym.sym])
-			{
-				recently_pressed_keys_.insert(event.key.keysym.sym);
-			}
+		SDL_Keycode keycode = event.key.keysym.sym;
 
-			key_to_held_state_[event.key.keysym.sym] = event.type == SDL_KEYDOWN;
+		if (key_to_held_state_.find(keycode) != key_to_held_state_.end())
+		{
+			if (event.type == SDL_KEYDOWN && !key_to_held_state_[keycode] && key_to_on_pressed_event_map_.find(keycode) != key_to_on_pressed_event_map_.end())
+				key_to_on_pressed_event_map_[keycode].invoke();
+
+			key_to_held_state_[keycode] = event.type == SDL_KEYDOWN;
 		}
 	}
-
-
+}
+void InputManager::process_general_input()
+{
 	// Mouse Input.
 	if (receiving_mouse_input_)
 	{
@@ -62,6 +64,20 @@ void InputManager::register_input(const SDL_Keycode keycode)
 	key_to_held_state_.insert({ keycode, false });
 }
 
+void InputManager::register_input_event(const SDL_Keycode keycode, std::function<void()> callback)
+{
+	std::cout << "Register Input Event: " << keycode << std::endl;
+	register_input(keycode);
+
+	if (key_to_on_pressed_event_map_.find(keycode) == key_to_on_pressed_event_map_.end())
+		key_to_on_pressed_event_map_.insert({ keycode, Event<void>() });
+	key_to_on_pressed_event_map_[keycode].subscribe(callback);
+}
+void InputManager::deregister_input_event(const SDL_Keycode keycode, std::function<void()> callback)
+{
+	key_to_on_pressed_event_map_[keycode].unsubscribe(callback);
+}
+
 
 const bool InputManager::get_key_held(const SDL_Keycode keycode) const
 {
@@ -70,8 +86,4 @@ const bool InputManager::get_key_held(const SDL_Keycode keycode) const
 		return false;
 
 	return iterator->second;
-}
-const bool InputManager::get_key_pressed(const SDL_Keycode keycode) const
-{
-	return recently_pressed_keys_.find(keycode) != recently_pressed_keys_.end();
 }

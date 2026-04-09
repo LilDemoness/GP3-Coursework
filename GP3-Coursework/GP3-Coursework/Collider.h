@@ -15,11 +15,11 @@ public:
 		transform_(transform)
 	{
 		update_bounds();
-		transform_->subscribe_to_rotation_change(std::bind(&Collider::mark_bounds_as_dirty, this));
+		transform_->on_rotation_changed.subscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 	~Collider()
 	{
-		transform_->unsubscribe_from_rotation_change(std::bind(&Collider::mark_bounds_as_dirty, this));
+		transform_->on_rotation_changed.unsubscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 
 

@@ -9,6 +9,8 @@
 #include <vector>
 #include <functional>
 
+#include "Event.h"
+
 struct Transform
 {
 public:
@@ -17,10 +19,6 @@ public:
 		children_(std::vector<Transform*>()),
 		velocity_(glm::vec3(0.0f)),
 		angular_velocity_(glm::vec3(0.0f)),
-
-		on_position_changed_callbacks_(),
-		on_rotation_changed_callbacks_(),
-		on_scale_changed_callbacks_(),
 
 		local_pos_(pos),
 		local_rot_(rot),
@@ -38,14 +36,9 @@ public:
 
 
 	// ----- Events -----
-	void subscribe_to_position_change(std::function<void()> callback) { on_position_changed_callbacks_.emplace(on_position_changed_callbacks_.end(), callback); }
-	void unsubscribe_from_position_change(std::function<void()> callback) { remove_element(on_position_changed_callbacks_, callback); }
-
-	void subscribe_to_rotation_change(std::function<void()> callback) { on_rotation_changed_callbacks_.emplace(on_rotation_changed_callbacks_.end(), callback); }
-	void unsubscribe_from_rotation_change(std::function<void()> callback) { remove_element(on_rotation_changed_callbacks_, callback); }
-
-	void subscribe_to_scale_change(std::function<void()> callback) { on_scale_changed_callbacks_.emplace(on_scale_changed_callbacks_.end(), callback); }
-	void unsubscribe_from_scale_change(std::function<void()> callback) { remove_element(on_scale_changed_callbacks_, callback); }
+	Event<void> on_position_changed;
+	Event<void> on_rotation_changed;
+	Event<void> on_scale_changed;
 
 
 	// ----- Position -----
@@ -80,7 +73,7 @@ public:
 		}
 
 		// Notify listeners of the change.
-		invoke_on_position_changed();
+		on_position_changed.invoke();
 	}
 	
 	
@@ -146,7 +139,7 @@ public:
 		}
 
 		// Notify listeners of the change.
-		invoke_on_rotation_changed();
+		on_rotation_changed.invoke();
 	}
 
 
@@ -190,7 +183,7 @@ public:
 		}
 
 		// Notify listeners of the change.
-		invoke_on_scale_changed();
+		on_scale_changed.invoke();
 	}
 
 
@@ -401,40 +394,4 @@ private:
 	// Quaternion Helper Functions.
 	inline glm::quat diff(glm::quat to, glm::quat from) const { return to * glm::inverse(from); }
 	inline glm::quat add(glm::quat start, glm::quat diff) const { return diff * start; }
-
-
-	// ----- Events -----
-	std::vector<std::function<void()>> on_position_changed_callbacks_;
-	void invoke_on_position_changed()
-	{
-		for (int i = 0; i < on_position_changed_callbacks_.size(); ++i)
-			on_position_changed_callbacks_[i]();
-	}
-
-	std::vector<std::function<void()>> on_rotation_changed_callbacks_;
-	void invoke_on_rotation_changed()
-	{
-		for (int i = 0; i < on_rotation_changed_callbacks_.size(); ++i)
-			on_rotation_changed_callbacks_[i]();
-	}
-
-	std::vector<std::function<void()>> on_scale_changed_callbacks_;
-	void invoke_on_scale_changed()
-	{
-		for (int i = 0; i < on_scale_changed_callbacks_.size(); ++i)
-			on_scale_changed_callbacks_[i]();
-	}
-
-	// Event Vector Helper Functions.
-	inline void remove_element(std::vector<std::function<void()>>& vector, std::function<void()>& element)
-	{
-		for (int i = 0; i < vector.size(); ++i)
-		{
-			if (&vector[i] == &element)
-			{
-				vector.erase(vector.begin() + i);
-				return;
-			}
-		}
-	}
 };

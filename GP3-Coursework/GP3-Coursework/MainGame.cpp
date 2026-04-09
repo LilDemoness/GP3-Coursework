@@ -34,9 +34,9 @@ MainGame::MainGame() :
 		SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_q, SDLK_e,
 		// Movement.
 		SDLK_LSHIFT,
-		// Projectile Tests.
-		SDLK_1, SDLK_2
 	});
+	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
+	InputManager::get_instance().register_input_event(SDLK_2, std::bind(&MainGame::release_projectiles, this));
 
 	//projectiles_pool_test_(ObjectPool<GameObject>(std::bind(&MainGame::callback_test, this))),
 	projectiles_pool_test_ = ObjectPool<GameObject>(std::bind(&MainGame::create_projectile, this), std::bind(&MainGame::on_get_projectile, this, std::placeholders::_1), std::bind(&MainGame::on_release_projectile, this, std::placeholders::_1), nullptr);
@@ -55,6 +55,9 @@ MainGame::MainGame() :
 MainGame::~MainGame()
 {
 	ShaderManager::get_instance().clear();
+
+	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
+	InputManager::get_instance().deregister_input_event(SDLK_2, std::bind(&MainGame::release_projectiles, this));
 
 	for (std::shared_ptr<GameObject> val : active_projectiles_)
 		projectiles_pool_test_.release(val);
@@ -176,8 +179,6 @@ void MainGame::update_player()
 
 void MainGame::process_input_events()
 {
-	InputManager::get_instance().prepare_to_process_input();
-	
 	// Get and process events
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt))
@@ -188,10 +189,12 @@ void MainGame::process_input_events()
 			game_state_ = GameState::kExit;
 			break;
 		default:
-			InputManager::get_instance().process_input(evnt);
+			InputManager::get_instance().process_input_event(evnt);
 			break;
 		}
 	}
+
+	InputManager::get_instance().process_general_input();
 }
 void MainGame::process_input()
 {
@@ -221,15 +224,6 @@ void MainGame::process_input()
 		add_roll(player_->get_transform(), rotation_speed);
 	if (instance.get_key_held(SDLK_e) && add_roll)
 		add_roll(player_->get_transform(), -rotation_speed);
-
-
-	if (instance.get_key_pressed(SDLK_1))
-		active_projectiles_.emplace(active_projectiles_.end(), projectiles_pool_test_.get());
-	if (instance.get_key_pressed(SDLK_2))
-	{
-		for (int i = active_projectiles_.size() - 1; i >= 0; --i)
-			projectiles_pool_test_.release(active_projectiles_[i]);
-	}
 }
 
 
@@ -377,6 +371,16 @@ void MainGame::on_release_projectile(std::shared_ptr<GameObject> projectile_inst
 	}
 
 	active_projectiles_.erase(active_projectiles_.begin() + index);
+}
+
+void MainGame::fire_projectile()
+{
+	active_projectiles_.emplace(active_projectiles_.end(), projectiles_pool_test_.get());
+}
+void MainGame::release_projectiles()
+{
+	for (int i = active_projectiles_.size() - 1; i >= 0; --i)
+		projectiles_pool_test_.release(active_projectiles_[i]);
 }
 
 

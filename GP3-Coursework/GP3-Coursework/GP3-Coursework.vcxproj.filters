@@ -149,6 +149,9 @@
     <ClInclude Include="ObjectPool.h">
       <Filter>Header Files\ObjectPooling</Filter>
     </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">
