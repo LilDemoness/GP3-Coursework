@@ -141,9 +141,6 @@ void MainGame::game_loop()
 		//object_1_.get_transform()->rotate(glm::vec3(0.25f, 1.0f, 0.0f), glm::radians(45.0f) * delta_time_);
 		object_2_.get_transform()->set_pos(glm::vec3(glm::sin(glm::radians(counter_ * 45.0f + 270.0f)) * 3.0f, 0.75f, 0.5f));
 		update_player();
-		object_1_.get_collider()->update_bounds();
-		object_2_.get_collider()->update_bounds();
-		player_->get_collider()->update_bounds();
 
 		if (sweep_and_prune)
 			sweep_and_prune(edges_, overlapping_);
@@ -171,7 +168,6 @@ void MainGame::update_player()
 	}
 
 	player_->get_transform()->apply_physics(delta_time_);
-	//player_->get_collider()->update_bounds();
 
 	for (auto projectile : active_projectiles_)
 		projectile->get_transform()->apply_physics(delta_time_);

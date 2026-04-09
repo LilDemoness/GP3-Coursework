@@ -15,9 +15,12 @@ public:
 		transform_(transform)
 	{
 		update_bounds();
+		transform_->subscribe_to_rotation_change(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 	~Collider()
-	{}
+	{
+		transform_->unsubscribe_from_rotation_change(std::bind(&Collider::mark_bounds_as_dirty, this));
+	}
 
 
 
@@ -54,15 +57,27 @@ public:
 		}
 
 		aabb_half_extents_ = glm::vec3(max_x, max_y, max_z);
+		bounds_dirty_ = false;
 	}
 	// Returns the collider's AABB bounding box's half extents.
-	const glm::vec3 get_aabb_half_extents() const { return aabb_half_extents_ ; }
+	const glm::vec3 get_aabb_half_extents() 
+	{
+		if (bounds_dirty_)
+			update_bounds();
+
+		return aabb_half_extents_ ;
+	}
 
 	const Transform* get_transform() const { return transform_.get(); }
 
 private:
+	void mark_bounds_as_dirty() { bounds_dirty_ = true; }
+
+
 	float radius_;
 	glm::vec3 half_extents_;
+
+	bool bounds_dirty_;
 	glm::vec3 aabb_half_extents_;
 
 	std::shared_ptr<Transform> transform_;

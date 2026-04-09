@@ -66,13 +66,13 @@ extern "C" PHYSICS_API void update_physics(Transform* const transform, float del
 
 
 
-extern "C" PHYSICS_API bool check_collisions_radius(const Collider* const a, const Collider* const b)
+extern "C" PHYSICS_API bool check_collisions_radius(Collider* const a, Collider* const b)
 {
 	float sqrDistance = glm::distance2(a->get_transform()->get_pos(), b->get_transform()->get_pos());
 	float twinRadii = a->get_radius() + b->get_radius();
 	return sqrDistance < (twinRadii * twinRadii);
 }
-extern "C" PHYSICS_API bool check_collisions_aabb(const Collider* const a, const Collider* const b)
+extern "C" PHYSICS_API bool check_collisions_aabb(Collider* const a, Collider* const b)
 {
 	glm::vec3 a_pos = a->get_transform()->get_pos();
 	glm::vec3 a_half_extents = a->get_aabb_half_extents();
@@ -95,7 +95,6 @@ extern "C" PHYSICS_API void sweep_and_prune(std::vector<Edge*>& edges, std::set<
 		{
 			if (edges[j]->get_x_position() < edges[j + 1]->get_x_position())
 				break;
-			std::cout << "Swap" << std::endl;
 
 			// Sort.
 			std::iter_swap(edges.begin() + j, edges.begin() + j + 1);
@@ -104,16 +103,12 @@ extern "C" PHYSICS_API void sweep_and_prune(std::vector<Edge*>& edges, std::set<
 			if (edges[j]->is_left && !edges[j + 1]->is_left)
 			{
 				// Now overlapping.
-				std::cout << "Overlap" << std::endl;
-
 				std::pair<Collider*, Collider*> key = std::make_pair(edges[j]->collider, edges[j + 1]->collider);
 				overlapping.insert(key);
 			}
 			else if (!edges[j]->is_left && edges[j + 1]->is_left)
 			{
 				// No longer overlapping.
-				std::cout << "Removed Overlap" << std::endl;
-
 				std::pair<Collider*, Collider*> key = std::make_pair(edges[j]->collider, edges[j + 1]->collider);
 				overlapping.erase(key);
 			}

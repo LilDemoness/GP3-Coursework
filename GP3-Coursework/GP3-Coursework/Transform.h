@@ -7,6 +7,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <functional>
 
 struct Transform
 {
@@ -16,6 +17,11 @@ public:
 		children_(std::vector<Transform*>()),
 		velocity_(glm::vec3(0.0f)),
 		angular_velocity_(glm::vec3(0.0f)),
+
+		on_position_changed_callbacks_(),
+		on_rotation_changed_callbacks_(),
+		on_scale_changed_callbacks_(),
+
 		local_pos_(pos),
 		local_rot_(rot),
 		local_scale_(scale)
@@ -29,6 +35,17 @@ public:
 
 		return posMat * rotMat * scaleMat;
 	}
+
+
+	// ----- Events -----
+	void subscribe_to_position_change(std::function<void()> callback) { on_position_changed_callbacks_.emplace(on_position_changed_callbacks_.end(), callback); }
+	void unsubscribe_from_position_change(std::function<void()> callback) { remove_element(on_position_changed_callbacks_, callback); }
+
+	void subscribe_to_rotation_change(std::function<void()> callback) { on_rotation_changed_callbacks_.emplace(on_rotation_changed_callbacks_.end(), callback); }
+	void unsubscribe_from_rotation_change(std::function<void()> callback) { remove_element(on_rotation_changed_callbacks_, callback); }
+
+	void subscribe_to_scale_change(std::function<void()> callback) { on_scale_changed_callbacks_.emplace(on_scale_changed_callbacks_.end(), callback); }
+	void unsubscribe_from_scale_change(std::function<void()> callback) { remove_element(on_scale_changed_callbacks_, callback); }
 
 
 	// ----- Position -----
@@ -50,6 +67,9 @@ public:
 	inline glm::vec3 get_local_pos() const { return local_pos_; }
 	inline void set_local_pos(const glm::vec3& new_local_pos)
 	{
+		if (local_pos_ == new_local_pos)
+			return;
+
 		local_pos_ = new_local_pos;
 
 		// Set our children's position.
@@ -58,6 +78,9 @@ public:
 			Transform* child = this->get_child(i);
 			child->set_local_pos(child->get_local_pos());
 		}
+
+		// Notify listeners of the change.
+		invoke_on_position_changed();
 	}
 	
 	
@@ -104,6 +127,8 @@ public:
 	inline glm::quat get_local_rot() const { return local_rot_; }
 	inline void set_local_rot(glm::quat new_local_rot)
 	{
+		if (local_rot_ == new_local_rot)
+			return;
 		local_rot_ = new_local_rot;
 
 		// Update our children's rotation.
@@ -119,6 +144,9 @@ public:
 			glm::quat new_world_rot = add(this->get_rot(), child->get_local_rot());
 			child->set_rot(new_world_rot);
 		}
+
+		// Notify listeners of the change.
+		invoke_on_rotation_changed();
 	}
 
 
@@ -142,6 +170,8 @@ public:
 	inline glm::vec3 get_local_scale() const { return local_scale_; }
 	inline void set_local_scale(glm::vec3 new_local_scale)
 	{
+		if (local_scale_ == new_local_scale)
+			return;
 		local_scale_ = new_local_scale; 
 
 		// Update our children's scale & relative positions.
@@ -158,6 +188,9 @@ public:
 			glm::vec3 new_world_scale = this->get_scale() / child->get_local_scale();
 			child->set_scale(new_world_scale);
 		}
+
+		// Notify listeners of the change.
+		invoke_on_scale_changed();
 	}
 
 
@@ -368,4 +401,40 @@ private:
 	// Quaternion Helper Functions.
 	inline glm::quat diff(glm::quat to, glm::quat from) const { return to * glm::inverse(from); }
 	inline glm::quat add(glm::quat start, glm::quat diff) const { return diff * start; }
+
+
+	// ----- Events -----
+	std::vector<std::function<void()>> on_position_changed_callbacks_;
+	void invoke_on_position_changed()
+	{
+		for (int i = 0; i < on_position_changed_callbacks_.size(); ++i)
+			on_position_changed_callbacks_[i]();
+	}
+
+	std::vector<std::function<void()>> on_rotation_changed_callbacks_;
+	void invoke_on_rotation_changed()
+	{
+		for (int i = 0; i < on_rotation_changed_callbacks_.size(); ++i)
+			on_rotation_changed_callbacks_[i]();
+	}
+
+	std::vector<std::function<void()>> on_scale_changed_callbacks_;
+	void invoke_on_scale_changed()
+	{
+		for (int i = 0; i < on_scale_changed_callbacks_.size(); ++i)
+			on_scale_changed_callbacks_[i]();
+	}
+
+	// Event Vector Helper Functions.
+	inline void remove_element(std::vector<std::function<void()>>& vector, std::function<void()>& element)
+	{
+		for (int i = 0; i < vector.size(); ++i)
+		{
+			if (&vector[i] == &element)
+			{
+				vector.erase(vector.begin() + i);
+				return;
+			}
+		}
+	}
 };
