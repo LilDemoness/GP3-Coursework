@@ -251,6 +251,8 @@ void MainGame::draw_game()
 	{
 		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
 			continue;
+		if (!overlap.first->get_enabled() || !overlap.second->get_enabled())
+			continue;
 
 		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider())
 			player_overlapped = true;
@@ -341,19 +343,33 @@ float MainGame::get_refresh_rate()
 
 std::shared_ptr<GameObject> MainGame::create_projectile()
 {
-	return std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f);
+	std::shared_ptr<GameObject> new_instance = std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f);
+
+	edges_.emplace(edges_.end(), new Edge(new_instance->get_collider(), true));
+	edges_.emplace(edges_.end(), new Edge(new_instance->get_collider(), false));
+
+	return new_instance;
 }
 void MainGame::on_get_projectile(std::shared_ptr<GameObject> projectile_instance)
 {
+	// Set Position.
 	Transform* player_transform = player_->get_transform();
 	projectile_instance->get_transform()->set_pos(player_transform->get_pos());
 	projectile_instance->get_transform()->set_rot(player_transform->get_rot());
 
+	// Enable Collisions.
+	projectile_instance->get_collider()->set_enabled(true);
+
+	// Apply initial force.
 	if (add_thrust)
 		add_thrust(projectile_instance->get_transform(), 15.0f);
 }
 void MainGame::on_release_projectile(std::shared_ptr<GameObject> projectile_instance)
 {
+	// Disable Collisions.
+	projectile_instance->get_collider()->set_enabled(false);
+
+	// Remove from Active Projectiles list (Prevents rendering & updating).
 	int index = -1;
 	for (int i = 0; i < active_projectiles_.size(); ++i)
 	{

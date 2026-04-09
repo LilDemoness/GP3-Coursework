@@ -10,6 +10,7 @@ class Collider
 {
 public:
 	Collider(std::shared_ptr<Transform> transform, float radius) :
+		enabled_(true),
 		radius_(radius),
 		half_extents_(glm::vec3(radius)),
 		transform_(transform)
@@ -22,6 +23,9 @@ public:
 		transform_->on_rotation_changed.unsubscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 
+
+	void set_enabled(bool new_value) { enabled_ = new_value; }
+	const bool get_enabled() const { return enabled_; }
 
 
 	const float get_radius() const { return radius_; }
@@ -72,6 +76,7 @@ public:
 
 private:
 	void mark_bounds_as_dirty() { bounds_dirty_ = true; }
+	bool enabled_;
 
 
 	float radius_;
