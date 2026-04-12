@@ -55,6 +55,7 @@ private:
 
 	void game_loop();
 	void update_player();
+	void handle_collisions();
 
 	void process_input_events();
 	void process_input();
@@ -80,6 +81,9 @@ private:
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
+
+
+	bool player_overlapping_, object_1_overlapping_, object_2_overlapping_;
 
 
 	std::vector<Collider::Edge*> edges_;

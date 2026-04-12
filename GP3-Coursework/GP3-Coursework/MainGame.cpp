@@ -122,8 +122,7 @@ void MainGame::game_loop()
 		Projectile::update_projectiles(delta_time_);
 		Asteroid::update_all_asteroids(delta_time_);
 
-		if (sweep_and_prune)
-			sweep_and_prune(Collider::Edge::all_edges, overlapping_);
+		handle_collisions();
 
 		draw_game();
 
@@ -146,6 +145,33 @@ void MainGame::update_player()
 	}
 
 	player_->get_transform()->apply_physics(delta_time_);
+}
+
+void MainGame::handle_collisions()
+{
+	if (sweep_and_prune)
+		sweep_and_prune(Collider::Edge::all_edges, overlapping_);
+
+
+	player_overlapping_ = object_1_overlapping_ = object_2_overlapping_ = false;
+	for (std::pair<Collider*, Collider*> overlap : overlapping_)
+	{
+		if (!overlap.first->get_enabled() || !overlap.second->get_enabled())
+			continue;	// One of the colliders is disabled.
+		if (!Collider::is_valid_collision(overlap.first, overlap.second))
+			continue;	// Invalid collision tags.
+		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
+			continue;	// AABBs aren't overlapping.
+
+		// Valid Collision. Invoke overlap events.
+		overlap.first->on_collision_event.invoke(overlap.first, overlap.second);
+		overlap.second->on_collision_event.invoke(overlap.second, overlap.first);
+
+		// Temp: Object highlights for overlap.
+		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider()) { player_overlapping_ = true; }
+		if (overlap.first == object_1_.get_collider() || overlap.second == object_1_.get_collider()) { object_1_overlapping_ = true; }
+		if (overlap.first == object_2_.get_collider() || overlap.second == object_2_.get_collider()) { object_2_overlapping_ = true; }
+	}
 }
 
 
@@ -207,34 +233,13 @@ void MainGame::draw_game()
 	texture_.bind(0);
 
 
-	bool player_overlapped = false, obj_1_overlapped = false, obj_2_overlapped = false;
-	for (std::pair<Collider*, Collider*> overlap : overlapping_)
-	{
-		if (!overlap.first->get_enabled() || !overlap.second->get_enabled())
-			continue;	// One of the colliders is disabled.
-		if (!Collider::is_valid_collision(overlap.first, overlap.second))
-			continue;	// Invalid collision tags.
-		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
-			continue;	// AABBs aren't overlapping.
-
-
-		overlap.first->on_collision_event.invoke(overlap.first, overlap.second);
-		overlap.second->on_collision_event.invoke(overlap.second, overlap.first);
-
-		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider())
-			player_overlapped = true;
-		if (overlap.first == object_1_.get_collider() || overlap.second == object_1_.get_collider())
-			obj_1_overlapped = true;
-		if (overlap.first == object_2_.get_collider() || overlap.second == object_2_.get_collider())
-			obj_2_overlapped = true;
-	}
-	override_shader->set_vec3("color", glm::vec3((1.0f * obj_1_overlapped) / 2.0f + 0.5f));
+	override_shader->set_vec3("color", glm::vec3((1.0f * object_1_overlapping_) / 2.0f + 0.5f));
 	object_1_.draw(camera_, override_shader);
 
-	override_shader->set_vec3("color", glm::vec3((1.0f * obj_2_overlapped) / 2.0f + 0.5f));
+	override_shader->set_vec3("color", glm::vec3((1.0f * object_2_overlapping_) / 2.0f + 0.5f));
 	object_2_.draw(camera_, override_shader);
 
-	override_shader->set_vec3("color", glm::vec3((1.0f * player_overlapped) / 2.0f + 0.5f));
+	override_shader->set_vec3("color", glm::vec3((1.0f * player_overlapping_) / 2.0f + 0.5f));
 	player_->draw(camera_, override_shader);
 
 	GameObject::draw_all(camera_);
