@@ -17,9 +17,9 @@ public:
 	void setup_asteroid(int remaining_splits, glm::vec3 position, glm::quat rot, float scale, glm::vec3 velocity, glm::vec3 angular_velocity);
 
 	static std::unordered_set<std::shared_ptr<Asteroid>> all_asteroids_;
-	void test_split(int split_iteration);
 
 private:
+	void on_collision(Collider* self, Collider* other);
 	void split();
 
 	int remaining_splits_;

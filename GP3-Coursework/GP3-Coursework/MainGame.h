@@ -71,6 +71,7 @@ private:
 	void on_get_projectile(std::shared_ptr<GameObject> projectile_instance);
 	void on_release_projectile(std::shared_ptr<GameObject> projectile_instance);
 
+	void on_projectile_collision(Collider* self, Collider* other);
 	void fire_projectile();
 	void release_projectiles();
 

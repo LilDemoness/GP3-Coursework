@@ -3,19 +3,19 @@
 #include "GameObject.h"
 
 std::unordered_set<GameObject*> GameObject::all_gameobjects_ = std::unordered_set<GameObject*>();
-GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
+GameObject::GameObject(const std::string& mesh_file_name, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
 	mesh_(new Mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius)),
+	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
 	is_active_(true)
 {
 	if (add_to_all_objects)
 		all_gameobjects_.insert(this);
 }
-GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
+GameObject::GameObject(Mesh* mesh, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
 	mesh_(mesh),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius)),
+	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
 	is_active_(true)
 {
 	if (add_to_all_objects)

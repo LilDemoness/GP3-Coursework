@@ -12,11 +12,11 @@ MainGame::MainGame() :
     texture_("..\\res\\bricks.jpg"),
     //object_1_(Mesh::create_triangle_mesh()),
     //object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
-    object_1_("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
-    object_2_("..\\res\\cube1m.obj", glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
+    object_1_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
+    object_2_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
     //marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
     //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
-    player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
+    player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
     //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	//projectiles_pool_test_(create_projectile),
@@ -139,18 +139,6 @@ void MainGame::game_loop()
 
 		for (auto it = Asteroid::all_asteroids_.begin(); it != Asteroid::all_asteroids_.end(); ++it)
 			(*it)->get_transform()->apply_physics(delta_time_);
-		if (counter_ > 10.0f)
-		{
-			for (auto it = Asteroid::all_asteroids_.begin(); it != Asteroid::all_asteroids_.end();)
-			{
-				// Note: Accessing using 'it++' to prevent accessing after an element has been removed, and to prevent duplication ('foreach' equivalent duplicates).
-				//	An alternate would be to change 'Asteroid::all_asteroids_' to a vector rather than a set and access via indexing.
-				auto current = it++;
-
-				// Note: Splitting may erase the current value.
-				(*current)->test_split(counter_ / 10.0f);
-			}
-		}
 
 		if (sweep_and_prune)
 			sweep_and_prune(Collider::Edge::all_edges, overlapping_);
@@ -256,10 +244,16 @@ void MainGame::draw_game()
 	bool player_overlapped = false, obj_1_overlapped = false, obj_2_overlapped = false;
 	for (std::pair<Collider*, Collider*> overlap : overlapping_)
 	{
-		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
-			continue;
 		if (!overlap.first->get_enabled() || !overlap.second->get_enabled())
-			continue;
+			continue;	// One of the colliders is disabled.
+		if (!Collider::is_valid_collision(overlap.first, overlap.second))
+			continue;	// Invalid collision tags.
+		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
+			continue;	// AABBs aren't overlapping.
+
+
+		overlap.first->on_collision_event.invoke(overlap.first, overlap.second);
+		overlap.second->on_collision_event.invoke(overlap.second, overlap.first);
 
 		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider())
 			player_overlapped = true;
@@ -349,7 +343,7 @@ float MainGame::get_refresh_rate()
 
 std::shared_ptr<GameObject> MainGame::create_projectile()
 {
-	std::shared_ptr<GameObject> new_instance = std::make_shared<GameObject>("..\\res\\cube1m.obj", glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f, true);
+	std::shared_ptr<GameObject> new_instance = std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f, true);
 
 	//edges_.emplace(edges_.end(), new Collider::Edge(new_instance->get_collider(), true));
 	//edges_.emplace(edges_.end(), new Collider::Edge(new_instance->get_collider(), false));
@@ -363,8 +357,11 @@ void MainGame::on_get_projectile(std::shared_ptr<GameObject> projectile_instance
 	projectile_instance->get_transform()->set_pos(player_transform->get_pos());
 	projectile_instance->get_transform()->set_rot(player_transform->get_rot());
 
-	// Enable Collisions.
+	// Enable Rendering & Collisions.
 	projectile_instance->set_is_active(true);
+
+	// Subscribe to Collision Event.
+	projectile_instance->get_collider()->on_collision_event.subscribe(std::bind(&MainGame::on_projectile_collision, this, std::placeholders::_1, std::placeholders::_2));
 
 	// Apply initial force.
 	if (add_thrust)
@@ -372,14 +369,26 @@ void MainGame::on_get_projectile(std::shared_ptr<GameObject> projectile_instance
 }
 void MainGame::on_release_projectile(std::shared_ptr<GameObject> projectile_instance)
 {
-	// Disable Collisions.
+	// Disable Rendering & Collisions.
 	projectile_instance->set_is_active(false);
+
+	// Reset velocity.
+	projectile_instance->get_transform()->set_velocity(glm::vec3(0.0f));
+
+	// Unsubscribe from Collision Event.
+	projectile_instance->get_collider()->on_collision_event.unsubscribe(std::bind(&MainGame::on_projectile_collision, this, std::placeholders::_1, std::placeholders::_2));
 
 	// Remove from Active Projectiles list (Prevents rendering & updating).
 	int index = -1;
 	for (int i = 0; i < active_projectiles_.size(); ++i)
 		if (active_projectiles_[i] == projectile_instance)
 			active_projectiles_.erase(active_projectiles_.begin() + i);
+}
+void MainGame::on_projectile_collision(Collider* self, Collider* other)
+{
+	for (int i = 0; i < active_projectiles_.size(); ++i)
+		if (active_projectiles_[i]->get_collider() == self)
+			projectiles_pool_test_.release(active_projectiles_[i]);
 }
 
 void MainGame::fire_projectile()

@@ -3,19 +3,21 @@
 
 
 Asteroid::Asteroid()
-	: GameObject(get_random_asteroid_mesh(), glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), 0.5f, true),
+	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), 0.5f, true),
 	remaining_splits_(0)
 {
-	
+	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits)
-	: GameObject(get_random_asteroid_mesh(), position, rot, scale, 0.5f, true),
+	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, 0.5f, true),
 	remaining_splits_(remaining_splits)
 {
-
+	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::~Asteroid()
-{ }
+{
+	collider_->on_collision_event.unsubscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
+}
 
 
 void Asteroid::create_initial_asteroids(int asteroids_count, int asteroid_split_count, float world_bounds)
@@ -76,10 +78,13 @@ glm::quat Asteroid::get_random_direction(std::mt19937 gen)
 
 
 
-void Asteroid::test_split(int split_iteration)
+void Asteroid::on_collision(Collider* self, Collider* other)
 {
-	if (remaining_splits_ >= (4 - split_iteration))
+	// Check if 'other' is a projectile.
+	if (true)
+	{
 		split();
+	}
 }
 void Asteroid::split()
 {

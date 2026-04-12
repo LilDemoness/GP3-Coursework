@@ -3,6 +3,8 @@
 
 #include <glm\glm.hpp>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "Transform.h"
 #include "Collision.h"
@@ -40,9 +42,23 @@ public:
 		static std::vector<Collider::Edge*> all_edges;
 	};
 
+	enum CollisionTag
+	{
+		kBlackHole,
+		kAsteroid,
+
+		kEnemy,
+		kEnemyProjectile,
+
+		kPlayer,
+		kPlayerProjectile,
+
+		kUndefined,
+	};
 
 
-	Collider(std::shared_ptr<Transform> transform, float radius) :
+	Collider(std::shared_ptr<Transform> transform, float radius, Collider::CollisionTag tag) :
+		tag_(tag),
 		enabled_(true),
 		radius_(radius),
 		half_extents_(glm::vec3(radius)),
@@ -119,11 +135,32 @@ public:
 	const Transform* get_transform() const { return transform_.get(); }
 
 
-	Event<Collision> on_collision_event;
+	static const bool is_valid_collision(Collider* a, Collider* b) { return test_collision_pair(a->tag_, b->tag_); } //{ return test_collision_pair(a->tag_, b->tag_) && test_collision_pair(b->tag_, a->tag_); }
+	static const bool test_collision_pair(CollisionTag a, CollisionTag b)
+	{
+		const std::unordered_map<CollisionTag, std::unordered_set<CollisionTag>> kInvalidCollisions = 
+		{
+			{ kAsteroid,			{ kAsteroid } },
+			{ kPlayer,				{ kPlayerProjectile } },
+			{ kPlayerProjectile,	{ kPlayer } },
+		};
+
+		auto it = kInvalidCollisions.find(a);
+		if (it == kInvalidCollisions.end())
+			return true;	// No invalid collisions for type a, so collision is valid.
+
+		// Returns true if there isn't an invalid collision for this pair.
+		return it->second.find(b) == it->second.end();
+	}
+
+
+	// <No Return Type, Collider* Self, Collider* Other>
+	Event<void, Collider*, Collider*> on_collision_event;
 
 private:
 	void mark_bounds_as_dirty() { bounds_dirty_ = true; }
 	bool enabled_;
+	CollisionTag tag_;
 
 
 	float radius_;
