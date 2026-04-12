@@ -15,7 +15,7 @@ public:
 
 	void invoke(Arguments... arguments)
 	{
-		for (int i = 0; i < callbacks_.size(); ++i)
+		for (unsigned int i = 0; i < callbacks_.size(); ++i)
 			callbacks_[i](arguments...);
 	}
 
@@ -27,7 +27,7 @@ private:
 	// Event Vector Helper Functions.
 	inline void remove_element(std::vector<std::function<TReturnType(Arguments...)>>& vector, std::function<TReturnType(Arguments...)>& element)
 	{
-		for (int i = 0; i < vector.size(); ++i)
+		for (unsigned int i = 0; i < vector.size(); ++i)
 		{
 			if (&vector[i] == &element)
 			{

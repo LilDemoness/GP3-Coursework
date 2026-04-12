@@ -10,16 +10,10 @@ MainGame::MainGame() :
 	last_frame_start_time_(0.0f),
 
     texture_("..\\res\\bricks.jpg"),
-    //object_1_(Mesh::create_triangle_mesh()),
-    //object_2_("..\\res\\monkey3.obj", glm::vec3(2.0f, 0.0f, 0.0f)),
     object_1_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
     object_2_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
     //marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
-    //player_(std::make_shared<GameObject>(Mesh::create_triangle_mesh(), glm::vec3(0.0f, 0.0f, 0.0f))),
     player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
-    //player_(std::make_shared<GameObject>("..\\res\\monkey3.obj", glm::vec3(0.0f, 0.0f, 0.0f))),
-
-	//projectiles_pool_test_(create_projectile),
 
 	camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
 {
@@ -36,27 +30,17 @@ MainGame::MainGame() :
 		SDLK_LSHIFT,
 	});
 	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
-	InputManager::get_instance().register_input_event(SDLK_2, std::bind(&MainGame::release_projectiles, this));
-
-	//projectiles_pool_test_(ObjectPool<GameObject>(std::bind(&MainGame::callback_test, this))),
-	projectiles_pool_test_ = ObjectPool<GameObject>(std::bind(&MainGame::create_projectile, this), std::bind(&MainGame::on_get_projectile, this, std::placeholders::_1), std::bind(&MainGame::on_release_projectile, this, std::placeholders::_1), nullptr);
-	//projectiles_pool_test_.register_callback<MainGame>(this, &MainGame::callback_test);
 
 	Asteroid::create_initial_asteroids(10, 2, 20);
 
 	camera_.get_transform()->set_parent(player_->get_transform(), true);
-	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 0.0f, -5.0f));
+	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 1.0f, -5.0f));
 }
 MainGame::~MainGame()
 {
 	ShaderManager::get_instance().clear();
 
 	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
-	InputManager::get_instance().deregister_input_event(SDLK_2, std::bind(&MainGame::release_projectiles, this));
-
-	for (std::shared_ptr<GameObject> val : active_projectiles_)
-		projectiles_pool_test_.release(val);
-	active_projectiles_.clear();
 }
 
 
@@ -99,7 +83,6 @@ void MainGame::load_physics_engine()
 {
 	DLLManager::get_instance().load_dll(PHYSICS_ENGINE_DLL_NAME);
 	HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "hello_world");
-	//HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "HelloWorld");
 
 	if (hello_world)
 		hello_world();
@@ -136,9 +119,8 @@ void MainGame::game_loop()
 		process_input();
 
 		update_player();
-
-		for (auto it = Asteroid::all_asteroids_.begin(); it != Asteroid::all_asteroids_.end(); ++it)
-			(*it)->get_transform()->apply_physics(delta_time_);
+		Projectile::update_projectiles(delta_time_);
+		Asteroid::update_all_asteroids(delta_time_);
 
 		if (sweep_and_prune)
 			sweep_and_prune(Collider::Edge::all_edges, overlapping_);
@@ -161,14 +143,9 @@ void MainGame::update_player()
 	if (update_physics)
 	{
 		update_physics(player_->get_transform(), delta_time_);
-		for (auto projectile : active_projectiles_)
-			update_physics(projectile->get_transform(), delta_time_);
 	}
 
 	player_->get_transform()->apply_physics(delta_time_);
-
-	for (auto projectile : active_projectiles_)
-		projectile->get_transform()->apply_physics(delta_time_);
 }
 
 
@@ -202,7 +179,7 @@ void MainGame::process_input()
 		add_thrust(player_->get_transform(), kPlayerThrust * delta_time_);
 
 	// Rotation.
-	const float kPlayerRotationSpeed = glm::radians(360.0f);
+	constexpr float kPlayerRotationSpeed = glm::radians(360.0f);
 	float rotation_speed = kPlayerRotationSpeed * delta_time_;
 	// Pitch.
 	if (instance.get_key_held(SDLK_w) && add_pitch)
@@ -229,17 +206,6 @@ void MainGame::draw_game()
 	std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().get_shader("SolidColor");
 	texture_.bind(0);
 
-	/*if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
-		override_shader->set_vec3("color", glm::vec3(1.0f));
-	else
-		override_shader->set_vec3("color", glm::vec3(0.5f));
-	object_1_.draw(camera_, override_shader);
-
-	if (check_collisions_aabb && check_collisions_aabb(object_1_.get_collider(), object_2_.get_collider()))
-		override_shader->set_vec3("color", glm::vec3(1.0f));
-	else
-		override_shader->set_vec3("color", glm::vec3(0.5f));
-	object_2_.draw(camera_, override_shader);*/
 
 	bool player_overlapped = false, obj_1_overlapped = false, obj_2_overlapped = false;
 	for (std::pair<Collider*, Collider*> overlap : overlapping_)
@@ -340,72 +306,17 @@ float MainGame::get_refresh_rate()
 	return kDefaultRefreshRate;
 }
 
-
-std::shared_ptr<GameObject> MainGame::create_projectile()
-{
-	std::shared_ptr<GameObject> new_instance = std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f, true);
-
-	//edges_.emplace(edges_.end(), new Collider::Edge(new_instance->get_collider(), true));
-	//edges_.emplace(edges_.end(), new Collider::Edge(new_instance->get_collider(), false));
-
-	return new_instance;
-}
-void MainGame::on_get_projectile(std::shared_ptr<GameObject> projectile_instance)
-{
-	// Set Position.
-	Transform* player_transform = player_->get_transform();
-	projectile_instance->get_transform()->set_pos(player_transform->get_pos());
-	projectile_instance->get_transform()->set_rot(player_transform->get_rot());
-
-	// Enable Rendering & Collisions.
-	projectile_instance->set_is_active(true);
-
-	// Subscribe to Collision Event.
-	projectile_instance->get_collider()->on_collision_event.subscribe(std::bind(&MainGame::on_projectile_collision, this, std::placeholders::_1, std::placeholders::_2));
-
-	// Apply initial force.
-	if (add_thrust)
-		add_thrust(projectile_instance->get_transform(), 15.0f);
-}
-void MainGame::on_release_projectile(std::shared_ptr<GameObject> projectile_instance)
-{
-	// Disable Rendering & Collisions.
-	projectile_instance->set_is_active(false);
-
-	// Reset velocity.
-	projectile_instance->get_transform()->set_velocity(glm::vec3(0.0f));
-
-	// Unsubscribe from Collision Event.
-	projectile_instance->get_collider()->on_collision_event.unsubscribe(std::bind(&MainGame::on_projectile_collision, this, std::placeholders::_1, std::placeholders::_2));
-
-	// Remove from Active Projectiles list (Prevents rendering & updating).
-	int index = -1;
-	for (int i = 0; i < active_projectiles_.size(); ++i)
-		if (active_projectiles_[i] == projectile_instance)
-			active_projectiles_.erase(active_projectiles_.begin() + i);
-}
-void MainGame::on_projectile_collision(Collider* self, Collider* other)
-{
-	for (int i = 0; i < active_projectiles_.size(); ++i)
-		if (active_projectiles_[i]->get_collider() == self)
-			projectiles_pool_test_.release(active_projectiles_[i]);
-}
-
 void MainGame::fire_projectile()
 {
-	active_projectiles_.emplace(active_projectiles_.end(), projectiles_pool_test_.get());
-}
-void MainGame::release_projectiles()
-{
-	for (int i = active_projectiles_.size() - 1; i >= 0; --i)
-		projectiles_pool_test_.release(active_projectiles_[i]);
+	Transform* player_transform = player_->get_transform();
+	Projectile::spawn_projectile(player_transform->get_pos(), player_transform->get_rot());
 }
 
 
 
 void MainGame::insertion_sort_edges(std::vector<Collider::Edge*>& edges)
 {
-	for (int i = 1; i < edges.size(); ++i)
+	for (unsigned int i = 1; i < edges.size(); ++i)
 	{
 		for (int j = i - 1; j >= 0; --j)
 		{

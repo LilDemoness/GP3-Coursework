@@ -12,11 +12,14 @@ public:
 	Asteroid();
 	Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits);
 	~Asteroid();
+	// Delete Copy Constructor.
+	Asteroid(const Asteroid& other) = delete;
+	Asteroid& operator= (const Asteroid& other) = delete;
 
 	static void create_initial_asteroids(int asteroids_count, int asteroid_splits, float world_bounds);
 	void setup_asteroid(int remaining_splits, glm::vec3 position, glm::quat rot, float scale, glm::vec3 velocity, glm::vec3 angular_velocity);
 
-	static std::unordered_set<std::shared_ptr<Asteroid>> all_asteroids_;
+	static void update_all_asteroids(float delta_time);
 
 private:
 	void on_collision(Collider* self, Collider* other);
@@ -32,6 +35,8 @@ private:
 	static glm::vec3 get_random_direction_vector(std::mt19937 gen);
 	static glm::quat get_random_direction(std::mt19937 gen);
 	static float get_scale_for_remaining_splits(int remaining_splits);
+
+	static std::unordered_set<std::shared_ptr<Asteroid>> all_asteroids_;
 
 	static ObjectPool<Asteroid> asteroids_pool_;
 	static std::shared_ptr<Asteroid> create_asteroid_func();

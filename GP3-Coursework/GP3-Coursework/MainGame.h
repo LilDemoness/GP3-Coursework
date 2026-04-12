@@ -17,6 +17,7 @@
 #include "Collider.h"
 #include "ObjectPool.h"
 #include "Asteroid.h"
+#include "Projectile.h"
 
 #include <iostream>
 #include <string>
@@ -66,14 +67,7 @@ private:
 	void display_framerate(Uint64 frame_start_time);
 	float get_refresh_rate();
 
-
-	std::shared_ptr<GameObject> create_projectile();
-	void on_get_projectile(std::shared_ptr<GameObject> projectile_instance);
-	void on_release_projectile(std::shared_ptr<GameObject> projectile_instance);
-
-	void on_projectile_collision(Collider* self, Collider* other);
 	void fire_projectile();
-	void release_projectiles();
 
 	void insertion_sort_edges(std::vector<Collider::Edge*>& edges);
 
@@ -86,10 +80,6 @@ private:
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
-
-
-	ObjectPool<GameObject> projectiles_pool_test_;
-	std::vector<std::shared_ptr<GameObject>> active_projectiles_;
 
 
 	std::vector<Collider::Edge*> edges_;

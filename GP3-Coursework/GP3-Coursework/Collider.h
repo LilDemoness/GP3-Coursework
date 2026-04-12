@@ -24,7 +24,7 @@ public:
 		}
 		~Edge()
 		{
-			for (int i = 0; i < all_edges.size(); ++i)
+			for (unsigned int i = 0; i < all_edges.size(); ++i)
 				if (all_edges[i] == this)
 					all_edges.erase(all_edges.begin() + i);
 		}

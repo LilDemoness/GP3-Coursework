@@ -68,10 +68,6 @@ public:
 
 	void release(std::shared_ptr<T> element)
 	{
-		// Reset the element.
-		if (on_release_func_ != nullptr)
-			on_release_func_(element);
-
 		// Return the element to the pool.
 		ObjectNode* node = new ObjectNode(element);
 		if (head_ != NULL)
@@ -85,7 +81,14 @@ public:
 			node->next_ = NULL;
 		}
 		head_ = node;
+
+		// Reset the element.
+		//	Performed after returning to the pool to prevent shared_ptr from disposing it.
+		if (on_release_func_ != nullptr)
+			on_release_func_(element);
 	}
+	void release(T* element) { release(std::shared_ptr<Projectile>(element)); }
+	
 
 	void clear()
 	{

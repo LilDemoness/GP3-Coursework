@@ -42,7 +42,6 @@ void Asteroid::create_initial_asteroids(int asteroids_count, int asteroid_split_
 		glm::quat rotation = get_random_direction(gen);
 		float scale = get_scale_for_remaining_splits(asteroid_split_count);
 
-		//glm::vec3 velocity = (random_velocity_magnitude(gen) / (float)kFloatResolution) * get_random_direction_vector(gen);
 		glm::vec3 velocity = (random_velocity_magnitude(gen) / (float)kFloatResolution) * (rotation * kForward);
 		glm::vec3 angular_velocity = glm::radians(15.0f * kForward * rotation);
 
@@ -80,11 +79,7 @@ glm::quat Asteroid::get_random_direction(std::mt19937 gen)
 
 void Asteroid::on_collision(Collider* self, Collider* other)
 {
-	// Check if 'other' is a projectile.
-	if (true)
-	{
-		split();
-	}
+	split();
 }
 void Asteroid::split()
 {
@@ -159,8 +154,16 @@ float Asteroid::get_scale_for_remaining_splits(int remaining_splits)
 	return (remaining_splits * kScaleIncrement) + kBaseScale;*/
 
 	// Doubles each time.
-	const float kBaseScale = 0.25f;
+	const float kBaseScale = 0.35f;
 	return std::powf(2, remaining_splits) * kBaseScale;
+}
+
+
+std::unordered_set<std::shared_ptr<Asteroid>> Asteroid::all_asteroids_ = std::unordered_set<std::shared_ptr<Asteroid>>();
+void Asteroid::update_all_asteroids(float delta_time)
+{
+	for (auto it = all_asteroids_.begin(); it != all_asteroids_.end(); ++it)
+		(*it)->get_transform()->apply_physics(delta_time);
 }
 
 
@@ -184,5 +187,3 @@ void Asteroid::on_release_asteroid_func(std::shared_ptr<Asteroid> instance)
 
 	all_asteroids_.erase(instance);
 }
-
-std::unordered_set<std::shared_ptr<Asteroid>> Asteroid::all_asteroids_ = std::unordered_set<std::shared_ptr<Asteroid>>();
