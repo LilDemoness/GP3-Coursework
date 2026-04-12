@@ -14,8 +14,9 @@
 #include "DisplayFacade.h"
 #include "Camera.h"
 #include "InputManager.h"
-#include "Edge.h"
+#include "Collider.h"
 #include "ObjectPool.h"
+#include "Asteroid.h"
 
 #include <iostream>
 #include <string>
@@ -73,14 +74,14 @@ private:
 	void fire_projectile();
 	void release_projectiles();
 
-	void insertion_sort_edges(std::vector<Edge*>& edges);
+	void insertion_sort_edges(std::vector<Collider::Edge*>& edges);
 
 
 	DisplayFacade game_display_;
 	GameState game_state_;
 	GameObject object_1_;
 	GameObject object_2_;
-	GameObject marker_;
+	//GameObject marker_;
 	std::shared_ptr<GameObject> player_;
 	Camera camera_;
 	Texture texture_;
@@ -90,7 +91,7 @@ private:
 	std::vector<std::shared_ptr<GameObject>> active_projectiles_;
 
 
-	std::vector<Edge*> edges_;
+	std::vector<Collider::Edge*> edges_;
 	std::set<std::pair<Collider*, Collider*>> overlapping_;
 
 
@@ -105,7 +106,7 @@ private:
 	bool (*check_collisions_radius)(Collider* const, Collider* const) = nullptr;
 	bool (*check_collisions_aabb)(Collider* const, Collider* const) = nullptr;
 
-	bool (*sweep_and_prune)(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>&) = nullptr;
+	bool (*sweep_and_prune)(std::vector<Collider::Edge*>& edges, std::set<std::pair<Collider*, Collider*>>&) = nullptr;
 
 
 	float counter_;

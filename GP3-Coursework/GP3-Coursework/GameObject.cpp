@@ -2,22 +2,47 @@
 
 #include "GameObject.h"
 
-GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius) :
+std::unordered_set<GameObject*> GameObject::all_gameobjects_ = std::unordered_set<GameObject*>();
+GameObject::GameObject(const std::string& mesh_file_name, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
 	mesh_(new Mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius))
-{}
-GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius) :
+	collider_(std::make_shared<Collider>(transform_, collision_radius)),
+	is_active_(true)
+{
+	if (add_to_all_objects)
+		all_gameobjects_.insert(this);
+}
+GameObject::GameObject(Mesh* mesh, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
 	mesh_(mesh),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius))
-{}
+	collider_(std::make_shared<Collider>(transform_, collision_radius)),
+	is_active_(true)
+{
+	if (add_to_all_objects)
+		all_gameobjects_.insert(this);
+}
 GameObject::~GameObject()
 {
-
+	all_gameobjects_.erase(this);
 }
 
 
+void GameObject::draw_all(const Camera& camera)
+{
+	for (GameObject* const gameObject : all_gameobjects_)
+	{
+		if (gameObject->get_is_active())
+			gameObject->draw(camera);
+	}
+}
+void GameObject::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
+{
+	for (GameObject* const gameObject : all_gameobjects_)
+	{
+		if (gameObject->get_is_active())
+			gameObject->draw(camera, override_shader);
+	}
+}
 void GameObject::draw(const Camera& camera)
 {
 	draw(camera, ShaderManager::get_instance().get_active_shader());

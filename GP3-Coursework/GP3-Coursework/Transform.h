@@ -44,7 +44,7 @@ public:
 	// ----- Position -----
 	inline glm::vec3 get_pos() const
 	{
-		if (parent_ != nullptr)
+		if (has_parent())
 			return pos_local_to_world(local_pos_);
 		else
 			return local_pos_;
@@ -52,7 +52,7 @@ public:
 	inline void set_pos(const glm::vec3& new_pos)
 	{
 		// Set our position.
-		if (parent_ != nullptr)
+		if (has_parent())
 			set_local_pos(pos_world_to_local(new_pos));
 		else
 			set_local_pos(new_pos);
@@ -64,6 +64,10 @@ public:
 			return;
 
 		local_pos_ = new_local_pos;
+		if (!has_parent())
+		{
+			local_pos_ = pos_world_to_local(loop_position_within_bounds(pos_local_to_world(local_pos_)));
+		}
 
 		// Set our children's position.
 		for (int i = 0; i < this->get_child_count(); ++i)
@@ -80,18 +84,24 @@ public:
 	inline glm::vec3 pos_world_to_local(const glm::vec3& world_space) const
 	{
 		glm::vec3 local_space = world_space;
-		local_space -= parent_->get_pos(); // Offset.
-		local_space /= parent_->get_scale();	// Scale.
-		local_space = parent_->get_rot() * local_space;	// Rotation.
+		if (has_parent())
+		{
+			local_space -= parent_->get_pos(); // Offset.
+			local_space /= parent_->get_scale();	// Scale.
+			local_space = parent_->get_rot() * local_space;	// Rotation.
+		}
 
 		return local_space;
 	}
 	inline glm::vec3 pos_local_to_world(const glm::vec3& local_space) const
 	{
 		glm::vec3 world_space = local_space;
-		world_space = world_space * parent_->get_rot();	// Rotation.
-		world_space *= parent_->get_scale();	// Scale.
-		world_space += parent_->get_pos();	// Offset.
+		if (has_parent())
+		{
+			world_space = world_space * parent_->get_rot();	// Rotation.
+			world_space *= parent_->get_scale();	// Scale.
+			world_space += parent_->get_pos();	// Offset.
+		}
 
 		return world_space;
 	}
@@ -154,7 +164,7 @@ public:
 	inline void set_scale(glm::vec3 new_scale)
 	{
 		// Set our scale.
-		if (parent_ != nullptr)
+		if (has_parent())
 			set_local_scale(get_scale() / parent_->get_scale());
 		else
 			set_local_scale(new_scale);
@@ -360,6 +370,32 @@ private:
 	const glm::vec3 kWorldForward = glm::vec3(0.0f, 0.0f, 1.0f);
 	const glm::vec3 kWorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	const glm::vec3 kWorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
+
+	const float kWorldRadius = 25.0f;
+	const float kSqrWorldRadius = kWorldRadius * kWorldRadius;
+
+
+	glm::vec3 loop_position_within_bounds(glm::vec3 world_pos)
+	{
+		float sqrDistanceFromOrigin = (world_pos.x * world_pos.x) + (world_pos.y * world_pos.y) + (world_pos.z * world_pos.z);
+
+		if (sqrDistanceFromOrigin <= kSqrWorldRadius)
+			return world_pos;	// We are within the world radius.
+
+		// We are outwith the world radius.
+		// Loop our movement outside of the world radius, ensuring to account for if were > 2x the radius.
+
+		glm::vec3 direction_from_origin = glm::normalize(world_pos);
+		float distance_from_origin = std::sqrt(sqrDistanceFromOrigin);	// Alt: world_pos.length();
+
+		// Calculate the fractional part of how far we're outside the radius (Accounts for distance > 2 x kWorldRadius).
+		int distance_from_origin_int = (int)distance_from_origin;
+		float outside_distance_remainder = (distance_from_origin_int % (int)kWorldRadius) + (distance_from_origin - (float)distance_from_origin_int);
+
+
+		// Move to re-enter from the other side of the radius.
+		return (-direction_from_origin * kWorldRadius) + (direction_from_origin * outside_distance_remainder);
+	}
 
 
 	// If Has Parent: Local Space. Else: World Space

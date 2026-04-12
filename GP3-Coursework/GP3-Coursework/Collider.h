@@ -5,21 +5,57 @@
 #include <memory>
 
 #include "Transform.h"
+#include "Collision.h"
+#include "Event.h"
+
 
 class Collider
 {
 public:
+	struct Edge
+	{
+		Edge(Collider* collider, bool is_left) :
+			collider(collider),
+			is_left(is_left)
+		{
+			all_edges.emplace(all_edges.end(), this);
+		}
+		~Edge()
+		{
+			for (int i = 0; i < all_edges.size(); ++i)
+				if (all_edges[i] == this)
+					all_edges.erase(all_edges.begin() + i);
+		}
+
+		float get_x_position()
+		{
+			float x_pos = collider->get_transform()->get_pos().x + (is_left ? -collider->get_aabb_half_extents().x : collider->get_aabb_half_extents().x);
+			return x_pos;
+		}
+
+
+		Collider* collider;
+		bool is_left;
+
+		static std::vector<Collider::Edge*> all_edges;
+	};
+
+
+
 	Collider(std::shared_ptr<Transform> transform, float radius) :
 		enabled_(true),
 		radius_(radius),
 		half_extents_(glm::vec3(radius)),
-		transform_(transform)
+		transform_(transform),
+		edges_{ new Collider::Edge(this, true), new Collider::Edge(this, false) }
 	{
 		update_bounds();
 		transform_->on_rotation_changed.subscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 	~Collider()
 	{
+		for(int i = 0; i < sizeof(edges_) / sizeof(Edge); ++i)
+			delete edges_[i];
 		transform_->on_rotation_changed.unsubscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 
@@ -29,6 +65,14 @@ public:
 
 
 	const float get_radius() const { return radius_; }
+	void set_radius(float new_radius)
+	{
+		radius_ = new_radius;
+		half_extents_ = glm::vec3(new_radius);
+		mark_bounds_as_dirty();
+	}
+
+
 	// Updates this collider's AABB bounding box's half extents.
 	void update_bounds()
 	{
@@ -74,6 +118,9 @@ public:
 
 	const Transform* get_transform() const { return transform_.get(); }
 
+
+	Event<Collision> on_collision_event;
+
 private:
 	void mark_bounds_as_dirty() { bounds_dirty_ = true; }
 	bool enabled_;
@@ -86,4 +133,5 @@ private:
 	glm::vec3 aabb_half_extents_;
 
 	std::shared_ptr<Transform> transform_;
+	Edge* edges_[2];
 };

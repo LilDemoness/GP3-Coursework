@@ -87,7 +87,7 @@ extern "C" PHYSICS_API bool check_collisions_aabb(Collider* const a, Collider* c
 
 
 // Adaptation Source Link: 'https://leanrada.com/notes/sweep-and-prune-2/'.
-extern "C" PHYSICS_API void sweep_and_prune(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>& overlapping)
+extern "C" PHYSICS_API void sweep_and_prune(std::vector<Collider::Edge*>& edges, std::set<std::pair<Collider*, Collider*>>& overlapping)
 {
 	for (int i = 1; i < edges.size(); ++i)
 	{

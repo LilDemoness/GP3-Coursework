@@ -8,7 +8,6 @@
 
 #include "Transform.h"
 #include "Collider.h"
-#include "Edge.h"
 #include <glm/glm.hpp>
 #include <set>
 #include <algorithm>
@@ -31,4 +30,4 @@ extern "C" PHYSICS_API bool check_collisions_radius(Collider* const a, Collider*
 // Determines if a collision is occuring using the Axis-Aligned Bounding Boxes of two colliders.
 extern "C" PHYSICS_API bool check_collisions_aabb(Collider* const a, Collider* const b);
 
-extern "C" PHYSICS_API void sweep_and_prune(std::vector<Edge*>& edges, std::set<std::pair<Collider*, Collider*>>& overlapping);
+extern "C" PHYSICS_API void sweep_and_prune(std::vector<Collider::Edge*>& edges, std::set<std::pair<Collider*, Collider*>>& overlapping);
