@@ -39,6 +39,7 @@ MainGame::MainGame() :
 		SDLK_LSHIFT,
 	});
 	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
+	InputManager::get_instance().register_input_event(SDL_QUIT, std::bind(&MainGame::quit_game, this));
 
 	Asteroid::create_initial_asteroids(10, 2, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
 	Asteroid::on_any_asteroid_destroyed.subscribe(std::bind(&MainGame::increment_score, this, std::placeholders::_1));
@@ -127,8 +128,8 @@ void MainGame::game_loop()
 
 
 		// Handle the frame.
-		process_input_events();
-		process_input();
+		InputManager::get_instance().process_input();
+		handle_continuous_input();
 
 		update_player();
 		Projectile::update_projectiles(delta_time_);
@@ -188,26 +189,11 @@ void MainGame::handle_collisions()
 }
 
 
-void MainGame::process_input_events()
+void MainGame::quit_game()
 {
-	// Get and process events
-	SDL_Event evnt;
-	while (SDL_PollEvent(&evnt))
-	{
-		switch (evnt.type)
-		{
-		case SDL_QUIT:
-			game_state_ = GameState::kExit;
-			break;
-		default:
-			InputManager::get_instance().process_input_event(evnt);
-			break;
-		}
-	}
-
-	InputManager::get_instance().process_general_input();
+	game_state_ = GameState::kExit;
 }
-void MainGame::process_input()
+void MainGame::handle_continuous_input()
 {
 	if (!player_)
 		return;

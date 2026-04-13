@@ -3,7 +3,8 @@
 #include <iostream>
 
 InputManager::InputManager() :
-	receiving_mouse_input_(false)
+	receiving_mouse_input_(false),
+	any_input_events_()
 { }
 InputManager::~InputManager()
 {
@@ -11,6 +12,8 @@ InputManager::~InputManager()
 	{
 		val.second.unsubscribe_all();
 	}
+
+	any_input_events_.unsubscribe_all();
 }
 
 
@@ -21,6 +24,26 @@ InputManager& InputManager::get_instance()
 }
 
 
+void InputManager::process_input()
+{
+	bool any_input_events = false;
+
+	// Get and process events
+	SDL_Event evnt;
+	while (SDL_PollEvent(&evnt))
+	{
+		if (evnt.type != SDL_KEYDOWN && evnt.type != SDL_KEYUP)
+			continue;
+
+		process_input_event(evnt);
+		any_input_events = true;
+	}
+
+	if (any_input_events)
+		any_input_events_.invoke();
+
+	process_general_input();
+}
 void InputManager::process_input_event(const SDL_Event& event)
 {
 	// Key Pressed States.

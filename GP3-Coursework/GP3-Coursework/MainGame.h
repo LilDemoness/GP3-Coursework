@@ -64,10 +64,11 @@ private:
 	void update_player();
 	void handle_collisions();
 
-	void process_input_events();
-	void process_input();
+	void handle_continuous_input();
 
 	void draw_game();
+
+	void quit_game();
 
 
 	void calculate_delta_time(Uint64 frame_start_time);

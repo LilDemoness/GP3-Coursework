@@ -10,6 +10,13 @@ class Event
 public:
 	typedef std::function<void(Arguments...)> event_signature;
 
+	Event() : callbacks_()
+	{}
+	~Event()
+	{
+		unsubscribe_all();
+	}
+
 	void subscribe(event_signature callback) { callbacks_.emplace(callbacks_.end(), callback); }
 	void unsubscribe(event_signature callback) { remove_element(callbacks_, callback); }
 	void unsubscribe_all() { callbacks_.clear(); }
