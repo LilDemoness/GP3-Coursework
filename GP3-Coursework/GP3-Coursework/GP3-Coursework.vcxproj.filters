@@ -40,6 +40,12 @@
     <Filter Include="Source Files\Collisions">
       <UniqueIdentifier>{a6b7da1b-1063-43fb-a795-0fc44f757e21}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Text">
+      <UniqueIdentifier>{8e9d6026-d637-40b5-931e-2ffb73af6698}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Text">
+      <UniqueIdentifier>{a237f163-8c5f-4c32-84a7-ce251d3c6798}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -107,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Source Files\Text</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +200,9 @@
     <ClInclude Include="WorldBorderVisuals.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Header Files\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">
@@ -215,6 +227,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\WorldBorderShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\FontShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\FontShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

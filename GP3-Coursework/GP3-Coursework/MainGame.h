@@ -20,6 +20,7 @@
 #include "Projectile.h"
 #include "Skybox.h"
 #include "WorldBorderVisuals.h"
+#include "TextRenderer.h"
 
 #include <iostream>
 #include <string>

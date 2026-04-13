@@ -276,6 +276,8 @@ void MainGame::draw_game()
 
 	skybox_.draw(camera_);
 
+	TextRenderer::render_text("Test Text", 25.0f, 25.0f, 1.0f, glm::vec3(1.0f));
+
 	WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
 
 	game_display_.swap_buffers();
