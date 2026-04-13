@@ -6,6 +6,8 @@ GameplayScene::GameplayScene() :
 	game_state_(GameState::kPlay),
 	counter_(0.0f),
 
+	asteroid_spawn_iteration_(0),
+
 	texture_("..\\res\\bricks.jpg"),
 	object_1_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f))),
 	object_2_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f))),
@@ -26,6 +28,7 @@ GameplayScene::GameplayScene() :
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
 	Asteroid::on_any_asteroid_destroyed.subscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
+	Asteroid::on_all_asteroids_destroyed.subscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
 
 	Transform::set_world_radius(PLAY_SPACE_RADIUS);
 	WorldBorderVisuals::initialise_world_border(PLAY_SPACE_RADIUS);
@@ -40,9 +43,10 @@ GameplayScene::GameplayScene() :
 		SDLK_LSHIFT,
 	});
 	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
+	InputManager::get_instance().register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
 	InputManager::get_instance().register_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
-	Asteroid::create_initial_asteroids(10, 2, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+	respawn_asteroids();
 }
 GameplayScene::~GameplayScene()
 {
@@ -50,9 +54,11 @@ GameplayScene::~GameplayScene()
 	glDeleteVertexArrays(1, &world_border_vao_);
 
 	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
+	InputManager::get_instance().deregister_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
 	InputManager::get_instance().deregister_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
 	Asteroid::on_any_asteroid_destroyed.unsubscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
+	Asteroid::on_all_asteroids_destroyed.unsubscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
 	Asteroid::dispose_all();
 	Projectile::dispose_all();
 }
@@ -127,7 +133,13 @@ void GameplayScene::update(float delta_time)
 	if (player_death_time_ > 0.0f && counter_ > (player_death_time_ + PLAYER_RESPAWN_TIME))
 	{
 		on_exit_requested.invoke(kGameOver);
+		player_death_time_ = 0.0f;
 		return;
+	}
+	if (spawn_asteroids_time_ > 0.0f && counter_ > spawn_asteroids_time_)
+	{
+		respawn_asteroids();
+		spawn_asteroids_time_ = 0.0f;
 	}
 
 	handle_continuous_input(delta_time);
@@ -286,4 +298,23 @@ void GameplayScene::insertion_sort_edges(std::vector<Collider::Edge*>& edges)
 			std::iter_swap(edges.begin() + j, edges.begin() + j + 1);
 		}
 	}
+}
+
+
+
+void GameplayScene::prepare_to_respawn_asteroids()
+{
+	spawn_asteroids_time_ = counter_ + 1.5f;
+}
+void GameplayScene::respawn_asteroids()
+{
+	const int kBaseAsteroidSpawns = 10;
+	const int kBaseAsteroidSplits = 2;
+	const float kBaseMinSpeed = 0.2f;
+	const float kBaseMaxSpeed = 3.0f;
+
+	float scaling_factor = std::powf(1.5f, asteroid_spawn_iteration_);
+	Asteroid::create_initial_asteroids((int)(kBaseAsteroidSpawns * scaling_factor), kBaseAsteroidSplits + (int)(asteroid_spawn_iteration_ / 3), kBaseMinSpeed * scaling_factor, kBaseMaxSpeed * scaling_factor, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+
+	++asteroid_spawn_iteration_;
 }

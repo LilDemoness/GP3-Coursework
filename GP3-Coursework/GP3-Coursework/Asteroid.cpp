@@ -18,20 +18,20 @@ Asteroid::~Asteroid()
 {
 	collider_->on_collision_event.unsubscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 
-	/*for (auto it = all_asteroids_.begin(); it != all_asteroids_.end(); ++it)
+	/*for (auto it = all_active_asteroids_.begin(); it != all_active_asteroids_.end(); ++it)
 		if (it->get() == this)
-			it = all_asteroids_.erase(it);*/
+			it = all_active_asteroids_.erase(it);*/
 }
 void Asteroid::dispose_all()
 {
-	all_asteroids_.clear();
+	all_active_asteroids_.clear();
 	asteroids_pool_.clear();
 }
 
 
 void Asteroid::draw_all(const Camera& camera)
 {
-	for (const std::shared_ptr<Asteroid> asteroid : all_asteroids_)
+	for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
 	{
 		if (asteroid->get_is_active())
 		{
@@ -41,7 +41,7 @@ void Asteroid::draw_all(const Camera& camera)
 }
 void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
 {
-	for (const std::shared_ptr<Asteroid> asteroid : all_asteroids_)
+	for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
 	{
 		if (asteroid->get_is_active())
 		{
@@ -51,7 +51,7 @@ void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> override_s
 }
 
 
-void Asteroid::create_initial_asteroids(int asteroids_count, int asteroid_split_count, float world_bounds)
+void Asteroid::create_initial_asteroids(const int asteroids_count, const int asteroid_split_count, const float min_velocity, const float max_velocity, const float world_bounds)
 {
 	const glm::vec3 kForward = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -60,9 +60,7 @@ void Asteroid::create_initial_asteroids(int asteroids_count, int asteroid_split_
 	std::random_device rd;
 	std::mt19937 gen(rd());
 
-	const float kMinVelocity = 0.2f;
-	const float kMaxVelocity = 3.0f;
-	std::uniform_int_distribution<> random_velocity_magnitude(kMinVelocity * kFloatResolution, kMaxVelocity * kFloatResolution);
+	std::uniform_int_distribution<> random_velocity_magnitude(min_velocity * kFloatResolution, max_velocity * kFloatResolution);
 
 
 	for (int i = 0; i < asteroids_count; ++i)
@@ -107,18 +105,34 @@ glm::quat Asteroid::get_random_direction(std::mt19937 gen)
 }
 
 
+void Asteroid::kill_all_asteroids()
+{
+	for (auto it = all_active_asteroids_.begin(); it != all_active_asteroids_.end();)
+	{
+		auto current = *it++;
+
+		current->remaining_splits_ = 0;
+		current->on_collision(current->get_collider(), nullptr);
+	}
+}
 
 Event<int> Asteroid::on_any_asteroid_destroyed;
+Event<> Asteroid::on_all_asteroids_destroyed;
 void Asteroid::on_collision(Collider* self, Collider* other)
 {
 	on_any_asteroid_destroyed.invoke(get_score_for_size(remaining_splits_));
 	split();
+
+	if (all_active_asteroids_.empty())
+	{
+		on_all_asteroids_destroyed.invoke();
+	}
 }
 void Asteroid::split()
 {
 	if (remaining_splits_ <= 0)
 	{
-		for (auto asteroid : all_asteroids_)
+		for (auto asteroid : all_active_asteroids_)
 		{
 			if (asteroid.get() == this)
 			{
@@ -200,10 +214,10 @@ int Asteroid::get_score_for_size(int remaining_splits)
 }
 
 
-std::unordered_set<std::shared_ptr<Asteroid>> Asteroid::all_asteroids_ = std::unordered_set<std::shared_ptr<Asteroid>>();
+std::unordered_set<std::shared_ptr<Asteroid>> Asteroid::all_active_asteroids_ = std::unordered_set<std::shared_ptr<Asteroid>>();
 void Asteroid::update_all_asteroids(float delta_time)
 {
-	for (auto it = all_asteroids_.begin(); it != all_asteroids_.end(); ++it)
+	for (auto it = all_active_asteroids_.begin(); it != all_active_asteroids_.end(); ++it)
 		(*it)->get_transform()->apply_physics(delta_time);
 }
 
@@ -220,11 +234,11 @@ std::shared_ptr<Asteroid> Asteroid::create_asteroid_func()
 void Asteroid::on_get_asteroid_func(std::shared_ptr<Asteroid> instance)
 {
 	instance->set_is_active(true);
-	all_asteroids_.insert(instance);
+	all_active_asteroids_.insert(instance);
 }
 void Asteroid::on_release_asteroid_func(std::shared_ptr<Asteroid> instance)
 {
 	instance->set_is_active(false);
 
-	all_asteroids_.erase(instance);
+	all_active_asteroids_.erase(instance);
 }

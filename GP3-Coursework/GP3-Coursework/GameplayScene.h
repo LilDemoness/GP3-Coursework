@@ -105,6 +105,14 @@ private:
 	float player_death_time_; // <0 = unset;
 
 
+	// Asteroids.
+	float spawn_asteroids_time_; // <0 = unset;
+	int asteroid_spawn_iteration_;
+
+	void prepare_to_respawn_asteroids();
+	void respawn_asteroids();
+
+
 	std::vector<Collider::Edge*> edges_;
 	std::set<std::pair<Collider*, Collider*>> overlapping_;
 

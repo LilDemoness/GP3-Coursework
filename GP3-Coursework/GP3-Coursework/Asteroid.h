@@ -19,7 +19,7 @@ public:
 	Asteroid(const Asteroid& other) = delete;
 	Asteroid& operator= (const Asteroid& other) = delete;
 
-	static void create_initial_asteroids(int asteroids_count, int asteroid_splits, float world_bounds);
+	static void create_initial_asteroids(const int asteroids_count, const int asteroid_split_count, const float min_velocity, const float max_velocity, const float world_bounds);
 	void setup_asteroid(int remaining_splits, glm::vec3 position, glm::quat rot, float scale, glm::vec3 velocity, glm::vec3 angular_velocity);
 
 
@@ -29,7 +29,10 @@ public:
 	static void draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader);
 		
 	static Event<int> on_any_asteroid_destroyed;
+	static Event<> on_all_asteroids_destroyed;
 
+
+	static void kill_all_asteroids();
 
 private:
 	void on_collision(Collider* self, Collider* other);
@@ -47,7 +50,7 @@ private:
 
 	static int get_score_for_size(int remaining_splits);
 
-	static std::unordered_set<std::shared_ptr<Asteroid>> all_asteroids_;
+	static std::unordered_set<std::shared_ptr<Asteroid>> all_active_asteroids_;
 
 	static ObjectPool<Asteroid> asteroids_pool_;
 	static std::shared_ptr<Asteroid> create_asteroid_func();
