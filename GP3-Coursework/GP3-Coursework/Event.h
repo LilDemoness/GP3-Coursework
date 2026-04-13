@@ -10,14 +10,14 @@ class Event
 public:
 	typedef std::function<void(Arguments...)> event_signature;
 
-	Event() : callbacks_()
+	Event() : callbacks_(std::vector<event_signature>())
 	{}
 	~Event()
 	{
 		unsubscribe_all();
 	}
 
-	void subscribe(event_signature callback) { callbacks_.emplace(callbacks_.end(), callback); }
+	void subscribe(event_signature callback) { callbacks_.emplace_back(callback); }
 	void unsubscribe(event_signature callback) { remove_element(callbacks_, callback); }
 	void unsubscribe_all() { callbacks_.clear(); }
 
@@ -26,6 +26,8 @@ public:
 		for (unsigned int i = 0; i < callbacks_.size(); ++i)
 			callbacks_[i](arguments...);
 	}
+
+	inline const bool has_listeners() const { return callbacks_.size() > 0; }
 
 
 private:
@@ -37,7 +39,7 @@ private:
 	{
 		for (unsigned int i = 0; i < vector.size(); ++i)
 		{
-			if (&vector[i] == &element)
+			if (vector[i].target_type() == element.target_type())
 			{
 				vector.erase(vector.begin() + i);
 				return;

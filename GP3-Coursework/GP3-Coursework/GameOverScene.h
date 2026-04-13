@@ -4,13 +4,13 @@
 #include "InputManager.h"
 #include "TextRenderer.h"
 
-class MainMenuScene : public Scene
+class GameOverScene : public Scene
 {
 public:
-	MainMenuScene();
-	~MainMenuScene();
+	GameOverScene();
+	~GameOverScene();
 
-	inline GameMode get_game_mode() override { return kMainMenu; }
+	inline GameMode get_game_mode() override { return kGameOver; }
 
 
 	void enter(DisplayFacade* display_facade) override;
@@ -18,6 +18,8 @@ public:
 	void draw(DisplayFacade* display_facade) override;
 	void on_exit_fulfilled() override;
 
+
 private:
-	void start_game();
+	void quit_game();
+	void restart_game();
 };

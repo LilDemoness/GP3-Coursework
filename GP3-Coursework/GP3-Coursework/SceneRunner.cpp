@@ -9,6 +9,9 @@ SceneRunner::SceneRunner() :
 {
 	fixed_time_step_ = 1.0f / get_refresh_rate();
 
+	Scene::on_exit_requested.subscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
+
+	InputManager::get_instance().register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
 
 	// Can Remove?
 	glEnable(GL_DEPTH_TEST); // Enable Z-buffering.
@@ -17,40 +20,44 @@ SceneRunner::SceneRunner() :
 }
 SceneRunner::~SceneRunner()
 {
-	delete active_scene_;
+	ShaderManager::get_instance().clear();
+	Scene::on_exit_requested.unsubscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
+	InputManager::get_instance().deregister_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
 }
 
 
 void SceneRunner::run()
 {
-	set_active_scene(Scene::GameMode::kMainMenu);
+	start_scene_change(Scene::GameMode::kMainMenu);
+	set_active_scene();
 
 	last_frame_start_time_ = SDL_GetPerformanceCounter();	// Prevent ultra-high initial 'delta_time_' values.
 	while (current_game_mode_ != Scene::kExitGame)
 	{
+		if (current_game_mode_ != desired_game_mode_)
+		{
+			SDL_Delay(100);
+			set_active_scene();
+		}
+		if (active_scene_ == nullptr)
+			break;
+
+
 		// Cache the high resolution time at the start of the frame.
 		Uint64 start = SDL_GetPerformanceCounter();
 		calculate_delta_time(start);
 
 		// Detect Input.
 		InputManager::get_instance().process_input();
-		if (active_scene_ == nullptr)
-		{
-			std::cerr << "An error occured during a scene swap called from input." << std::endl;
-			break;
-		}
 
 		// Update the scene.
-		active_scene_->update(delta_time_);
-		if (active_scene_ == nullptr)
-		{
-			std::cerr << "An error occured during a scene swap called in Update." << std::endl;
-			break;
-		}
+		if (active_scene_)
+			active_scene_->update(delta_time_);
 
 		// Draw the scene.
 		game_display_.clear_display();
-		active_scene_->draw(&game_display_);
+		if (active_scene_)
+			active_scene_->draw(&game_display_);
 
 #if DISPLAY_FRAMERATE
 		// Limit and (optionally) display our framerate.
@@ -115,33 +122,43 @@ float SceneRunner::get_refresh_rate()
 
 
 
-void SceneRunner::set_active_scene(Scene::GameMode new_game_mode)
+void SceneRunner::start_scene_change(Scene::GameMode new_game_mode)
+{
+	desired_game_mode_ = new_game_mode;
+}
+void SceneRunner::set_active_scene()
 {
 	if (active_scene_ != nullptr)
 	{
 		// Exit the active scene.
 		active_scene_->on_exit_fulfilled();
-		active_scene_->on_exit_requested.unsubscribe(std::bind(&SceneRunner::set_active_scene, this, std::placeholders::_1));
 
 		// Dispose of the active scene.
-		delete active_scene_;
+		active_scene_.reset();
 		active_scene_ = nullptr;
 	}
 
 	// Determine & create our new scene.
-	switch (new_game_mode)
+	switch (desired_game_mode_)
 	{
-	case Scene::GameMode::kMainMenu: active_scene_ = new MainMenuScene(); break;
+	case Scene::GameMode::kMainMenu: active_scene_ = std::make_unique<MainMenuScene>(); break;
+	case Scene::GameMode::kGameplay: active_scene_ = std::make_unique<GameplayScene>(); break;
+	case Scene::GameMode::kGameOver: active_scene_ = std::make_unique<GameOverScene>(); break;
 	}
 
 	// Check for creation error.
 	if (active_scene_ == nullptr)
 	{
-		std::cerr << "Failed to set active scene pointer for: " << std::to_string(new_game_mode) << std::endl;
+		std::cerr << "Failed to set active scene pointer for: " << std::to_string(desired_game_mode_) << std::endl;
 		return;
 	}
 
 	// Enter our new scene.
-	active_scene_->on_exit_requested.subscribe(std::bind(&SceneRunner::set_active_scene, this, std::placeholders::_1));
-	active_scene_->enter();
+	active_scene_->enter(&game_display_);
+	current_game_mode_ = desired_game_mode_;
+}
+void SceneRunner::return_to_main_menu()
+{
+	Scene::GameMode new_game_mode = Scene::GameMode::kMainMenu;
+	start_scene_change(new_game_mode);
 }

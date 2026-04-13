@@ -17,6 +17,37 @@ Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remai
 Asteroid::~Asteroid()
 {
 	collider_->on_collision_event.unsubscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
+
+	/*for (auto it = all_asteroids_.begin(); it != all_asteroids_.end(); ++it)
+		if (it->get() == this)
+			it = all_asteroids_.erase(it);*/
+}
+void Asteroid::dispose_all()
+{
+	all_asteroids_.clear();
+	asteroids_pool_.clear();
+}
+
+
+void Asteroid::draw_all(const Camera& camera)
+{
+	for (const std::shared_ptr<Asteroid> asteroid : all_asteroids_)
+	{
+		if (asteroid->get_is_active())
+		{
+			asteroid->draw(camera);
+		}
+	}
+}
+void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
+{
+	for (const std::shared_ptr<Asteroid> asteroid : all_asteroids_)
+	{
+		if (asteroid->get_is_active())
+		{
+			asteroid->draw(camera, override_shader);
+		}
+	}
 }
 
 

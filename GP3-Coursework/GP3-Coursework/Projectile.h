@@ -10,14 +10,19 @@ class Projectile : public GameObject
 public:
 	Projectile();
 	~Projectile();
+	static void dispose_all();
+
 	// Delete Copy Constructor.
 	Projectile(const Projectile& other) = delete;
 	Projectile& operator= (const Projectile& other) = delete;
 
 	void on_collision_enter(Collider* self, Collider* other);
 
-	static void spawn_projectile(glm::vec3 position, glm::quat rotation);
+	static void spawn_projectile(glm::vec3 position, glm::quat rotation, glm::vec3 player_velocity);
 	static void update_projectiles(float delta_time);
+
+	static void draw_all(const Camera& camera);
+	static void draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader);
 
 private:
 	static float kSpeed;

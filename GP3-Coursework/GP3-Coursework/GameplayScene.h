@@ -1,4 +1,5 @@
 #pragma once
+#include "Scene.h"
 
 #include <SDL\SDL.h>
 #include <GL/glew.h>
@@ -11,7 +12,6 @@
 #include "GameObject.h"
 #include "Texture.h"
 #include "Transform.h"
-#include "DisplayFacade.h"
 #include "Camera.h"
 #include "InputManager.h"
 #include "Collider.h"
@@ -44,13 +44,19 @@ using HelloWorldFunc = void(*)();
 
 enum class GameState{kPlay, kExit};
 
-class MainGame
+class GameplayScene : public Scene
 {
 public:
-	MainGame();
-	~MainGame();
+	GameplayScene();
+	~GameplayScene();
 
-	void Run();
+	inline GameMode get_game_mode() override { return kGameplay; }
+
+
+	void enter(DisplayFacade* display_facade) override;
+	void update(float delta_time) override;
+	void draw(DisplayFacade* display_facade) override;
+	void on_exit_fulfilled() override {}
 
 private:
 	void init_systems();
@@ -60,13 +66,11 @@ private:
 	void load_physics_engine();
 
 
-	void game_loop();
-	void update_player();
+	void update_player(float delta_time);
 	void handle_collisions();
 
-	void handle_continuous_input();
+	void handle_continuous_input(float delta_time);
 
-	void draw_game();
 
 	void quit_game();
 
@@ -80,23 +84,21 @@ private:
 
 	void insertion_sort_edges(std::vector<Collider::Edge*>& edges);
 
+	void on_player_collided(Collider* player, Collider* other);
 	void increment_score(int score_increase);
 
 
-	DisplayFacade game_display_;
 	GameState game_state_;
-	GameObject object_1_;
-	GameObject object_2_;
-	//GameObject marker_;
+	std::shared_ptr<GameObject> object_1_;
+	std::shared_ptr<GameObject> object_2_;
 	std::shared_ptr<GameObject> player_;
 	GLuint world_border_vao_;
-	Camera camera_;
+	std::unique_ptr<Camera> camera_;
 	Texture texture_;
 
 	Skybox skybox_;
 
 	bool player_overlapping_, object_1_overlapping_, object_2_overlapping_;
-	int current_score_;
 
 
 	std::vector<Collider::Edge*> edges_;
@@ -118,7 +120,4 @@ private:
 
 
 	float counter_;
-	float delta_time_;
-	Uint64 last_frame_start_time_;
-	float fixed_time_step_ = 60;	// Default 60 physics updates per second.
 };

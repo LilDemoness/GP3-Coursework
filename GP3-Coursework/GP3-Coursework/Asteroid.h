@@ -13,6 +13,8 @@ public:
 	Asteroid();
 	Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits);
 	~Asteroid();
+	static void dispose_all();
+
 	// Delete Copy Constructor.
 	Asteroid(const Asteroid& other) = delete;
 	Asteroid& operator= (const Asteroid& other) = delete;
@@ -20,16 +22,20 @@ public:
 	static void create_initial_asteroids(int asteroids_count, int asteroid_splits, float world_bounds);
 	void setup_asteroid(int remaining_splits, glm::vec3 position, glm::quat rot, float scale, glm::vec3 velocity, glm::vec3 angular_velocity);
 
+
 	static void update_all_asteroids(float delta_time);
 
+	static void draw_all(const Camera& camera);
+	static void draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader);
+		
 	static Event<int> on_any_asteroid_destroyed;
+
 
 private:
 	void on_collision(Collider* self, Collider* other);
 	void split();
 
 	int remaining_splits_;
-
 
 
 	static Mesh* asteroids_mesh_;
@@ -47,5 +53,4 @@ private:
 	static std::shared_ptr<Asteroid> create_asteroid_func();
 	static void on_get_asteroid_func(std::shared_ptr<Asteroid> instance);
 	static void on_release_asteroid_func(std::shared_ptr<Asteroid> instance);
-
 };

@@ -15,13 +15,22 @@ public:
 
 	void process_input();
 
+	
 	void register_input(const std::vector<SDL_Keycode> keycodes);
 	void register_input(const SDL_Keycode keycode);
 
 	void register_input_event(const SDL_Keycode keycode, std::function<void()> callback);
 	void deregister_input_event(const SDL_Keycode keycode, std::function<void()> callback);
+
 	inline void register_any_input_event(std::function<void()> callback) { any_input_events_.subscribe(callback); }
-	inline void deregister_any_input_event(std::function<void()> callback) { any_input_events_.unsubscribe(callback); }
+	inline void deregister_any_input_event(std::function<void()> callback)
+	{
+		any_input_events_.unsubscribe(callback);
+	}
+
+	void register_event(const SDL_EventType event_identifier, std::function<void()> callback);
+	void deregister_event(const SDL_EventType event_identifier, std::function<void()> callback);
+
 
 	const bool get_key_held(const SDL_Keycode keycode) const;
 
@@ -35,6 +44,7 @@ private:
 
 	std::unordered_map<SDL_Keycode, bool> key_to_held_state_;
 	std::unordered_map<SDL_Keycode, Event<>> key_to_on_pressed_event_map_;
+	std::unordered_map<SDL_EventType, Event<>> sdl_event_to_triggered_event_map_;
 	Event<> any_input_events_;
 	bool receiving_mouse_input_;
 	glm::vec2 mouse_input_;

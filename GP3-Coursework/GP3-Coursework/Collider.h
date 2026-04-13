@@ -70,8 +70,8 @@ public:
 	}
 	~Collider()
 	{
-		for(int i = 0; i < sizeof(edges_) / sizeof(Edge); ++i)
-			delete edges_[i];
+		delete edges_[0];
+		delete edges_[1];
 		transform_->on_rotation_changed.unsubscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
 
@@ -153,8 +153,10 @@ public:
 		return it->second.find(b) == it->second.end();
 	}
 
+	const CollisionTag get_collision_tag() const { return tag_; }
 
-	// <No Return Type, Collider* Self, Collider* Other>
+
+	// <Collider* Self, Collider* Other>
 	Event<Collider*, Collider*> on_collision_event;
 
 private:

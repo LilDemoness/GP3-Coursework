@@ -9,10 +9,10 @@ InputManager::InputManager() :
 InputManager::~InputManager()
 {
 	for (auto val : key_to_on_pressed_event_map_)
-	{
 		val.second.unsubscribe_all();
-	}
-
+	for (auto val : sdl_event_to_triggered_event_map_)
+		val.second.unsubscribe_all();
+	
 	any_input_events_.unsubscribe_all();
 }
 
@@ -32,6 +32,12 @@ void InputManager::process_input()
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt))
 	{
+		//auto it = sdl_event_to_triggered_event_map_.find(evnt);
+		//if (it != sdl_event_to_triggered_event_map_.end())
+		//	it->second.invoke();
+		if (sdl_event_to_triggered_event_map_.find((SDL_EventType)evnt.type) != sdl_event_to_triggered_event_map_.end())
+			sdl_event_to_triggered_event_map_[(SDL_EventType)evnt.type].invoke();
+
 		if (evnt.type != SDL_KEYDOWN && evnt.type != SDL_KEYUP)
 			continue;
 
@@ -39,25 +45,30 @@ void InputManager::process_input()
 		any_input_events = true;
 	}
 
-	if (any_input_events)
-		any_input_events_.invoke();
-
 	process_general_input();
+
+	if (any_input_events)
+	{
+		any_input_events_.invoke();
+	}
 }
 void InputManager::process_input_event(const SDL_Event& event)
 {
-	// Key Pressed States.
-	if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+	if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP)
+		return;	// Not an input event.
+
+	SDL_Keycode keycode = event.key.keysym.sym;
+
+	if (key_to_held_state_.find(keycode) != key_to_held_state_.end())
 	{
-		SDL_Keycode keycode = event.key.keysym.sym;
-
-		if (key_to_held_state_.find(keycode) != key_to_held_state_.end())
+		if (event.type == SDL_KEYDOWN)
 		{
-			if (event.type == SDL_KEYDOWN && !key_to_held_state_[keycode] && key_to_on_pressed_event_map_.find(keycode) != key_to_on_pressed_event_map_.end())
+			//auto event_it = key_to_on_pressed_event_map_.find(keycode);
+			if (key_to_on_pressed_event_map_.find(keycode) != key_to_on_pressed_event_map_.end())
 				key_to_on_pressed_event_map_[keycode].invoke();
-
-			key_to_held_state_[keycode] = event.type == SDL_KEYDOWN;
 		}
+
+		key_to_held_state_[keycode] = (event.type == SDL_KEYDOWN);
 	}
 }
 void InputManager::process_general_input()
@@ -99,6 +110,16 @@ void InputManager::register_input_event(const SDL_Keycode keycode, std::function
 void InputManager::deregister_input_event(const SDL_Keycode keycode, std::function<void()> callback)
 {
 	key_to_on_pressed_event_map_[keycode].unsubscribe(callback);
+}
+void InputManager::register_event(const SDL_EventType event_identifier, std::function<void()> callback)
+{
+	if (sdl_event_to_triggered_event_map_.find(event_identifier) == sdl_event_to_triggered_event_map_.end())
+		sdl_event_to_triggered_event_map_.insert({ event_identifier, Event<>() });
+	sdl_event_to_triggered_event_map_[event_identifier].subscribe(callback);
+}
+void InputManager::deregister_event(const SDL_EventType event_identifier, std::function<void()> callback)
+{
+	sdl_event_to_triggered_event_map_[event_identifier].unsubscribe(callback);
 }
 
 

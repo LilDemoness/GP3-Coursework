@@ -136,9 +136,10 @@
     <ClCompile Include="DisplayFacade.cpp" />
     <ClCompile Include="DLLManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameOverScene.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="GameplayScene.cpp" />
     <ClCompile Include="MainMenuScene.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="obj_loader.cpp" />
@@ -167,8 +168,9 @@
     <ClInclude Include="DLLManager.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameOverScene.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="MainGame.h" />
+    <ClInclude Include="GameplayScene.h" />
     <ClInclude Include="MainMenuScene.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ObjectPool.h" />

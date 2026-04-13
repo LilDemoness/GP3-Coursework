@@ -2,9 +2,12 @@
 
 #include "Scene.h"
 #include "MainMenuScene.h"
+#include "GameplayScene.h"
+#include "GameOverScene.h"
 
 #include "DisplayFacade.h"
 #include "TextRenderer.h"
+#include "InputManager.h"
 
 #define MAX_FRAMERATE 60
 #define WINDOW_WIDTH 1280
@@ -36,7 +39,10 @@ private:
 
 	// Scenes.
 	Scene::GameMode current_game_mode_;
-	Scene* active_scene_;
+	Scene::GameMode desired_game_mode_;
+	std::unique_ptr<Scene> active_scene_;
 
-	void set_active_scene(Scene::GameMode new_game_mode);
+	void start_scene_change(Scene::GameMode new_game_mode);
+	void set_active_scene();
+	void return_to_main_menu();
 };

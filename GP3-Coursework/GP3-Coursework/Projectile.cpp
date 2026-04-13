@@ -11,6 +11,11 @@ Projectile::~Projectile()
 {
 	collider_->on_collision_event.unsubscribe(std::bind(&Projectile::on_collision_enter, this, std::placeholders::_1, std::placeholders::_2));
 }
+void Projectile::dispose_all()
+{
+	active_projectiles_.clear();
+	projectile_pool_.clear();
+}
 
 
 void Projectile::on_collision_enter(Collider* self, Collider* other)
@@ -26,7 +31,7 @@ void Projectile::on_collision_enter(Collider* self, Collider* other)
 }
 
 
-void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot)
+void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot, glm::vec3 player_velocity)
 {
 	std::shared_ptr<Projectile> projectile_instance = projectile_pool_.get();
 
@@ -35,7 +40,7 @@ void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot)
 	projectile_transform->set_pos(pos);
 	projectile_transform->set_rot(rot);
 
-	projectile_transform->set_velocity(projectile_transform->get_forward() * kSpeed);
+	projectile_transform->set_velocity(player_velocity + projectile_transform->get_forward() * kSpeed);
 
 	// Disable collisions with the player until they leave them.
 }
@@ -56,6 +61,28 @@ void Projectile::update_projectiles(float delta_time)
 {
 	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
 		(*it)->get_transform()->apply_physics(delta_time);
+}
+
+
+void Projectile::draw_all(const Camera& camera)
+{
+	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
+	{
+		if ((*it)->get_is_active())
+		{
+			(*it)->draw(camera);
+		}
+	}
+}
+void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
+{
+	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
+	{
+		if ((*it)->get_is_active())
+		{
+			(*it)->draw(camera, override_shader);
+		}
+	}
 }
 
 
