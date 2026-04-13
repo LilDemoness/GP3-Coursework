@@ -21,9 +21,19 @@ TextRenderer* TextRenderer::get_instance()
 }
 
 
-void TextRenderer::render_text(std::string text, float x, float y, float scale, glm::vec3 font_color)
+void TextRenderer::render_text(const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification)
 {
     TextRenderer* text_renderer = get_instance();
+
+
+    // Calculate the correct starting position for our given alignment.
+    switch (justification)
+    {
+    case TextJustification::kLeftAligned: break;    // Left aligned starts at the passed 'x'.
+    case TextJustification::kCentreAligned: x -= get_string_display_width(text, scale) / 2.0f; break;
+    case TextJustification::kRightAligned: x -= get_string_display_width(text, scale); break;
+    }
+
 
     // Change our depth function so that text always renders on the screen.
     glDepthFunc(GL_LEQUAL);
@@ -38,8 +48,7 @@ void TextRenderer::render_text(std::string text, float x, float y, float scale, 
     glBindVertexArray(text_renderer->vertex_array_object_);
 
     // Iterate through all characters in the text to render.
-    std::string::const_iterator c;
-    for (c = text.begin(); c != text.end(); c++)
+    for (auto c = text.begin(); c != text.end(); c++)
     {
         Character char_data = text_renderer->all_characters_[*c];
 
@@ -81,6 +90,16 @@ void TextRenderer::render_text(std::string text, float x, float y, float scale, 
 
     // Revert depth func.
     glDepthFunc(GL_LESS);
+}
+float TextRenderer::get_string_display_width(const std::string& text, const float scale)
+{
+    TextRenderer* text_renderer = get_instance();
+
+    float total_width = 0.0f;
+    for (auto c = text.begin(); c != text.end(); c++)
+        total_width += (text_renderer->all_characters_[*c].advance >> 6) * scale;
+
+    return total_width;
 }
 
 
@@ -161,6 +180,7 @@ int TextRenderer::initialise_text()
     // Destroy FreeType now we're finished.
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
+    return 0;
 }
 void TextRenderer::initialise_vertex_buffers()
 {

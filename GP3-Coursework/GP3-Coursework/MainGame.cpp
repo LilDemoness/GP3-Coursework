@@ -5,6 +5,7 @@
 MainGame::MainGame() :
 	game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
 	game_state_(GameState::kPlay),
+	current_score_(0),
 	counter_(0.0f),
 	delta_time_(0.0f),
 	last_frame_start_time_(0.0f),
@@ -40,6 +41,7 @@ MainGame::MainGame() :
 	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
 
 	Asteroid::create_initial_asteroids(10, 2, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+	Asteroid::on_any_asteroid_destroyed.subscribe(std::bind(&MainGame::increment_score, this, std::placeholders::_1));
 
 	camera_.get_transform()->set_parent(player_->get_transform(), true);
 	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 1.0f, -5.0f));
@@ -50,6 +52,7 @@ MainGame::~MainGame()
 	glDeleteVertexArrays(1, &world_border_vao_);
 
 	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
+	Asteroid::on_any_asteroid_destroyed.unsubscribe(std::bind(&MainGame::increment_score, this, std::placeholders::_1));
 }
 
 
@@ -276,7 +279,10 @@ void MainGame::draw_game()
 
 	skybox_.draw(camera_);
 
-	TextRenderer::render_text("Test Text", 25.0f, 25.0f, 1.0f, glm::vec3(1.0f));
+	//static std::ostringstream oss;
+	//oss << std::setfill('0') << std::setw(5) << current_score_;
+	TextRenderer::render_text("Score", game_display_.get_width() / 2.0f, game_display_.get_height() - 50.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
+	TextRenderer::render_text(std::to_string(current_score_), game_display_.get_width() / 2.0f, game_display_.get_height() - 100.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 
 	WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
 
@@ -333,6 +339,11 @@ void MainGame::fire_projectile()
 	Projectile::spawn_projectile(player_transform->get_pos(), player_transform->get_rot());
 }
 
+
+void MainGame::increment_score(int score_increase)
+{
+	current_score_ += score_increase;
+}
 
 
 void MainGame::insertion_sort_edges(std::vector<Collider::Edge*>& edges)

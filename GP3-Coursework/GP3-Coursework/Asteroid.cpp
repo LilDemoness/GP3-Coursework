@@ -77,8 +77,10 @@ glm::quat Asteroid::get_random_direction(std::mt19937 gen)
 
 
 
+Event<int> Asteroid::on_any_asteroid_destroyed;
 void Asteroid::on_collision(Collider* self, Collider* other)
 {
+	on_any_asteroid_destroyed.invoke(get_score_for_size(remaining_splits_));
 	split();
 }
 void Asteroid::split()
@@ -156,6 +158,14 @@ float Asteroid::get_scale_for_remaining_splits(int remaining_splits)
 	// Doubles each time.
 	const float kBaseScale = 0.35f;
 	return std::powf(2, remaining_splits) * kBaseScale;
+}
+
+
+int Asteroid::get_score_for_size(int remaining_splits)
+{
+	const int SMALL_ASTEROID_SCORE = 200;
+	const float SCORE_DECREASE_RATE = 2.0f;
+	return (int)(SMALL_ASTEROID_SCORE / std::powf(SCORE_DECREASE_RATE, remaining_splits));
 }
 
 

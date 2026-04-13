@@ -6,7 +6,7 @@
 #define WORLD_BORDER_SHADER_PATH "..\\res\\WorldBorderShader"
 #define WORLD_BORDER_SHADER_TAG "WorldBorderShader"
 
-static class WorldBorderVisuals
+class WorldBorderVisuals
 {
 public:
 	static void initialise_world_border(float world_radius);

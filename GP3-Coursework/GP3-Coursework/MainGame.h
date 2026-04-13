@@ -23,6 +23,8 @@
 #include "TextRenderer.h"
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <memory>
 #include <thread>
@@ -77,6 +79,8 @@ private:
 
 	void insertion_sort_edges(std::vector<Collider::Edge*>& edges);
 
+	void increment_score(int score_increase);
+
 
 	DisplayFacade game_display_;
 	GameState game_state_;
@@ -91,6 +95,7 @@ private:
 	Skybox skybox_;
 
 	bool player_overlapping_, object_1_overlapping_, object_2_overlapping_;
+	int current_score_;
 
 
 	std::vector<Collider::Edge*> edges_;

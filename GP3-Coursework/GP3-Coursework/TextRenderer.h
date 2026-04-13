@@ -20,8 +20,15 @@
 class TextRenderer
 {
 public:
+	enum TextJustification
+	{
+		kLeftAligned,
+		kCentreAligned,
+		kRightAligned,
+	};
+
 	// Note: Text should be rendered after everything that is drawn behind it, otherwise transparency becomes funky and you can sometimes see the original/uninitialised background through the edges of the glyphs.
-	static void render_text(std::string text, float x, float y, float scale, glm::vec3 font_color);
+	static void render_text(const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification = TextJustification::kLeftAligned);
 
 
 private:
@@ -31,6 +38,8 @@ private:
 	// Delete Copy Constructor.
 	TextRenderer(const TextRenderer& other) = delete;
 	TextRenderer& operator= (const TextRenderer& other) = delete;
+
+	static float get_string_display_width(const std::string& text, const float scale);
 
 	static TextRenderer* get_instance();
 

@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include "ObjectPool.h"
+#include "Event.h"
 #include <random>
 
 #define ASTEROIDS_MODEL_PATH "..\\res\\cube1m.obj"
@@ -21,6 +22,8 @@ public:
 
 	static void update_all_asteroids(float delta_time);
 
+	static Event<int> on_any_asteroid_destroyed;
+
 private:
 	void on_collision(Collider* self, Collider* other);
 	void split();
@@ -35,6 +38,8 @@ private:
 	static glm::vec3 get_random_direction_vector(std::mt19937 gen);
 	static glm::quat get_random_direction(std::mt19937 gen);
 	static float get_scale_for_remaining_splits(int remaining_splits);
+
+	static int get_score_for_size(int remaining_splits);
 
 	static std::unordered_set<std::shared_ptr<Asteroid>> all_asteroids_;
 
