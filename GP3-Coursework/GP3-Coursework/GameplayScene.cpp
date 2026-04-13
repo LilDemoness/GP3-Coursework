@@ -7,8 +7,8 @@ GameplayScene::GameplayScene() :
 	counter_(0.0f),
 
 	texture_("..\\res\\bricks.jpg"),
-	object_1_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f)),
-	object_2_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f)),
+	object_1_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f))),
+	object_2_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f))),
 	//marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
 	player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 

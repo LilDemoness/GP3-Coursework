@@ -22,11 +22,14 @@ public:
 
 
 	void draw();
+	
+	const std::vector<glm::vec3>& get_vertex_positions() const;
 
 private:
 	Mesh(Mesh& other) = delete;
 
-	void init_model(const IndexedModel& model);
+	void init_model();
+	std::shared_ptr<IndexedModel> model_;
 
 	GLuint vertex_array_object_ = 0;	// Vertex Array Object.
 	GLuint vertex_buffer_object_ = 0;	// Interleaved Vertex Buffer Object.

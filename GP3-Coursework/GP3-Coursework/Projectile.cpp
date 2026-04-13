@@ -3,7 +3,7 @@
 
 
 float Projectile::kSpeed = 15.0f;
-Projectile::Projectile() : GameObject(get_projectile_mesh(), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), 0.1f, true)
+Projectile::Projectile() : GameObject(get_projectile_mesh(), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), true)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Projectile::on_collision_enter, this, std::placeholders::_1, std::placeholders::_2));
 }

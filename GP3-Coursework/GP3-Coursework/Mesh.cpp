@@ -2,26 +2,26 @@
 
 Mesh::Mesh(Vertex* vertices, unsigned int num_vertices, unsigned int* indices, unsigned int num_indices)
 {
-    IndexedModel model;
+    std::shared_ptr<IndexedModel> model;
 
     for (unsigned int i = 0; i < num_vertices; i++)
     {
-        model.positions.push_back(*vertices[i].get_pos());
-        model.normals.push_back(*vertices[i].get_normal());
-        model.texCoords.push_back(*vertices[i].get_texture_coordinate());
+        model->positions.push_back(*vertices[i].get_pos());
+        model->normals.push_back(*vertices[i].get_normal());
+        model->texCoords.push_back(*vertices[i].get_texture_coordinate());
     }
 
     for (unsigned int i = 0; i < num_indices; i++)
     {
-        model.indices.push_back(indices[i]);
+        model->indices.push_back(indices[i]);
     }
 
-    init_model(model);
+    init_model();
 }
 Mesh::Mesh(const std::string& file_name)
 {
-    IndexedModel model = OBJModel(file_name).ToIndexedModel();
-    init_model(model);
+    model_ = OBJModel(file_name).ToIndexedModel();
+    init_model();
 }
 Mesh::~Mesh()
 {
@@ -64,12 +64,12 @@ Mesh* Mesh::create_quad_mesh()
 }
 
 
-void Mesh::init_model(const IndexedModel& model)
+void Mesh::init_model()
 {
-    draw_count_ = model.indices.size();
+    draw_count_ = model_->indices.size();
 
     // Check for empty model.
-    if (model.positions.empty() || model.texCoords.empty() || model.normals.empty())
+    if (model_->positions.empty() || model_->texCoords.empty() || model_->normals.empty())
     {
         std::cerr << "ERROR: Model data is missing!" << std::endl;
         return;
@@ -82,18 +82,18 @@ void Mesh::init_model(const IndexedModel& model)
 
     // Create Interleaved Data.
     std::vector<float> interleavedData;
-    for (size_t i = 0; i < model.positions.size(); i++)
+    for (size_t i = 0; i < model_->positions.size(); i++)
     {
-        interleavedData.push_back(model.positions[i].x);
-        interleavedData.push_back(model.positions[i].y);
-        interleavedData.push_back(model.positions[i].z);
+        interleavedData.push_back(model_->positions[i].x);
+        interleavedData.push_back(model_->positions[i].y);
+        interleavedData.push_back(model_->positions[i].z);
 
-        interleavedData.push_back(model.normals[i].x);
-        interleavedData.push_back(model.normals[i].y);
-        interleavedData.push_back(model.normals[i].z);
+        interleavedData.push_back(model_->normals[i].x);
+        interleavedData.push_back(model_->normals[i].y);
+        interleavedData.push_back(model_->normals[i].z);
 
-        interleavedData.push_back(model.texCoords[i].x);
-        interleavedData.push_back(model.texCoords[i].y);
+        interleavedData.push_back(model_->texCoords[i].x);
+        interleavedData.push_back(model_->texCoords[i].y);
     }
 
     glBindVertexArray(vertex_array_object_);
@@ -104,7 +104,7 @@ void Mesh::init_model(const IndexedModel& model)
 
     // Index Data to Element Buffer Object.
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indices.size() * sizeof(unsigned int), model.indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model_->indices.size() * sizeof(unsigned int), model_->indices.data(), GL_STATIC_DRAW);
 
 
     // Dynamic Vertex Attributes.
@@ -131,3 +131,6 @@ void Mesh::draw()
     glDrawElements(GL_TRIANGLES, draw_count_, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
+
+const std::vector<glm::vec3>& Mesh::get_vertex_positions() const { return model_->positions; }

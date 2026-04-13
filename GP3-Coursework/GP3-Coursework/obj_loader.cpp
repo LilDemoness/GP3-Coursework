@@ -76,9 +76,9 @@ void IndexedModel::CalcNormals()
         normals[i] = glm::normalize(normals[i]);
 }
 
-IndexedModel OBJModel::ToIndexedModel()
+std::shared_ptr<IndexedModel> OBJModel::ToIndexedModel()
 {
-    IndexedModel result;
+    std::shared_ptr<IndexedModel> result = std::make_shared<IndexedModel>();
     IndexedModel normalModel;
 
     unsigned int numIndices = OBJIndices.size();
@@ -133,17 +133,17 @@ IndexedModel OBJModel::ToIndexedModel()
 
         if (previousVertexLocation == (unsigned int)-1)
         {
-            resultModelIndex = result.positions.size();
+            resultModelIndex = result->positions.size();
 
-            result.positions.push_back(currentPosition);
-            result.texCoords.push_back(currentTexCoord);
-            result.normals.push_back(currentNormal);
+            result->positions.push_back(currentPosition);
+            result->texCoords.push_back(currentTexCoord);
+            result->normals.push_back(currentNormal);
         }
         else
             resultModelIndex = previousVertexLocation;
 
         normalModel.indices.push_back(normalModelIndex);
-        result.indices.push_back(resultModelIndex);
+        result->indices.push_back(resultModelIndex);
         indexMap.insert(std::pair<unsigned int, unsigned int>(resultModelIndex, normalModelIndex));
     }
 
@@ -151,14 +151,14 @@ IndexedModel OBJModel::ToIndexedModel()
     {
         normalModel.CalcNormals();
 
-        for (unsigned int i = 0; i < result.positions.size(); i++)
-            result.normals[i] = normalModel.normals[indexMap[i]];
+        for (unsigned int i = 0; i < result->positions.size(); i++)
+            result->normals[i] = normalModel.normals[indexMap[i]];
     }
 
     return result;
 };
 
-unsigned int OBJModel::FindLastVertexIndex(const std::vector<OBJIndex*>& indexLookup, const OBJIndex* currentIndex, const IndexedModel& result)
+unsigned int OBJModel::FindLastVertexIndex(const std::vector<OBJIndex*>& indexLookup, const OBJIndex* currentIndex, const std::shared_ptr<IndexedModel> result)
 {
     unsigned int start = 0;
     unsigned int end = indexLookup.size();
@@ -212,11 +212,11 @@ unsigned int OBJModel::FindLastVertexIndex(const std::vector<OBJIndex*>& indexLo
                     else
                         currentNormal = glm::vec3(0, 0, 0);
 
-                    for (unsigned int j = 0; j < result.positions.size(); j++)
+                    for (unsigned int j = 0; j < result->positions.size(); j++)
                     {
-                        if (currentPosition == result.positions[j]
-                            && ((!hasUVs || currentTexCoord == result.texCoords[j])
-                                && (!hasNormals || currentNormal == result.normals[j])))
+                        if (currentPosition == result->positions[j]
+                            && ((!hasUVs || currentTexCoord == result->texCoords[j])
+                                && (!hasNormals || currentNormal == result->normals[j])))
                         {
                             return j;
                         }

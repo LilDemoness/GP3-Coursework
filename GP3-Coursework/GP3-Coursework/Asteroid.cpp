@@ -3,13 +3,13 @@
 
 
 Asteroid::Asteroid()
-	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), 0.5f, true),
+	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
 	remaining_splits_(0)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits)
-	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, 0.5f, true),
+	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
 	remaining_splits_(remaining_splits)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));

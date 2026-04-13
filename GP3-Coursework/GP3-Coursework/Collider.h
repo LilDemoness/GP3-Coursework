@@ -9,6 +9,7 @@
 #include "Transform.h"
 #include "Collision.h"
 #include "Event.h"
+#include "Mesh.h"
 
 
 class Collider
@@ -29,7 +30,7 @@ public:
 					all_edges.erase(all_edges.begin() + i);
 		}
 
-		float get_x_position()
+		inline const float get_x_position() const
 		{
 			float x_pos = collider->get_transform()->get_pos().x + (is_left ? -collider->get_aabb_half_extents().x : collider->get_aabb_half_extents().x);
 			return x_pos;
@@ -57,14 +58,13 @@ public:
 	};
 
 
-	Collider(std::shared_ptr<Transform> transform, float radius, Collider::CollisionTag tag) :
+	Collider(std::shared_ptr<Transform> transform, const Mesh* mesh, Collider::CollisionTag tag) :
 		tag_(tag),
 		enabled_(true),
-		radius_(radius),
-		half_extents_(glm::vec3(radius)),
 		transform_(transform),
 		edges_{ new Collider::Edge(this, true), new Collider::Edge(this, false) }
 	{
+		update_from_mesh(mesh);
 		update_bounds();
 		transform_->on_rotation_changed.subscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
 	}
@@ -76,17 +76,42 @@ public:
 	}
 
 
-	void set_enabled(bool new_value) { enabled_ = new_value; }
+	inline void set_enabled(const bool& new_value) { enabled_ = new_value; }
 	const bool get_enabled() const { return enabled_; }
 
 
 	const float get_radius() const { return radius_; }
-	void set_radius(float new_radius)
+
+
+	void update_from_mesh(const Mesh* const mesh)
 	{
-		radius_ = new_radius;
-		half_extents_ = glm::vec3(new_radius);
-		mark_bounds_as_dirty();
+		// Use the vertices of the mesh to get the min & max bounds.
+		const std::vector<glm::vec3>& vertex_positions = mesh->get_vertex_positions();
+		if (vertex_positions.size() <= 0)
+		{
+			std::cerr << "Failed to update Collider bounds from mesh" << std::endl;
+			return;
+		}
+
+		glm::vec3 min = vertex_positions[0];
+		glm::vec3 max = vertex_positions[0];
+		for (int i = 1; i < vertex_positions.size(); ++i)
+		{
+			// Min checks.
+			if (vertex_positions[i].x < min.x) { min.x = vertex_positions[i].x; }
+			if (vertex_positions[i].y < min.y) { min.y = vertex_positions[i].y; }
+			if (vertex_positions[i].z < min.z) { min.z = vertex_positions[i].z; }
+
+			// Max checks.
+			if (vertex_positions[i].x > max.x) { max.x = vertex_positions[i].x; }
+			if (vertex_positions[i].y > max.y) { max.y = vertex_positions[i].y; }
+			if (vertex_positions[i].z > max.z) { max.z = vertex_positions[i].z; }
+		}
+
+		half_extents_ = (max - min) / 2.0f;
+		radius_ = glm::length(half_extents_);
 	}
+
 
 
 	// Updates this collider's AABB bounding box's half extents.

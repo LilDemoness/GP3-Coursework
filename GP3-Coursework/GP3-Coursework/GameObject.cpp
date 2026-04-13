@@ -2,24 +2,22 @@
 
 #include "GameObject.h"
 
-Event<GameObject*> GameObject::on_gameobject_created;
-Event<GameObject*> GameObject::on_gameobject_destroyed;
-GameObject::GameObject(const std::string& mesh_file_name, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
+GameObject::GameObject(const std::string& mesh_file_name, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, bool add_to_all_objects) :
 	mesh_(new Mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
 	shader_tag_(),
 	is_active_(true)
 {
+	collider_ = std::make_shared<Collider>(transform_, mesh_, tag);
 
 }
-GameObject::GameObject(Mesh* mesh, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const float collision_radius, bool add_to_all_objects) :
+GameObject::GameObject(Mesh* mesh, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, bool add_to_all_objects) :
 	mesh_(mesh),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
-	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
 	shader_tag_(),
 	is_active_(true)
 {
+	collider_ = std::make_shared<Collider>(transform_, mesh_, tag);
 
 }
 GameObject::~GameObject()

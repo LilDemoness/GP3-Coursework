@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <memory>
 
 struct OBJIndex
 {
@@ -37,9 +38,9 @@ public:
 
     OBJModel(const std::string& fileName);
 
-    IndexedModel ToIndexedModel();
+    std::shared_ptr<IndexedModel> ToIndexedModel();
 private:
-    unsigned int FindLastVertexIndex(const std::vector<OBJIndex*>& indexLookup, const OBJIndex* currentIndex, const IndexedModel& result);
+    unsigned int FindLastVertexIndex(const std::vector<OBJIndex*>& indexLookup, const OBJIndex* currentIndex, const std::shared_ptr<IndexedModel> result);
     void CreateOBJFace(const std::string& line);
 
     glm::vec2 ParseOBJVec2(const std::string& line);
