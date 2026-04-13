@@ -36,9 +36,9 @@ public:
 
 
 	// ----- Events -----
-	Event<void> on_position_changed;
-	Event<void> on_rotation_changed;
-	Event<void> on_scale_changed;
+	Event<> on_position_changed;
+	Event<> on_rotation_changed;
+	Event<> on_scale_changed;
 
 
 	static void set_world_radius(float world_radius) { world_radius_ = world_radius; }

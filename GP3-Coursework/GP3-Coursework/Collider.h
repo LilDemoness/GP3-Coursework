@@ -155,7 +155,7 @@ public:
 
 
 	// <No Return Type, Collider* Self, Collider* Other>
-	Event<void, Collider*, Collider*> on_collision_event;
+	Event<Collider*, Collider*> on_collision_event;
 
 private:
 	void mark_bounds_as_dirty() { bounds_dirty_ = true; }

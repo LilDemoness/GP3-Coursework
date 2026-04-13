@@ -70,7 +70,7 @@ void InputManager::register_input_event(const SDL_Keycode keycode, std::function
 	register_input(keycode);
 
 	if (key_to_on_pressed_event_map_.find(keycode) == key_to_on_pressed_event_map_.end())
-		key_to_on_pressed_event_map_.insert({ keycode, Event<void>() });
+		key_to_on_pressed_event_map_.insert({ keycode, Event<>() });
 	key_to_on_pressed_event_map_[keycode].subscribe(callback);
 }
 void InputManager::deregister_input_event(const SDL_Keycode keycode, std::function<void()> callback)

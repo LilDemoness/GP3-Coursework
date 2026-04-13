@@ -30,7 +30,7 @@ private:
 
 
 	std::unordered_map<SDL_Keycode, bool> key_to_held_state_;
-	std::unordered_map<SDL_Keycode, Event<void>> key_to_on_pressed_event_map_;
+	std::unordered_map<SDL_Keycode, Event<>> key_to_on_pressed_event_map_;
 	bool receiving_mouse_input_;
 	glm::vec2 mouse_input_;
 };

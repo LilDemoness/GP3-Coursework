@@ -3,11 +3,12 @@
 #include <functional>
 #include <vector>
 
-template <typename TReturnType, typename... Arguments>
+
+template <typename... Arguments>
 class Event
 {
 public:
-	typedef std::function<TReturnType(Arguments...)> event_signature;
+	typedef std::function<void(Arguments...)> event_signature;
 
 	void subscribe(event_signature callback) { callbacks_.emplace(callbacks_.end(), callback); }
 	void unsubscribe(event_signature callback) { remove_element(callbacks_, callback); }
@@ -25,7 +26,7 @@ private:
 
 
 	// Event Vector Helper Functions.
-	inline void remove_element(std::vector<std::function<TReturnType(Arguments...)>>& vector, std::function<TReturnType(Arguments...)>& element)
+	inline void remove_element(std::vector<std::function<void(Arguments...)>>& vector, std::function<void(Arguments...)>& element)
 	{
 		for (unsigned int i = 0; i < vector.size(); ++i)
 		{
