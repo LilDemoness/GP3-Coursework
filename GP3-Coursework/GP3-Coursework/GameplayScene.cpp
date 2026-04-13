@@ -124,6 +124,12 @@ void GameplayScene::load_physics_engine()
 
 void GameplayScene::update(float delta_time)
 {
+	if (player_death_time_ > 0.0f && counter_ > (player_death_time_ + PLAYER_RESPAWN_TIME))
+	{
+		on_exit_requested.invoke(kGameOver);
+		return;
+	}
+
 	handle_continuous_input(delta_time);
 
 	update_player(delta_time);
@@ -186,6 +192,8 @@ void GameplayScene::handle_continuous_input(float delta_time)
 {
 	if (!player_)
 		return;
+	if (!player_->get_is_active())
+		return;
 	InputManager& instance = InputManager::get_instance();
 
 	const float kPlayerThrust = 5.0f;
@@ -215,7 +223,6 @@ void GameplayScene::handle_continuous_input(float delta_time)
 
 void GameplayScene::draw(DisplayFacade* display_facade)
 {
-	std::shared_ptr<Shader> override_shader = ShaderManager::get_instance().get_shader("SolidColor");
 	texture_.bind(0);
 
 	// Render all objects.
@@ -233,8 +240,11 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	TextRenderer::render_text("Score", display_facade->get_width() / 2.0f, display_facade->get_height() - 50.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 	TextRenderer::render_text(std::to_string(score_), display_facade->get_width() / 2.0f, display_facade->get_height() - 100.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 
-	// Render the world border.
-	WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
+	if (player_->get_is_active())
+	{
+		// Render the world border only if the player isn't dead.
+		WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
+	}
 }
 
 
@@ -253,7 +263,13 @@ void GameplayScene::increment_score(int score_increase)
 void GameplayScene::on_player_collided(Collider* player, Collider* other)
 {
 	if (other->get_collision_tag() == Collider::CollisionTag::kAsteroid)
-		on_exit_requested.invoke(kGameOver);
+	{
+		player_->set_is_active(false);
+		player_->get_transform()->set_ignore_bounds(true);
+		player_death_time_ = counter_;
+
+		camera_->get_transform()->clear_parent();
+	}
 }
 
 

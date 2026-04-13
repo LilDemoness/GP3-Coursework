@@ -17,6 +17,7 @@ public:
 	Transform(const glm::vec3& pos = glm::vec3(0.0f), const glm::quat& rot = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f)) :
 		parent_(nullptr),
 		children_(std::vector<Transform*>()),
+		ignore_bounds_(false),
 		velocity_(glm::vec3(0.0f)),
 		angular_velocity_(glm::vec3(0.0f)),
 
@@ -339,6 +340,22 @@ public:
 
 		return true;
 	}
+	void clear_parent()
+	{
+		if (parent_ == nullptr)
+			return;	// We already have no parent, so don't need to do anything.
+
+		// Remove ourselves from our old parent.
+		parent_->remove_child(this);
+
+		// Ensure our world position remains the same.
+		set_local_pos(get_pos());
+		set_local_rot(get_rot());
+		set_local_scale(get_scale());
+
+		// Remove our parent.
+		parent_ = nullptr;
+	}
 	/*
 		Check if the passed transform is a parent of this transform (Either immediately or further up the hierarchy).
 	*/
@@ -373,6 +390,10 @@ public:
 		return possible_child->is_child_of(this);
 	}
 
+
+	void set_ignore_bounds(const bool const new_value) { ignore_bounds_ = new_value; }
+
+
 protected:
 private:
 	const glm::vec3 kWorldForward = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -380,10 +401,14 @@ private:
 	const glm::vec3 kWorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
 	static float world_radius_;
+	bool ignore_bounds_;
 
 
 	glm::vec3 loop_position_within_bounds(glm::vec3 world_pos)
 	{
+		if (ignore_bounds_)
+			return world_pos;
+
 		float sqrDistanceFromOrigin = (world_pos.x * world_pos.x) + (world_pos.y * world_pos.y) + (world_pos.z * world_pos.z);
 
 		if (sqrDistanceFromOrigin <= (world_radius_ * world_radius_))

@@ -39,6 +39,8 @@
 
 #define PLAY_SPACE_RADIUS 25.0f
 
+#define PLAYER_RESPAWN_TIME 3.0f
+
 #define PHYSICS_ENGINE_DLL_NAME "PhysicsEngine.dll"
 using HelloWorldFunc = void(*)();
 
@@ -99,6 +101,8 @@ private:
 	Skybox skybox_;
 
 	bool player_overlapping_, object_1_overlapping_, object_2_overlapping_;
+
+	float player_death_time_; // <0 = unset;
 
 
 	std::vector<Collider::Edge*> edges_;
