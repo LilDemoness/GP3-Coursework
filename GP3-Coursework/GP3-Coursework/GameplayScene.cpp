@@ -12,7 +12,7 @@ GameplayScene::GameplayScene() :
 	object_1_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f))),
 	object_2_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f))),
 	//marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
-	player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
+	player_(std::make_shared<GameObject>("..\\res\\PlayerModel.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	camera_(nullptr),
 	skybox_()
@@ -23,7 +23,7 @@ GameplayScene::GameplayScene() :
 
 	object_1_->set_shader_tag("SolidColor");
 	object_2_->set_shader_tag("SolidColor");
-	player_->set_shader_tag("SolidColor");
+	//player_->set_shader_tag("SolidColor");
 
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
