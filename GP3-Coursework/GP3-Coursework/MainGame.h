@@ -18,6 +18,7 @@
 #include "ObjectPool.h"
 #include "Asteroid.h"
 #include "Projectile.h"
+#include "Skybox.h"
 
 #include <iostream>
 #include <string>
@@ -82,6 +83,7 @@ private:
 	Camera camera_;
 	Texture texture_;
 
+	Skybox skybox_;
 
 	bool player_overlapping_, object_1_overlapping_, object_2_overlapping_;
 

@@ -22,6 +22,7 @@ public:
 
 	void bind();
 	void update_matrices_ubo(const Transform* transform, const Camera& camera);
+	void update_matrices_ubo_for_skybox(const Camera& camera);
 
 	bool try_load_shader(const std::string& file_name, std::string& shader);
 	void check_shader_error(GLuint shader, GLuint flag, bool is_program, const std::string& error_message);

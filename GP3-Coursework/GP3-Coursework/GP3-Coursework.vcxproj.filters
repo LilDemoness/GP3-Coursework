@@ -96,6 +96,12 @@
     <ClCompile Include="Projectile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Cubemap.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisplayFacade.h">
@@ -170,6 +176,12 @@
     <ClInclude Include="Projectile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Cubemap.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">
@@ -182,6 +194,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\SolidColourShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\ParalaxSkybox.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\ParalaxSkybox.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

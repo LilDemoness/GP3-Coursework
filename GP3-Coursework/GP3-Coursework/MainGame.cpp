@@ -9,16 +9,20 @@ MainGame::MainGame() :
 	delta_time_(0.0f),
 	last_frame_start_time_(0.0f),
 
-    texture_("..\\res\\bricks.jpg"),
-    object_1_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
-    object_2_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
-    //marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
-    player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
+	texture_("..\\res\\bricks.jpg"),
+	object_1_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f), 0.5f),
+	object_2_("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), 0.5f),
+	//marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
+	player_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
-	camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f)
+	camera_(glm::vec3(0), 70.0f, (float)game_display_.get_width() / game_display_.get_height(), 0.01f, 1000.0f),
+	
+	skybox_()
 {
 	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
 	ShaderManager::get_instance().load_shader("SolidColor", "..\\res\\SolidColourShader");
+
+	ShaderManager::get_instance().set_active_shader("DefaultShader");
 
 	fixed_time_step_ = 1.0f / get_refresh_rate();
 
@@ -121,6 +125,7 @@ void MainGame::game_loop()
 		update_player();
 		Projectile::update_projectiles(delta_time_);
 		Asteroid::update_all_asteroids(delta_time_);
+		skybox_.update(delta_time_);
 
 		handle_collisions();
 
@@ -263,6 +268,8 @@ void MainGame::draw_game()
 				
 	//glEnableClientState(GL_COLOR_ARRAY); 
 	//glEnd();
+
+	skybox_.draw(camera_);
 
 	game_display_.swap_buffers();
 }

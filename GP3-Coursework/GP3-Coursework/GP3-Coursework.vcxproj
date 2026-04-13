@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="Asteroid.cpp" />
     <ClCompile Include="Collider.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="DisplayFacade.cpp" />
     <ClCompile Include="DLLManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -144,6 +145,7 @@
     <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="UBOManager.cpp" />
@@ -154,6 +156,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="Cubemap.h" />
     <ClInclude Include="DisplayFacade.h" />
     <ClInclude Include="DLLManager.h" />
     <ClInclude Include="Event.h" />
@@ -168,6 +171,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
@@ -176,6 +180,8 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\res\ParalaxSkybox.frag" />
+    <None Include="..\res\ParalaxSkybox.vert" />
     <None Include="..\res\shader.frag" />
     <None Include="..\res\shader.vert" />
     <None Include="..\res\SolidColourShader.frag" />

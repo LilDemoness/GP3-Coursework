@@ -262,7 +262,12 @@ public:
 	inline void set_velocity(glm::vec3 new_velocity) { this->velocity_ = new_velocity; }
 
 	inline glm::vec3 get_angular_velocity() const { return this->angular_velocity_; }
-	inline void set_angular_velocity(glm::vec3 new_angular_velocity) { this->angular_velocity_ = new_angular_velocity; }
+	inline void set_angular_velocity(glm::vec3 new_angular_velocity)
+	{
+		//const kInvalidVelocity = glm::vec3(float::NAN)
+		if (!isnan(new_angular_velocity.x))
+			this->angular_velocity_ = new_angular_velocity;
+	}
 
 	inline void add_force(glm::vec3 force) { this->velocity_ += force; }
 	inline void add_torque(glm::vec3 torque, RotationSpace rotationSpace = RotationSpace::kLocalSpace)
