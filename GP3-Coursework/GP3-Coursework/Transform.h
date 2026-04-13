@@ -41,6 +41,9 @@ public:
 	Event<void> on_scale_changed;
 
 
+	static void set_world_radius(float world_radius) { world_radius_ = world_radius; }
+
+
 	// ----- Position -----
 	inline glm::vec3 get_pos() const
 	{
@@ -376,15 +379,14 @@ private:
 	const glm::vec3 kWorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	const glm::vec3 kWorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
-	const float kWorldRadius = 25.0f;
-	const float kSqrWorldRadius = kWorldRadius * kWorldRadius;
+	static float world_radius_;
 
 
 	glm::vec3 loop_position_within_bounds(glm::vec3 world_pos)
 	{
 		float sqrDistanceFromOrigin = (world_pos.x * world_pos.x) + (world_pos.y * world_pos.y) + (world_pos.z * world_pos.z);
 
-		if (sqrDistanceFromOrigin <= kSqrWorldRadius)
+		if (sqrDistanceFromOrigin <= (world_radius_ * world_radius_))
 			return world_pos;	// We are within the world radius.
 
 		// We are outwith the world radius.
@@ -395,11 +397,11 @@ private:
 
 		// Calculate the fractional part of how far we're outside the radius (Accounts for distance > 2 x kWorldRadius).
 		int distance_from_origin_int = (int)distance_from_origin;
-		float outside_distance_remainder = (distance_from_origin_int % (int)kWorldRadius) + (distance_from_origin - (float)distance_from_origin_int);
+		float outside_distance_remainder = (distance_from_origin_int % (int)world_radius_) + (distance_from_origin - (float)distance_from_origin_int);
 
 
 		// Move to re-enter from the other side of the radius.
-		return (-direction_from_origin * kWorldRadius) + (direction_from_origin * outside_distance_remainder);
+		return (-direction_from_origin * world_radius_) + (direction_from_origin * outside_distance_remainder);
 	}
 
 

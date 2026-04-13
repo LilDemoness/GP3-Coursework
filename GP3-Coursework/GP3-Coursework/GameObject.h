@@ -27,6 +27,8 @@ public:
 	Collider* get_collider() const;
 	Mesh* get_mesh() const;
 
+	inline void set_shader_tag(const std::string& new_value) { shader_tag_ = new_value; }
+
 	inline const bool get_is_active() const { return is_active_; }
 	inline void set_is_active(bool new_value)
 	{
@@ -41,6 +43,7 @@ protected:
 private:
 	Mesh* mesh_;	// SharedPtr for when meshes can be shared?
 	bool is_active_;
+	std::string shader_tag_;
 
 
 	static std::unordered_set<GameObject*> all_gameobjects_;

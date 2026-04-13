@@ -46,6 +46,22 @@ Mesh* Mesh::create_triangle_mesh()
 
     return new Mesh(vertices, numVertices, indices, numIndices);
 }
+Mesh* Mesh::create_quad_mesh()
+{
+    Vertex vertices[4] = {
+        Vertex(glm::vec3(-1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)),    // Top Left
+        Vertex(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),  // Bottom Left
+        Vertex(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)),   // Top Right
+        Vertex(glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)),   // Bottom Right
+    };
+    unsigned int indices[4] = { 0, 1, 2, 3 };
+
+    // Size calcuated by number of bytes of an array / no bytes of one element.
+    unsigned int numVertices = sizeof(vertices) / sizeof(vertices[0]);
+    unsigned int numIndices = sizeof(indices) / sizeof(indices[0]);
+
+    return new Mesh(vertices, numVertices, indices, numIndices);
+}
 
 
 void Mesh::init_model(const IndexedModel& model)

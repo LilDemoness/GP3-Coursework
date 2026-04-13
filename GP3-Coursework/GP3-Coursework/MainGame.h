@@ -19,6 +19,7 @@
 #include "Asteroid.h"
 #include "Projectile.h"
 #include "Skybox.h"
+#include "WorldBorderVisuals.h"
 
 #include <iostream>
 #include <string>
@@ -32,6 +33,8 @@
 #define MAX_FRAMERATE 60
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
+
+#define PLAY_SPACE_RADIUS 25.0f
 
 #define PHYSICS_ENGINE_DLL_NAME "PhysicsEngine.dll"
 using HelloWorldFunc = void(*)();
@@ -80,6 +83,7 @@ private:
 	GameObject object_2_;
 	//GameObject marker_;
 	std::shared_ptr<GameObject> player_;
+	GLuint world_border_vao_;
 	Camera camera_;
 	Texture texture_;
 

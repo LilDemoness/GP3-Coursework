@@ -148,8 +148,10 @@
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="UBOManager.cpp" />
     <ClCompile Include="Window.cpp" />
+    <ClCompile Include="WorldBorderVisuals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asteroid.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="UBOManager.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Window.h" />
+    <ClInclude Include="WorldBorderVisuals.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\ParalaxSkybox.frag" />
@@ -186,6 +189,8 @@
     <None Include="..\res\shader.vert" />
     <None Include="..\res\SolidColourShader.frag" />
     <None Include="..\res\SolidColourShader.vert" />
+    <None Include="..\res\WorldBorderShader.frag" />
+    <None Include="..\res\WorldBorderShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

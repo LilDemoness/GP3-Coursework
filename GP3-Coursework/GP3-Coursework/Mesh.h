@@ -17,6 +17,8 @@ public:
 
 	// Creates a simple triangle mesh.
 	static Mesh* create_triangle_mesh();
+	// Creates a simple quad mesh.
+	static Mesh* create_quad_mesh();
 
 
 	void draw();

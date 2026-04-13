@@ -7,6 +7,7 @@ GameObject::GameObject(const std::string& mesh_file_name, Collider::CollisionTag
 	mesh_(new Mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
+	shader_tag_(),
 	is_active_(true)
 {
 	if (add_to_all_objects)
@@ -16,6 +17,7 @@ GameObject::GameObject(Mesh* mesh, Collider::CollisionTag tag, const glm::vec3& 
 	mesh_(mesh),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	collider_(std::make_shared<Collider>(transform_, collision_radius, tag)),
+	shader_tag_(),
 	is_active_(true)
 {
 	if (add_to_all_objects)
@@ -45,7 +47,8 @@ void GameObject::draw_all(const Camera& camera, std::shared_ptr<Shader> override
 }
 void GameObject::draw(const Camera& camera)
 {
-	draw(camera, ShaderManager::get_instance().get_active_shader());
+	std::shared_ptr<Shader> shader = shader_tag_.empty() ? ShaderManager::get_instance().get_active_shader() : ShaderManager::get_instance().get_shader(shader_tag_);
+	draw(camera, shader);
 }
 void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader)
 {

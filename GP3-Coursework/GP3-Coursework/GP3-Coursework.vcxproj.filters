@@ -102,6 +102,12 @@
     <ClCompile Include="Cubemap.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="WorldBorderVisuals.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisplayFacade.h">
@@ -182,6 +188,9 @@
     <ClInclude Include="Cubemap.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="WorldBorderVisuals.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\shader.frag">
@@ -200,6 +209,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\res\ParalaxSkybox.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\WorldBorderShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\WorldBorderShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

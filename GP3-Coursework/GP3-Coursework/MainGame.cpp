@@ -21,8 +21,12 @@ MainGame::MainGame() :
 {
 	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
 	ShaderManager::get_instance().load_shader("SolidColor", "..\\res\\SolidColourShader");
-
 	ShaderManager::get_instance().set_active_shader("DefaultShader");
+
+	Transform::set_world_radius(PLAY_SPACE_RADIUS);
+	WorldBorderVisuals::initialise_world_border(PLAY_SPACE_RADIUS);
+
+	glGenVertexArrays(1, &world_border_vao_);
 
 	fixed_time_step_ = 1.0f / get_refresh_rate();
 
@@ -35,7 +39,7 @@ MainGame::MainGame() :
 	});
 	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
 
-	Asteroid::create_initial_asteroids(10, 2, 20);
+	Asteroid::create_initial_asteroids(10, 2, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
 
 	camera_.get_transform()->set_parent(player_->get_transform(), true);
 	camera_.get_transform()->set_local_pos(glm::vec3(0.0f, 1.0f, -5.0f));
@@ -43,6 +47,7 @@ MainGame::MainGame() :
 MainGame::~MainGame()
 {
 	ShaderManager::get_instance().clear();
+	glDeleteVertexArrays(1, &world_border_vao_);
 
 	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&MainGame::fire_projectile, this));
 }
@@ -270,6 +275,8 @@ void MainGame::draw_game()
 	//glEnd();
 
 	skybox_.draw(camera_);
+
+	WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
 
 	game_display_.swap_buffers();
 }
