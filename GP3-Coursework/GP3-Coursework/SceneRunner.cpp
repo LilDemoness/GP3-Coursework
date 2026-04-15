@@ -11,7 +11,7 @@ SceneRunner::SceneRunner() :
 
 	Scene::on_exit_requested.subscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 
-	InputManager::get_instance().register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
+	InputManager::register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
 
 	// Can Remove?
 	glEnable(GL_DEPTH_TEST); // Enable Z-buffering.
@@ -20,9 +20,11 @@ SceneRunner::SceneRunner() :
 }
 SceneRunner::~SceneRunner()
 {
-	ShaderManager::get_instance().clear();
+	ShaderManager::clear();
+	InputManager::clear();
+	DLLManager::clear();
+
 	Scene::on_exit_requested.unsubscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
-	InputManager::get_instance().deregister_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
 }
 
 
@@ -48,7 +50,7 @@ void SceneRunner::run()
 		calculate_delta_time(start);
 
 		// Detect Input.
-		InputManager::get_instance().process_input();
+		InputManager::process_input();
 
 		// Update the scene.
 		if (active_scene_)

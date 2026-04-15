@@ -8,13 +8,11 @@
 class DLLManager
 {
 public:
-	static DLLManager& get_instance();
-
 	// Load a DLL by its filename.
-	bool load_dll(const std::string& dll_name);
+	static bool load_dll(const std::string& dll_name);
 
 	template <typename T>
-	T get_function(const std::string& dll_name, const std::string& function_name)
+	static T get_function(const std::string& dll_name, const std::string& function_name)
 	{
 		// Find our desired dll.
 		auto iterator = loaded_dlls_.find(dll_name);
@@ -39,19 +37,21 @@ public:
 	}
 
 	// Unload a specific DLL.
-	void unload_dll(const std::string& dll_name);
+	static void unload_dll(const std::string& dll_name);
 	
 	// Unload all loaded DLLs.
-	void unload_all_dlls();
+	static void unload_all_dlls();
+
+	static void clear();
 
 private:
-	DLLManager() = default;
-	~DLLManager();
+	DLLManager() = delete;
+	~DLLManager() = delete;
 
 	// Prevent copy & move.
 	DLLManager(const DLLManager&) = delete;
 	DLLManager& operator=(const DLLManager&) = delete;
 
 	// Stores loaded DLLs (ID > DLL)
-	std::unordered_map<std::string, HINSTANCE> loaded_dlls_;
+	static std::unordered_map<std::string, HINSTANCE> loaded_dlls_;
 };

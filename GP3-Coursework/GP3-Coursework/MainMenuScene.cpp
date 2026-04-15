@@ -9,7 +9,7 @@ MainMenuScene::~MainMenuScene()
 
 void MainMenuScene::enter(DisplayFacade* display_facade)
 {
-	InputManager::get_instance().register_input_event(SDLK_RETURN, std::bind(&MainMenuScene::start_game, this));
+	InputManager::register_input_event(SDLK_RETURN, std::bind(&MainMenuScene::start_game, this));
 }
 void MainMenuScene::update(float delta_time)
 {}
@@ -21,7 +21,7 @@ void MainMenuScene::draw(DisplayFacade* display_facade)
 
 void MainMenuScene::on_exit_fulfilled()
 {
-	InputManager::get_instance().deregister_input_event(SDLK_RETURN, std::bind(&MainMenuScene::start_game, this));
+	InputManager::deregister_input_event(SDLK_RETURN, std::bind(&MainMenuScene::start_game, this));
 }
 
 

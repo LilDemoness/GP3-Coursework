@@ -11,24 +11,22 @@
 class ShaderManager
 {
 public:
-	static ShaderManager& get_instance();
+	static std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& shared_file_path);
+	static std::shared_ptr<Shader> get_shader(const std::string& tag);
 
-	std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& shared_file_path);
-	std::shared_ptr<Shader> get_shader(const std::string& tag);
+	static void set_active_shader(const std::string& tag);
+	static std::shared_ptr<Shader> get_active_shader();
 
-	void set_active_shader(const std::string& tag);
-	std::shared_ptr<Shader> get_active_shader();
+	static void clear();
 
-	void clear();
-
-	void bind_all_shaders(const std::string& ubo_tag);
+	static void bind_all_shaders(const std::string& ubo_tag);
 
 private:
-	ShaderManager();
-	~ShaderManager();
+	ShaderManager() = delete;
+	~ShaderManager() = delete;
 	ShaderManager(ShaderManager& other) = delete;
 	ShaderManager& operator=(const ShaderManager& other) = delete;
 
-	std::string default_active_shader_tag;
-	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders_;
+	static std::string default_active_shader_tag_;
+	static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders_;
 };

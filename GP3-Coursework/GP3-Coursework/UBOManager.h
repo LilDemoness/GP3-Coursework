@@ -9,19 +9,17 @@ static const std::string kMatricesTag = "Matrices";
 class UBOManager
 {
 public:
-	static UBOManager& get_instance();
+	static void create_ubo(const std::string& tag, const size_t size, const GLuint binding_point);
+	static void create_ubo_data(const std::string& tag, const size_t offset, const void* data, const size_t data_size);
+	static void bind_ubo_to_shader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name);
 
-	void create_ubo(const std::string& tag, const size_t size, const GLuint binding_point);
-	void create_ubo_data(const std::string& tag, const size_t offset, const void* data, const size_t data_size);
-	void bind_ubo_to_shader(const std::string& ubo_tag, const GLuint shader_id, const std::string& ubo_name);
-
-	void clear();	// Cleanup all UBOs.
+	static void clear();	// Cleanup all UBOs.
 
 
 
 private:
-	UBOManager();
-	~UBOManager();
+	UBOManager() = delete;
+	~UBOManager() = delete;
 	UBOManager(const UBOManager&) = delete;
 	UBOManager& operator=(const UBOManager&) = delete;
 
@@ -40,5 +38,5 @@ private:
 		}
 	};
 
-	std::unordered_map<std::string, UBOData> ubos_;
+	static std::unordered_map<std::string, UBOData> ubos_;
 };

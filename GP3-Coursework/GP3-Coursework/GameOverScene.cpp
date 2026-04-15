@@ -10,8 +10,8 @@ GameOverScene::~GameOverScene()
 
 void GameOverScene::enter(DisplayFacade* display_facade)
 {
-	InputManager::get_instance().register_input_event(SDLK_r, std::bind(&GameOverScene::restart_game, this));
-	InputManager::get_instance().register_input_event(SDLK_RETURN, std::bind(&GameOverScene::quit_game, this));
+	InputManager::register_input_event(SDLK_r, std::bind(&GameOverScene::restart_game, this));
+	InputManager::register_input_event(SDLK_RETURN, std::bind(&GameOverScene::quit_game, this));
 }
 void GameOverScene::update(float delta_time)
 {}
@@ -28,8 +28,8 @@ void GameOverScene::draw(DisplayFacade* display_facade)
 
 void GameOverScene::on_exit_fulfilled()
 {
-	InputManager::get_instance().deregister_input_event(SDLK_r, std::bind(&GameOverScene::restart_game, this));
-	InputManager::get_instance().deregister_input_event(SDLK_RETURN, std::bind(&GameOverScene::quit_game, this));
+	InputManager::deregister_input_event(SDLK_r, std::bind(&GameOverScene::restart_game, this));
+	InputManager::deregister_input_event(SDLK_RETURN, std::bind(&GameOverScene::quit_game, this));
 }
 
 

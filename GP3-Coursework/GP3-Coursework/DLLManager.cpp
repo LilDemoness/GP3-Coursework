@@ -2,17 +2,12 @@
 
 #include "DLLManager.h"
 
-DLLManager::~DLLManager()
+std::unordered_map<std::string, HINSTANCE> DLLManager::loaded_dlls_;
+void DLLManager::clear()
 {
 	unload_all_dlls();
 }
 
-
-DLLManager& DLLManager::get_instance()
-{
-	static DLLManager instance;
-	return instance;
-}
 
 bool DLLManager::load_dll(const std::string& dll_name)
 {

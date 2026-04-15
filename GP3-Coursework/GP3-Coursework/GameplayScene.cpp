@@ -17,9 +17,9 @@ GameplayScene::GameplayScene() :
 	camera_(nullptr),
 	skybox_()
 {
-	ShaderManager::get_instance().load_shader("DefaultShader", "..\\res\\shader");
-	ShaderManager::get_instance().load_shader("SolidColor", "..\\res\\SolidColourShader")->set_vec3("color", glm::vec3(0.5f));
-	ShaderManager::get_instance().set_active_shader("DefaultShader");
+	ShaderManager::load_shader("DefaultShader", "..\\res\\shader");
+	ShaderManager::load_shader("SolidColor", "..\\res\\SolidColourShader")->set_vec3("color", glm::vec3(0.5f));
+	ShaderManager::set_active_shader("DefaultShader");
 
 	object_1_->set_shader_tag("SolidColor");
 	object_2_->set_shader_tag("SolidColor");
@@ -35,16 +35,16 @@ GameplayScene::GameplayScene() :
 
 	glGenVertexArrays(1, &world_border_vao_);
 
-	InputManager::get_instance().register_input(std::vector<SDL_Keycode>
+	InputManager::register_input(std::vector<SDL_Keycode>
 	{
 		// Rotation.
 		SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_q, SDLK_e,
 		// Movement.
 		SDLK_LSHIFT,
 	});
-	InputManager::get_instance().register_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
-	InputManager::get_instance().register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
-	InputManager::get_instance().register_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
+	InputManager::register_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
+	InputManager::register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
+	InputManager::register_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
 	respawn_asteroids();
 }
@@ -53,9 +53,9 @@ GameplayScene::~GameplayScene()
 	player_->get_collider()->on_collision_event.unsubscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
 	glDeleteVertexArrays(1, &world_border_vao_);
 
-	InputManager::get_instance().deregister_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
-	InputManager::get_instance().deregister_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
-	InputManager::get_instance().deregister_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
+	InputManager::deregister_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
+	InputManager::deregister_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
+	InputManager::deregister_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
 	Asteroid::on_any_asteroid_destroyed.unsubscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
 	Asteroid::on_all_asteroids_destroyed.unsubscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
@@ -86,17 +86,17 @@ void GameplayScene::init_systems()
 void GameplayScene::init_UBOs()
 {
 	// Create our UBOs.
-	UBOManager::get_instance().create_ubo(kMatricesTag, sizeof(glm::mat4) * 3, 0);
+	UBOManager::create_ubo(kMatricesTag, sizeof(glm::mat4) * 3, 0);
 
 	// Populate with initial data to ensure they aren't undefined.
 	const glm::mat4 kIdentity = glm::mat4(1.0f);
 	const size_t kMat4Size = sizeof(glm::mat4);
-	UBOManager::get_instance().create_ubo_data(kMatricesTag, 0, glm::value_ptr(kIdentity), kMat4Size);
-	UBOManager::get_instance().create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(kIdentity), kMat4Size);
-	UBOManager::get_instance().create_ubo_data(kMatricesTag, kMat4Size * 2, glm::value_ptr(kIdentity), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, 0, glm::value_ptr(kIdentity), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(kIdentity), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, kMat4Size * 2, glm::value_ptr(kIdentity), kMat4Size);
 
 	// bind UBO to shaders.
-	ShaderManager::get_instance().bind_all_shaders(kMatricesTag);
+	ShaderManager::bind_all_shaders(kMatricesTag);
 }
 
 void GameplayScene::load_dlls()
@@ -105,25 +105,25 @@ void GameplayScene::load_dlls()
 }
 void GameplayScene::load_physics_engine()
 {
-	DLLManager::get_instance().load_dll(PHYSICS_ENGINE_DLL_NAME);
-	HelloWorldFunc hello_world = DLLManager::get_instance().get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "hello_world");
+	DLLManager::load_dll(PHYSICS_ENGINE_DLL_NAME);
+	HelloWorldFunc hello_world = DLLManager::get_function<HelloWorldFunc>(PHYSICS_ENGINE_DLL_NAME, "hello_world");
 
 	if (hello_world)
 		hello_world();
 	else
 		std::cerr << "Failed to retrieve the Hello World function from PhysicsDLL" << std::endl;
 
-	add_thrust = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_thrust");
-	add_pitch = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_pitch");
-	add_yaw = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_yaw");
-	add_roll = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
+	add_thrust = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_thrust");
+	add_pitch = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_pitch");
+	add_yaw = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_yaw");
+	add_roll = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
 
-	update_physics = DLLManager::get_instance().get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
+	update_physics = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
 
-	check_collisions_radius = DLLManager::get_instance().get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
-	check_collisions_aabb = DLLManager::get_instance().get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
+	check_collisions_radius = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
+	check_collisions_aabb = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
 
-	sweep_and_prune = DLLManager::get_instance().get_function<bool(*)(std::vector<Collider::Edge*>&edges, std::set<std::pair<Collider*, Collider*>>&)>(PHYSICS_ENGINE_DLL_NAME, "sweep_and_prune");
+	sweep_and_prune = DLLManager::get_function<bool(*)(std::vector<Collider::Edge*>&edges, std::set<std::pair<Collider*, Collider*>>&)>(PHYSICS_ENGINE_DLL_NAME, "sweep_and_prune");
 }
 
 
@@ -206,29 +206,28 @@ void GameplayScene::handle_continuous_input(float delta_time)
 		return;
 	if (!player_->get_is_active())
 		return;
-	InputManager& instance = InputManager::get_instance();
 
 	const float kPlayerThrust = 5.0f;
-	if (instance.get_key_held(SDLK_LSHIFT) && add_thrust)
+	if (InputManager::get_key_held(SDLK_LSHIFT) && add_thrust)
 		add_thrust(player_->get_transform(), kPlayerThrust * delta_time);
 
 	// Rotation.
 	constexpr float kPlayerRotationSpeed = glm::radians(360.0f);
 	float rotation_speed = kPlayerRotationSpeed * delta_time;
 	// Pitch.
-	if (instance.get_key_held(SDLK_w) && add_pitch)
+	if (InputManager::get_key_held(SDLK_w) && add_pitch)
 		add_pitch(player_->get_transform(), -rotation_speed);
-	if (instance.get_key_held(SDLK_s) && add_pitch)
+	if (InputManager::get_key_held(SDLK_s) && add_pitch)
 		add_pitch(player_->get_transform(), rotation_speed);
 	// Yaw.
-	if (instance.get_key_held(SDLK_a) && add_yaw)
+	if (InputManager::get_key_held(SDLK_a) && add_yaw)
 		add_yaw(player_->get_transform(), -rotation_speed);
-	if (instance.get_key_held(SDLK_d) && add_yaw)
+	if (InputManager::get_key_held(SDLK_d) && add_yaw)
 		add_yaw(player_->get_transform(), rotation_speed);
 	// Roll.
-	if (instance.get_key_held(SDLK_q) && add_roll)
+	if (InputManager::get_key_held(SDLK_q) && add_roll)
 		add_roll(player_->get_transform(), rotation_speed);
-	if (instance.get_key_held(SDLK_e) && add_roll)
+	if (InputManager::get_key_held(SDLK_e) && add_roll)
 		add_roll(player_->get_transform(), -rotation_speed);
 }
 

@@ -4,7 +4,7 @@
 
 TextRenderer::TextRenderer()
 {
-    std::shared_ptr<Shader> font_shader = ShaderManager::get_instance().load_shader(FONT_SHADER_TAG, FONT_SHADER_PATH);
+    std::shared_ptr<Shader> font_shader = ShaderManager::load_shader(FONT_SHADER_TAG, FONT_SHADER_PATH);
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(1280), 0.0f, static_cast<float>(720));
     font_shader->set_mat4("projection", projection);
 
@@ -39,7 +39,7 @@ void TextRenderer::render_text(const std::string& text, float x, float y, float 
     glDepthFunc(GL_LEQUAL);
 
     // Bind our shader.
-    std::shared_ptr<Shader> font_shader = ShaderManager::get_instance().get_shader(FONT_SHADER_TAG);
+    std::shared_ptr<Shader> font_shader = ShaderManager::get_shader(FONT_SHADER_TAG);
     font_shader->bind();
     font_shader->set_vec3("text_color", font_color);
 

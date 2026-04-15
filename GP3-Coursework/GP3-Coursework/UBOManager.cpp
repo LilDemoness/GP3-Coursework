@@ -1,20 +1,8 @@
 #pragma once
-
 #include "UBOManager.h"
 
-UBOManager::UBOManager() : ubos_()
-{}
-UBOManager::~UBOManager()
-{}
 
-
-// Returns a singleton instance of the UBOManager.
-UBOManager& UBOManager::get_instance()
-{
-	static UBOManager instance;
-	return instance;
-}
-
+std::unordered_map<std::string, UBOManager::UBOData> UBOManager::ubos_;
 
 // Creates a new Uniform Buffer Object (UBO).
 // 

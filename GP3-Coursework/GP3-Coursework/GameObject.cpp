@@ -26,7 +26,7 @@ GameObject::~GameObject()
 
 void GameObject::draw(const Camera& camera)
 {
-	std::shared_ptr<Shader> shader = shader_tag_.empty() ? ShaderManager::get_instance().get_active_shader() : ShaderManager::get_instance().get_shader(shader_tag_);
+	std::shared_ptr<Shader> shader = shader_tag_.empty() ? ShaderManager::get_active_shader() : ShaderManager::get_shader(shader_tag_);
 	draw(camera, shader);
 }
 void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader)

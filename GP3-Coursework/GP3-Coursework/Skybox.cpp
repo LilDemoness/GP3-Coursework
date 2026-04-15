@@ -3,7 +3,7 @@
 
 Skybox::Skybox()
 {
-	ShaderManager::get_instance().load_shader(SKYBOX_SHADER_TAG, SKYBOX_SHADER_PATH);
+	ShaderManager::load_shader(SKYBOX_SHADER_TAG, SKYBOX_SHADER_PATH);
 
 	for (int i = 0; i < kSkyboxCount; ++i)
 	{
@@ -51,7 +51,7 @@ void Skybox::draw(const Camera& camera)
 	glBindVertexArray(vertex_array_object_);
 
 	// Retrieve our shader
-	std::shared_ptr<Shader> skybox_shader = ShaderManager::get_instance().get_shader(SKYBOX_SHADER_TAG);
+	std::shared_ptr<Shader> skybox_shader = ShaderManager::get_shader(SKYBOX_SHADER_TAG);
 	skybox_shader->bind();
 	skybox_shader->update_matrices_ubo_for_skybox(camera);
 

@@ -1,12 +1,14 @@
 #pragma once
 #include "InputManager.h"
-#include <iostream>
 
-InputManager::InputManager() :
-	receiving_mouse_input_(false),
-	any_input_events_()
-{ }
-InputManager::~InputManager()
+std::unordered_map<SDL_Keycode, bool> InputManager::key_to_held_state_;
+std::unordered_map<SDL_Keycode, Event<>> InputManager::key_to_on_pressed_event_map_;
+std::unordered_map<SDL_EventType, Event<>> InputManager::sdl_event_to_triggered_event_map_;
+Event<> InputManager::any_input_events_;
+glm::vec2 InputManager::mouse_input_;
+bool InputManager::receiving_mouse_input_ = false;
+
+void InputManager::clear()
 {
 	for (auto val : key_to_on_pressed_event_map_)
 		val.second.unsubscribe_all();
@@ -17,11 +19,6 @@ InputManager::~InputManager()
 }
 
 
-InputManager& InputManager::get_instance()
-{
-	static InputManager instance;
-	return instance;
-}
 
 
 void InputManager::process_input()
@@ -95,7 +92,7 @@ void InputManager::register_input(const std::vector<SDL_Keycode> keycodes)
 void InputManager::register_input(const SDL_Keycode keycode)
 {
 	std::cout << "Register Input: " << keycode << std::endl;
-	key_to_held_state_.insert({ keycode, false });
+	key_to_held_state_.try_emplace(keycode, false);
 }
 
 void InputManager::register_input_event(const SDL_Keycode keycode, std::function<void()> callback)
@@ -103,8 +100,7 @@ void InputManager::register_input_event(const SDL_Keycode keycode, std::function
 	std::cout << "Register Input Event: " << keycode << std::endl;
 	register_input(keycode);
 
-	if (key_to_on_pressed_event_map_.find(keycode) == key_to_on_pressed_event_map_.end())
-		key_to_on_pressed_event_map_.insert({ keycode, Event<>() });
+	key_to_on_pressed_event_map_.try_emplace(keycode, Event<>());
 	key_to_on_pressed_event_map_[keycode].subscribe(callback);
 }
 void InputManager::deregister_input_event(const SDL_Keycode keycode, std::function<void()> callback)
@@ -113,8 +109,7 @@ void InputManager::deregister_input_event(const SDL_Keycode keycode, std::functi
 }
 void InputManager::register_event(const SDL_EventType event_identifier, std::function<void()> callback)
 {
-	if (sdl_event_to_triggered_event_map_.find(event_identifier) == sdl_event_to_triggered_event_map_.end())
-		sdl_event_to_triggered_event_map_.insert({ event_identifier, Event<>() });
+	sdl_event_to_triggered_event_map_.try_emplace(event_identifier, Event<>());
 	sdl_event_to_triggered_event_map_[event_identifier].subscribe(callback);
 }
 void InputManager::deregister_event(const SDL_EventType event_identifier, std::function<void()> callback)
@@ -123,7 +118,7 @@ void InputManager::deregister_event(const SDL_EventType event_identifier, std::f
 }
 
 
-const bool InputManager::get_key_held(const SDL_Keycode keycode) const
+const bool InputManager::get_key_held(const SDL_Keycode keycode)
 {
 	auto iterator = key_to_held_state_.find(keycode);
 	if (iterator == key_to_held_state_.end())
