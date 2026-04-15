@@ -2,8 +2,7 @@
 
 layout (location = 0) in vec3 VertexPosition;  
 
-layout(std140) uniform Matrices {
-    mat4 model;
+layout(std140) uniform CameraMatrices {
     mat4 view;
     mat4 projection;
 };

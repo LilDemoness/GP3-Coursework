@@ -23,6 +23,7 @@ SceneRunner::~SceneRunner()
 	ShaderManager::clear();
 	InputManager::clear();
 	DLLManager::clear();
+	Mesh::clear();
 
 	Scene::on_exit_requested.unsubscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 }

@@ -3,7 +3,7 @@
 #include "GameObject.h"
 
 GameObject::GameObject(const std::string& mesh_file_name, Collider::CollisionTag tag, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, bool add_to_all_objects) :
-	mesh_(new Mesh(mesh_file_name)),
+	mesh_(Mesh::create_mesh(mesh_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	shader_tag_(),
 	is_active_(true)
@@ -32,7 +32,9 @@ void GameObject::draw(const Camera& camera)
 void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader)
 {
 	shader->bind();
-	shader->update_matrices_ubo(transform_.get(), camera);
+	shader->update_matrices_ubo(camera);
+
+	mesh_->set_instance_matrix(0, transform_->get_model());
 	mesh_->draw();
 }
 

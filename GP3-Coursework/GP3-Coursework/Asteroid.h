@@ -41,9 +41,15 @@ private:
 	int remaining_splits_;
 
 
-	static Mesh* asteroids_mesh_;
-	static Mesh* get_random_asteroid_mesh();
+	// Mesh Instancing.
+	static const std::string ubo_tag_;
+	static const int kMaxAsteroids = 200;
 
+
+	// Meshes.
+	static Mesh* get_asteroid_mesh();
+
+	// Spawning.
 	static glm::vec3 get_random_direction_vector(std::mt19937 gen);
 	static glm::quat get_random_direction(std::mt19937 gen);
 	static float get_scale_for_remaining_splits(int remaining_splits);
@@ -52,6 +58,8 @@ private:
 
 	static std::unordered_set<std::shared_ptr<Asteroid>> all_active_asteroids_;
 
+
+	// Object Pooling.
 	static ObjectPool<Asteroid> asteroids_pool_;
 	static std::shared_ptr<Asteroid> create_asteroid_func();
 	static void on_get_asteroid_func(std::shared_ptr<Asteroid> instance);

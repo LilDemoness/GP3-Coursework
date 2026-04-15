@@ -86,14 +86,13 @@ void GameplayScene::init_systems()
 void GameplayScene::init_UBOs()
 {
 	// Create our UBOs.
-	UBOManager::create_ubo(kMatricesTag, sizeof(glm::mat4) * 3, 0);
+	UBOManager::create_ubo(kMatricesTag, sizeof(glm::mat4) * 2, 0);
 
 	// Populate with initial data to ensure they aren't undefined.
 	const glm::mat4 kIdentity = glm::mat4(1.0f);
 	const size_t kMat4Size = sizeof(glm::mat4);
 	UBOManager::create_ubo_data(kMatricesTag, 0, glm::value_ptr(kIdentity), kMat4Size);
 	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(kIdentity), kMat4Size);
-	UBOManager::create_ubo_data(kMatricesTag, kMat4Size * 2, glm::value_ptr(kIdentity), kMat4Size);
 
 	// bind UBO to shaders.
 	ShaderManager::bind_all_shaders(kMatricesTag);

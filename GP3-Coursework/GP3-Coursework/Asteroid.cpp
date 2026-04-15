@@ -3,13 +3,13 @@
 
 
 Asteroid::Asteroid()
-	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
+	: GameObject(get_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
 	remaining_splits_(0)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits)
-	: GameObject(get_random_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
+	: GameObject(get_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
 	remaining_splits_(remaining_splits)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
@@ -31,25 +31,40 @@ void Asteroid::dispose_all()
 
 void Asteroid::draw_all(const Camera& camera)
 {
-	for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
-	{
-		if (asteroid->get_is_active())
-		{
-			asteroid->draw(camera);
-		}
-	}
+	//draw_all(camera, shader_tag_.empty() ? ShaderManager::get_active_shader() : ShaderManager::get_shader(shader_tag_));
+	draw_all(camera, ShaderManager::get_active_shader());
 }
-void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
+void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 {
+	shader->bind();
+	shader->update_matrices_ubo(camera);
+
+	Mesh* asteroid_mesh = get_asteroid_mesh();
+
+	// Bind all model matrices.
+	int i = 0;
+	asteroid_mesh->bind_vao();
 	for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
 	{
 		if (asteroid->get_is_active())
 		{
-			asteroid->draw(camera, override_shader);
+			asteroid_mesh->set_instance_matrix(i, asteroid->get_transform()->get_model());
+			i++;
 		}
 	}
+
+	// Render.
+	asteroid_mesh->draw_instanced(all_active_asteroids_.size());
 }
 
+
+// ----- Mesh Instancing -----
+
+const std::string Asteroid::ubo_tag_ = "";
+
+
+
+// ----- Spawning -----
 
 void Asteroid::create_initial_asteroids(const int asteroids_count, const int asteroid_split_count, const float min_velocity, const float max_velocity, const float world_bounds)
 {
@@ -109,7 +124,7 @@ void Asteroid::kill_all_asteroids()
 {
 	for (auto it = all_active_asteroids_.begin(); it != all_active_asteroids_.end();)
 	{
-		auto current = *it++;
+		const std::shared_ptr<Asteroid> current = *it++;
 
 		current->remaining_splits_ = 0;
 		current->on_collision(current->get_collider(), nullptr);
@@ -132,7 +147,7 @@ void Asteroid::split()
 {
 	if (remaining_splits_ <= 0)
 	{
-		for (auto asteroid : all_active_asteroids_)
+		for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
 		{
 			if (asteroid.get() == this)
 			{
@@ -180,15 +195,10 @@ void Asteroid::split()
 }
 
 
-Mesh* Asteroid::asteroids_mesh_ = nullptr;
-Mesh* Asteroid::get_random_asteroid_mesh()
+Mesh* Asteroid::get_asteroid_mesh()
 {
-	if (asteroids_mesh_ == nullptr)
-	{
-		asteroids_mesh_ = new Mesh(ASTEROIDS_MODEL_PATH);
-	}
-
-	return asteroids_mesh_;
+	static Mesh* asteroids_mesh = Mesh::create_mesh<kMaxAsteroids>(ASTEROIDS_MODEL_PATH);
+	return asteroids_mesh;
 }
 
 

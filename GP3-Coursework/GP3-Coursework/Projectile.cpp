@@ -46,13 +46,10 @@ void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot, glm::vec3 player
 }
 
 
-Mesh* Projectile::projectile_mesh_ = nullptr;
 Mesh* Projectile::get_projectile_mesh()
 {
-	if (projectile_mesh_ == nullptr)
-		projectile_mesh_ = new Mesh(PROJECTILE_MODEL_PATH);
-
-	return projectile_mesh_;
+	static Mesh* projectile_mesh = Mesh::create_mesh(PROJECTILE_MODEL_PATH);
+	return projectile_mesh;
 }
 
 
@@ -66,23 +63,29 @@ void Projectile::update_projectiles(float delta_time)
 
 void Projectile::draw_all(const Camera& camera)
 {
-	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
-	{
-		if ((*it)->get_is_active())
-		{
-			(*it)->draw(camera);
-		}
-	}
+	draw_all(camera, ShaderManager::get_active_shader());
 }
-void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader)
+void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 {
-	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
+	shader->bind();
+	shader->update_matrices_ubo(camera);
+
+	Mesh* projectile_mesh = get_projectile_mesh();
+
+	// Bind all model matrices.
+	int i = 0;
+	projectile_mesh->bind_vao();
+	for (const std::shared_ptr<Projectile> projectile : active_projectiles_)
 	{
-		if ((*it)->get_is_active())
+		if (projectile->get_is_active())
 		{
-			(*it)->draw(camera, override_shader);
+			projectile_mesh->set_instance_matrix(i, projectile->get_transform()->get_model());
+			i++;
 		}
 	}
+
+	// Render.
+	projectile_mesh->draw_instanced(active_projectiles_.size());
 }
 
 

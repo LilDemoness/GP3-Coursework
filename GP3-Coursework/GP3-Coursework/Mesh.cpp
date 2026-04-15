@@ -1,26 +1,9 @@
 ﻿#include "Mesh.h"
 
-Mesh::Mesh(Vertex* vertices, unsigned int num_vertices, unsigned int* indices, unsigned int num_indices)
+Mesh::Mesh(const std::string& file_name) :
+    file_path_(file_name),
+    model_(OBJModel(file_name).ToIndexedModel())
 {
-    std::shared_ptr<IndexedModel> model;
-
-    for (unsigned int i = 0; i < num_vertices; i++)
-    {
-        model->positions.push_back(*vertices[i].get_pos());
-        model->normals.push_back(*vertices[i].get_normal());
-        model->texCoords.push_back(*vertices[i].get_texture_coordinate());
-    }
-
-    for (unsigned int i = 0; i < num_indices; i++)
-    {
-        model->indices.push_back(indices[i]);
-    }
-
-    init_model();
-}
-Mesh::Mesh(const std::string& file_name)
-{
-    model_ = OBJModel(file_name).ToIndexedModel();
     init_model();
 }
 Mesh::~Mesh()
@@ -29,38 +12,17 @@ Mesh::~Mesh()
     glDeleteBuffers(1, &element_buffer_object_);
     glDeleteVertexArrays(1, &vertex_array_object_);
 }
-
-
-Mesh* Mesh::create_triangle_mesh()
+void Mesh::clear()
 {
-    Vertex vertices[3] = {
-        Vertex(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),  // Bottom Left
-        Vertex(glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.5f, 1.0f)),  // Top Middle
-        Vertex(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)),  // Bottom Right
-    };
-    unsigned int indices[3] = { 0, 1, 2 };
-
-    // Size calcuated by number of bytes of an array / no bytes of one element.
-    unsigned int numVertices = sizeof(vertices) / sizeof(vertices[0]);
-    unsigned int numIndices = sizeof(indices) / sizeof(indices[0]);
-
-    return new Mesh(vertices, numVertices, indices, numIndices);
-}
-Mesh* Mesh::create_quad_mesh()
-{
-    Vertex vertices[4] = {
-        Vertex(glm::vec3(-1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)),    // Top Left
-        Vertex(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)),  // Bottom Left
-        Vertex(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)),   // Top Right
-        Vertex(glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)),   // Bottom Right
-    };
-    unsigned int indices[4] = { 0, 1, 2, 3 };
-
-    // Size calcuated by number of bytes of an array / no bytes of one element.
-    unsigned int numVertices = sizeof(vertices) / sizeof(vertices[0]);
-    unsigned int numIndices = sizeof(indices) / sizeof(indices[0]);
-
-    return new Mesh(vertices, numVertices, indices, numIndices);
+    // Cleanup our instancing buffers.
+    for (auto it = instance_buffers_.begin(); it != instance_buffers_.end(); ++it)
+    {
+        MeshInstanceData* instance_data = (it++)->second;
+        glDeleteBuffers(1, &instance_data->buffer);
+    }
+    // Cleanup our maps as their data is now outdated.
+    instance_buffers_.clear();
+    file_to_mesh_map_.clear();
 }
 
 
@@ -127,10 +89,42 @@ void Mesh::init_model()
 
 void Mesh::draw()
 {
+    // Update bound array for this mesh (Note: Assumes this is mesh 0).
+    glBindBuffer(GL_ARRAY_BUFFER, instance_buffers_[this]->buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), instance_buffers_[this]->instance_matrices, GL_STATIC_DRAW);
+
+    // Draw the mesh.
     glBindVertexArray(vertex_array_object_);
     glDrawElements(GL_TRIANGLES, draw_count_, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+void Mesh::draw_instanced(const GLsizei instance_count)
+{
+    // Update bound array.
+    glBindBuffer(GL_ARRAY_BUFFER, instance_buffers_[this]->buffer);
+    glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(glm::mat4), instance_buffers_[this]->instance_matrices, GL_STATIC_DRAW);
+
+    // Draw the instances.
+    glBindVertexArray(vertex_array_object_);
+    glDrawElementsInstanced(GL_TRIANGLES, draw_count_, GL_UNSIGNED_INT, 0, instance_count);
+    glBindVertexArray(0);
+}
+void Mesh::bind_vao()
+{
+    glBindVertexArray(vertex_array_object_);
+}
+
+
+void Mesh::set_instance_matrix(const unsigned int index, const glm::mat4& value)
+{
+    assert(index < instance_buffers_[this]->count);
+    instance_buffers_[this]->instance_matrices[index] = value;
+}
 
 
 const std::vector<glm::vec3>& Mesh::get_vertex_positions() const { return model_->positions; }
+
+
+// ----- Mesh Instancing -----
+std::unordered_map<std::string, Mesh*> Mesh::file_to_mesh_map_;
+std::unordered_map<Mesh*, Mesh::MeshInstanceData*> Mesh::instance_buffers_;

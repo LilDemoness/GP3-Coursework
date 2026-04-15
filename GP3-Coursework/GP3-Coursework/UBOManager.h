@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-static const std::string kMatricesTag = "Matrices";
+static const std::string kMatricesTag = "CameraMatrices";
 class UBOManager
 {
 public:

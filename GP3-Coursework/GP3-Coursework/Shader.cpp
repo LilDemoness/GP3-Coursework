@@ -74,21 +74,20 @@ void Shader::bind()
 
 	glUseProgram(shader_id_);	// Installs the program object specified by the program as part of the rendering state.
 }
-void Shader::update_matrices_ubo(const Transform* transform, const Camera& camera)
+void Shader::update_matrices_ubo(const Camera& camera)
 {
 	const size_t kMat4Size = sizeof(glm::mat4);
 
-	UBOManager::create_ubo_data(kMatricesTag, 0, glm::value_ptr(transform->get_model()), kMat4Size);
-	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(camera.get_view()), kMat4Size);
-	UBOManager::create_ubo_data(kMatricesTag, kMat4Size * 2, glm::value_ptr(camera.get_projection()), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, 0, glm::value_ptr(camera.get_view()), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(camera.get_projection()), kMat4Size);
 }
 void Shader::update_matrices_ubo_for_skybox(const Camera& camera)
 {
 	const size_t kMat4Size = sizeof(glm::mat4);
 
 	glm::mat4 view = glm::mat4(glm::mat3(camera.get_view())); // We're casting the view matrix into a mat3 then back to a mat4 in order to remove the translations, but preserve rotation transformations.
-	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(view), kMat4Size);
-	UBOManager::create_ubo_data(kMatricesTag, kMat4Size * 2, glm::value_ptr(camera.get_projection()), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, 0, glm::value_ptr(view), kMat4Size);
+	UBOManager::create_ubo_data(kMatricesTag, kMat4Size, glm::value_ptr(camera.get_projection()), kMat4Size);
 }
 
 

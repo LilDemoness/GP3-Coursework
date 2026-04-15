@@ -29,7 +29,6 @@ private:
 
 
 	// Mesh.
-	static Mesh* projectile_mesh_;
 	static Mesh* get_projectile_mesh();
 
 	static std::unordered_set<std::shared_ptr<Projectile>> active_projectiles_;
