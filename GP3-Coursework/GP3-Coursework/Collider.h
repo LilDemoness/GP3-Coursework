@@ -163,19 +163,14 @@ public:
 	static const bool is_valid_collision(Collider* a, Collider* b) { return test_collision_pair(a->tag_, b->tag_); } //{ return test_collision_pair(a->tag_, b->tag_) && test_collision_pair(b->tag_, a->tag_); }
 	static const bool test_collision_pair(CollisionTag a, CollisionTag b)
 	{
-		const std::unordered_map<CollisionTag, std::unordered_set<CollisionTag>> kInvalidCollisions = 
+		switch (a)
 		{
-			{ kAsteroid,			{ kAsteroid } },
-			{ kPlayer,				{ kPlayerProjectile } },
-			{ kPlayerProjectile,	{ kPlayer } },
+		case CollisionTag::kAsteroid: return b != kAsteroid;
+		case CollisionTag::kPlayer: return b != kPlayerProjectile;
+		case CollisionTag::kPlayerProjectile: return b != kPlayer;
+
+		default: return true;
 		};
-
-		auto it = kInvalidCollisions.find(a);
-		if (it == kInvalidCollisions.end())
-			return true;	// No invalid collisions for type a, so collision is valid.
-
-		// Returns true if there isn't an invalid collision for this pair.
-		return it->second.find(b) == it->second.end();
 	}
 
 	const CollisionTag get_collision_tag() const { return tag_; }

@@ -39,7 +39,7 @@ Mesh::~Mesh()
 void Mesh::clear()
 {
     // Cleanup our instancing buffers.
-    for (auto it = instance_buffers_.begin(); it != instance_buffers_.end(); ++it)
+    for (auto it = instance_buffers_.begin(); it != instance_buffers_.end();)
     {
         MeshInstanceData* instance_data = (it++)->second;
         glDeleteBuffers(1, &instance_data->buffer);

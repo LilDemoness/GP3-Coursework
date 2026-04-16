@@ -75,8 +75,6 @@ private:
 
 	void fire_projectile();
 
-	void insertion_sort_edges(std::vector<Collider::Edge*>& edges);
-
 	void on_player_collided(Collider* player, Collider* other);
 	void increment_score(int score_increase);
 

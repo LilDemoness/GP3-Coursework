@@ -171,8 +171,6 @@ void GameplayScene::handle_collisions()
 	if (sweep_and_prune)
 		sweep_and_prune(Collider::Edge::all_edges, overlapping_);
 
-
-	player_overlapping_ = object_1_overlapping_ = object_2_overlapping_ = false;
 	for (std::pair<Collider*, Collider*> overlap : overlapping_)
 	{
 		if (!overlap.first->get_enabled() || !overlap.second->get_enabled())
@@ -185,11 +183,6 @@ void GameplayScene::handle_collisions()
 		// Valid Collision. Invoke overlap events.
 		overlap.first->on_collision_event.invoke(overlap.first, overlap.second);
 		overlap.second->on_collision_event.invoke(overlap.second, overlap.first);
-
-		// Temp: Object highlights for overlap.
-		if (overlap.first == player_->get_collider() || overlap.second == player_->get_collider()) { player_overlapping_ = true; }
-		if (overlap.first == object_1_->get_collider() || overlap.second == object_1_->get_collider()) { object_1_overlapping_ = true; }
-		if (overlap.first == object_2_->get_collider() || overlap.second == object_2_->get_collider()) { object_2_overlapping_ = true; }
 	}
 }
 
@@ -283,22 +276,6 @@ void GameplayScene::on_player_collided(Collider* player, Collider* other)
 }
 
 
-void GameplayScene::insertion_sort_edges(std::vector<Collider::Edge*>& edges)
-{
-	for (unsigned int i = 1; i < edges.size(); ++i)
-	{
-		for (int j = i - 1; j >= 0; --j)
-		{
-			if (edges[j]->get_x_position() < edges[j + 1]->get_x_position())
-				break;
-
-			// Sort.
-			std::iter_swap(edges.begin() + j, edges.begin() + j + 1);
-		}
-	}
-}
-
-
 
 void GameplayScene::prepare_to_respawn_asteroids()
 {
@@ -306,13 +283,29 @@ void GameplayScene::prepare_to_respawn_asteroids()
 }
 void GameplayScene::respawn_asteroids()
 {
-	const int kBaseAsteroidSpawns = 10;
-	const int kBaseAsteroidSplits = 2;
-	const float kBaseMinSpeed = 0.2f;
-	const float kBaseMaxSpeed = 3.0f;
+	// Asteroid Spawning Settings (Base values are unchanged for iteration 0).
+	constexpr int kBaseAsteroidSpawns = 10;
 
-	float scaling_factor = std::powf(1.5f, (float)asteroid_spawn_iteration_);
-	Asteroid::create_initial_asteroids((int)(kBaseAsteroidSpawns * scaling_factor), kBaseAsteroidSplits + (int)(asteroid_spawn_iteration_ / 3), kBaseMinSpeed * scaling_factor, kBaseMaxSpeed * scaling_factor, kPlaySpaceRadius - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+	constexpr int kBaseAsteroidSplits = 2;
+	constexpr int kMaxAsteroidSplits = 3;			// Maximum number of splits an asteroid can have.
 
+	constexpr float kBaseMinSpeed = 0.2f;
+	//constexpr float kMinSpeedIncreaseRate = 0.0f;	// How much the minimum asteroid speed increases by every spawn iteration.
+
+	constexpr float kBaseMaxSpeed = 3.0f;
+	//constexpr float kMaxSpeedIncreaseRate = 0.0f;	// How much the maximum asteroid speed increases by every spawn iteration.
+
+	constexpr float kSpawnRadius = kPlaySpaceRadius - 2.5f;	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+	constexpr float kScalingRate = 1.25f;
+
+	// Calculate our desired values for this spawn iteration.
+	float scaling_factor = std::powf(kScalingRate, (float)asteroid_spawn_iteration_);
+	int spawns = (int)std::ceilf(kBaseAsteroidSpawns * scaling_factor);
+	int splits = asteroid_spawn_iteration_ < 3 ? kBaseAsteroidSplits : kMaxAsteroidSplits;//(int)std::fmin(kBaseAsteroidSplits + asteroid_spawn_iteration_ / 3.0f, kMaxAsteroidSplits);
+	//float min_speed = kBaseMinSpeed + kMinSpeedIncreaseRate * asteroid_spawn_iteration_;
+	//float max_speed = kBaseMaxSpeed + kMaxSpeedIncreaseRate * asteroid_spawn_iteration_;
+
+	// Respawn the asteroids.
+	Asteroid::create_initial_asteroids(spawns, splits, kBaseMinSpeed, kBaseMaxSpeed, kSpawnRadius);
 	++asteroid_spawn_iteration_;
 }
