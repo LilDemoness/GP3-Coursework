@@ -193,6 +193,8 @@
     <ClInclude Include="WorldBorderVisuals.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\res\explode.geom" />
+    <None Include="..\res\explode.vert" />
     <None Include="..\res\FontShader.frag" />
     <None Include="..\res\FontShader.vert" />
     <None Include="..\res\ParalaxSkybox.frag" />

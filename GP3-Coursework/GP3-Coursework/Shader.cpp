@@ -2,7 +2,7 @@
 #include "Shader.h"
 
 
-Shader::Shader(const std::string& shared_file_path)
+Shader::Shader(const std::string& vertex_shader_path, const std::string& geometry_shader_path, const std::string& fragment_shader_path)
 {
 	// Create our shader programe (OpenGL Saves this as a Reference Number)
 	shader_id_ = glCreateProgram();
@@ -13,24 +13,32 @@ Shader::Shader(const std::string& shared_file_path)
 	std::string loaded_shader;
 
 	// Vertex.
-	if (try_load_shader(shared_file_path + ".vert", loaded_shader))
-		shaders_[loaded_shaders++] = create_shader(shared_file_path + ".vert", loaded_shader, GL_VERTEX_SHADER);
+	if (try_load_shader(vertex_shader_path, loaded_shader))
+		shaders_[loaded_shaders++] = create_shader(vertex_shader_path, loaded_shader, GL_VERTEX_SHADER);
 	else
 		std::cout << "Failed to load Vertex Shader" << std::endl;	// Vertex shader failed to load.
 
 	// Geometry (Optional).
-	if (try_load_shader(shared_file_path + ".geom", loaded_shader))
-		shaders_[loaded_shaders++] = create_shader(shared_file_path + ".geom", loaded_shader, GL_GEOMETRY_SHADER);
+	if (try_load_shader(geometry_shader_path, loaded_shader))
+	{
+		shaders_[loaded_shaders++] = create_shader(geometry_shader_path, loaded_shader, GL_GEOMETRY_SHADER);
+		std::cout << "Loaded Geom Shader: " << geometry_shader_path << std::endl;
+	}
 
 	// Vertex.
-	if (try_load_shader(shared_file_path + ".frag", loaded_shader))
-		shaders_[loaded_shaders++] = create_shader(shared_file_path + ".frag", loaded_shader, GL_FRAGMENT_SHADER);
+	if (try_load_shader(fragment_shader_path, loaded_shader))
+		shaders_[loaded_shaders++] = create_shader(fragment_shader_path, loaded_shader, GL_FRAGMENT_SHADER);
 	else
 		std::cout << "Failed to load Fragment Shader" << std::endl;	// Fragment shader failed to load.
 
 
-	this->initialise_shaders(shared_file_path, loaded_shaders);
+	constexpr int kVertexFileExtensionSize = 5;	// To remove '.vert' for the logging of a .exe creation error.
+	this->initialise_shaders(vertex_shader_path.substr(0, vertex_shader_path.size() - kVertexFileExtensionSize), loaded_shaders);
 }
+Shader::Shader(const std::string& vertex_shader_path, const std::string& fragment_shader_path) : Shader(vertex_shader_path, "", fragment_shader_path)
+{ }
+Shader::Shader(const std::string& shared_file_path) : Shader(shared_file_path + ".vert", shared_file_path + ".geom", shared_file_path + ".frag")
+{ }
 Shader::~Shader()
 {
 	for (size_t i = 0; i < kNumShaders; ++i)

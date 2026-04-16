@@ -15,9 +15,11 @@ public:
 
     void resize(int newWidth, int newHeight);
 
+    inline void set_clear_color(const GLclampf r, const GLclampf g, const GLclampf b, const GLclampf a) { context_->set_clear_color(r, g, b, a); }
+    inline void set_cull_backface(const bool should_cull) { context_->set_cull_face(should_cull); }
 
-    int get_width() const;
-    int get_height() const;
+    inline int get_width() const { return screen_width_; }
+    inline int get_height() const { return screen_height_; }
 
 private:
     DisplayFacade() = delete;

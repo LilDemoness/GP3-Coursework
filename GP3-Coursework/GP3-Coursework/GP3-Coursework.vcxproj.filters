@@ -259,5 +259,11 @@
     <None Include="..\res\FontShader.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\explode.geom">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\explode.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -12,11 +12,7 @@ SceneRunner::SceneRunner() :
 	Scene::on_exit_requested.subscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 
 	InputManager::register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
-
-	// Can Remove?
-	glEnable(GL_DEPTH_TEST); // Enable Z-buffering.
-	glEnable(GL_CULL_FACE);  // Enable face culling.
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Set clear color to black.
+	game_display_.set_clear_color(0.15f, 0.15f, 0.15f, 1.0f);
 }
 SceneRunner::~SceneRunner()
 {

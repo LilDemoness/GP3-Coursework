@@ -6,20 +6,22 @@ std::string ShaderManager::default_active_shader_tag_ = "";
 std::unordered_map<std::string, std::shared_ptr<Shader>> ShaderManager::shaders_;
 
 
-std::shared_ptr<Shader> ShaderManager::load_shader(const std::string& tag, const std::string& shared_file_path)
+std::shared_ptr<Shader> ShaderManager::load_shader(const std::string& tag, const std::string& vertex_shader_path, const std::string& geometry_shader_path, const std::string& fragment_shader_path)
 {
 	if (shaders_.find(tag) != shaders_.end())
 	{
-		std::cerr << "Already Loaded Shader: " << shared_file_path << std::endl;
+		std::cerr << "Already Loaded Shader: " << vertex_shader_path.substr(0, vertex_shader_path.size() - 5) << std::endl;
 		return shaders_[tag];
 	}
 	if (default_active_shader_tag_.empty())
 		default_active_shader_tag_ = tag;
 
-	std::shared_ptr<Shader> shader = std::make_shared<Shader>(shared_file_path);	// Declare the shared pointer on the heap.
+	std::shared_ptr<Shader> shader = std::make_shared<Shader>(vertex_shader_path, geometry_shader_path, fragment_shader_path);	// Declare the shared pointer on the heap.
 	shaders_[tag] = shader;
 	return shader;
 }
+std::shared_ptr<Shader> ShaderManager::load_shader(const std::string& tag, const std::string& vertex_shader_path, const std::string& fragment_shader_path) { return ShaderManager::load_shader(tag, vertex_shader_path, "", fragment_shader_path); }
+std::shared_ptr<Shader> ShaderManager::load_shader(const std::string& tag, const std::string& shared_file_path) { return ShaderManager::load_shader(tag, shared_file_path + ".vert", shared_file_path + ".geom", shared_file_path + ".frag"); }
 std::shared_ptr<Shader> ShaderManager::get_shader(const std::string& tag)
 {
 	if (shaders_.find(tag) == shaders_.end())

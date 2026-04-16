@@ -35,13 +35,3 @@ void DisplayFacade::resize(int newWidth, int newHeight)
     screen_height_ = newHeight;
     SDL_SetWindowSize(window_->get_SDL_window(), newWidth, newHeight);
 }
-
-int DisplayFacade::get_width() const
-{
-    return screen_width_;
-}
-
-int DisplayFacade::get_height() const
-{
-    return screen_height_;
-}

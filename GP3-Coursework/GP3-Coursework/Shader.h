@@ -17,6 +17,8 @@
 class Shader
 {
 public:
+	Shader(const std::string& vertex_shader_path, const std::string& geometry_shader_path, const std::string& fragment_shader_path);
+	Shader(const std::string& vertex_shader_path, const std::string& fragment_shader_path);
 	Shader(const std::string& shared_file_path);
     ~Shader();
 
@@ -34,6 +36,10 @@ public:
 protected:
 private:
 	static const unsigned int kNumShaders = 3;	// Max number of shader files per shaders.
+
+	// Delete copy constructors.
+	Shader(const Shader& other) = delete;
+	Shader& operator=(const Shader& other) = delete;
 
 	enum Matrices
 	{

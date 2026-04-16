@@ -80,8 +80,6 @@ private:
 
 
 	GameState game_state_;
-	std::shared_ptr<GameObject> object_1_;
-	std::shared_ptr<GameObject> object_2_;
 	std::shared_ptr<GameObject> player_;
 	GLuint world_border_vao_;
 	std::unique_ptr<Camera> camera_;

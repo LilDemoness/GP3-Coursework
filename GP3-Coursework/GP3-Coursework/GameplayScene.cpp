@@ -9,21 +9,15 @@ GameplayScene::GameplayScene() :
 	asteroid_spawn_iteration_(0),
 
 	texture_("..\\res\\bricks.jpg"),
-	object_1_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(0.0f, 0.0f, 0.0f), glm::radians(glm::vec3(45.0f, 45.0f, 0.0f)), glm::vec3(1.0f))),
-	object_2_(std::make_shared<GameObject>("..\\res\\cube1m.obj", Collider::CollisionTag::kUndefined, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f))),
-	//marker_("..\\res\\monkey3.obj", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)),
 	player_(std::make_shared<GameObject>("..\\res\\PlayerModel.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	camera_(nullptr),
 	skybox_()
 {
 	ShaderManager::load_shader("DefaultShader", "..\\res\\shader");
+	ShaderManager::load_shader("PlayerDeathShader", "..\\res\\explode.vert", "..\\res\\explode.geom", "..\\res\\shader.frag");
 	ShaderManager::load_shader("SolidColor", "..\\res\\SolidColourShader")->set_vec3("color", glm::vec3(0.5f));
 	ShaderManager::set_active_shader("DefaultShader");
-
-	object_1_->set_shader_tag("SolidColor");
-	object_2_->set_shader_tag("SolidColor");
-	//player_->set_shader_tag("SolidColor");
 
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
@@ -129,11 +123,16 @@ void GameplayScene::load_physics_engine()
 
 void GameplayScene::update(float delta_time)
 {
-	if (player_death_time_ > 0.0f && counter_ > (player_death_time_ + kPlayerRespawnTime))
+	if (player_death_time_ > 0.0f)
 	{
-		on_exit_requested.invoke(kGameOver);
-		player_death_time_ = 0.0f;
-		return;
+		ShaderManager::get_shader("PlayerDeathShader")->set_float("explosion_percentage", (counter_ - player_death_time_) / kPlayerRespawnTime);
+
+		if (counter_ > (player_death_time_ + kPlayerRespawnTime))
+		{
+			on_exit_requested.invoke(kGameOver);
+			player_death_time_ = 0.0f;
+			return;
+		}
 	}
 	if (spawn_asteroids_time_ > 0.0f && counter_ > spawn_asteroids_time_)
 	{
@@ -229,9 +228,15 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	texture_.bind(0);
 
 	// Render all objects.
-	object_1_->draw(*camera_);
-	object_2_->draw(*camera_);
-	player_->draw(*camera_);
+	if (player_death_time_ > 0.0f)
+	{
+		// Disable backface culling for the player when rendering them in their death animation, allowing us to see their inner faces while exploding.
+		display_facade->set_cull_backface(false);
+		player_->draw(*camera_);
+		display_facade->set_cull_backface(true);
+	}
+	else
+		player_->draw(*camera_);
 	Asteroid::draw_all(*camera_);
 	Projectile::draw_all(*camera_);
 
@@ -270,6 +275,8 @@ void GameplayScene::on_player_collided(Collider* player, Collider* other)
 		player_->set_is_active(false);
 		player_->get_transform()->set_ignore_bounds(true);
 		player_death_time_ = counter_;
+
+		player_->set_shader_tag("PlayerDeathShader");
 
 		camera_->get_transform()->clear_parent();
 	}

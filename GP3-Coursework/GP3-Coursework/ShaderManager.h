@@ -11,7 +11,10 @@
 class ShaderManager
 {
 public:
+	static std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& vertex_shader_path, const std::string& geometry_shader_path, const std::string& fragment_shader_path);
+	static std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& vertex_shader_path, const std::string& fragment_shader_path);
 	static std::shared_ptr<Shader> load_shader(const std::string& tag, const std::string& shared_file_path);
+
 	static std::shared_ptr<Shader> get_shader(const std::string& tag);
 
 	static void set_active_shader(const std::string& tag);
