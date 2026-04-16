@@ -6,6 +6,27 @@ Mesh::Mesh(const std::string& file_name) :
 {
     init_model();
 }
+Mesh* Mesh::create_mesh(const std::string& file_name, size_t max_count)
+{
+    if (file_to_mesh_map_.find(file_name) != file_to_mesh_map_.end())
+    {
+        Mesh* existing_mesh = file_to_mesh_map_[file_name];
+        on_existing_mesh_retrieved(existing_mesh);
+        return existing_mesh;
+    }
+
+#if CREATION_DEBUG_LOGS
+    std::cout << "Creating New Mesh for File: " << file_name << std::endl;
+#endif
+
+    // Create, cache, and return a new mesh.
+    Mesh* mesh = new Mesh(file_name);
+    Mesh::initialise_mesh_instancing(mesh, max_count);
+    file_to_mesh_map_.emplace(file_name, mesh);
+    return mesh;
+}
+
+
 Mesh::~Mesh()
 {
     glDeleteBuffers(1, &vertex_buffer_object_);
@@ -90,11 +111,15 @@ void Mesh::init_model()
     glBindVertexArray(0);
 }
 
+
+// ----- Rendering -----
+
+
 void Mesh::draw()
 {
     // Update bound array for this mesh (Note: Assumes this is mesh 0).
     glBindBuffer(GL_ARRAY_BUFFER, instance_buffers_[this]->buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), instance_buffers_[this]->instance_matrices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), instance_buffers_[this]->get_data(), GL_STATIC_DRAW);
 
     // Draw the mesh.
     glBindVertexArray(vertex_array_object_);
@@ -105,7 +130,7 @@ void Mesh::draw_instanced(const GLsizei instance_count)
 {
     // Update bound array.
     glBindBuffer(GL_ARRAY_BUFFER, instance_buffers_[this]->buffer);
-    glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(glm::mat4), instance_buffers_[this]->instance_matrices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(glm::mat4), instance_buffers_[this]->get_data(), GL_STATIC_DRAW);
 
     // Draw the instances.
     glBindVertexArray(vertex_array_object_);
@@ -118,16 +143,85 @@ const void Mesh::bind_vao() const
 }
 
 
-void Mesh::set_instance_matrix(const unsigned int index, const glm::mat4& value)
-{
-    assert(index < instance_buffers_[this]->count);
-    instance_buffers_[this]->instance_matrices[index] = value;
-}
-
-
 const std::vector<glm::vec3>& Mesh::get_vertex_positions() const { return model_->positions; }
 
 
 // ----- Mesh Instancing -----
+
+
 std::unordered_map<std::string, Mesh*> Mesh::file_to_mesh_map_;
 std::unordered_map<Mesh*, Mesh::MeshInstanceData*> Mesh::instance_buffers_;
+
+void Mesh::initialise_mesh_instancing(Mesh* mesh, size_t max_count)
+{
+    if (instance_buffers_.find(mesh) != instance_buffers_.end())
+        return; // We've already initialised an instance buffer for this mesh type.
+
+    //glm::mat4 model_matrices[MaxCount] = { glm::mat4(1.0f) };
+    std::vector<glm::mat4> model_matrices = std::vector<glm::mat4>(max_count, glm::mat4(1.0f));
+
+
+    // Configure Instanced Array.
+    unsigned int buffer_;
+    glGenBuffers(1, &buffer_);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+    glBufferData(GL_ARRAY_BUFFER, max_count * sizeof(glm::mat4), &(model_matrices.data())[0], GL_STATIC_DRAW);
+
+    // Set our transformation matrices as an instance vertex attribute.
+    mesh->bind_vao();
+    // Set attribute pointers for the matrix (4 vec4s)
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    glVertexAttribDivisor(6, 1);
+
+    // Unbind array.
+    glBindVertexArray(0);
+
+    // Cache instancing values.
+    //instance_buffers_.emplace(mesh, new MeshInstanceData<MaxCount>(buffer_, model_matrices));
+    instance_buffers_.emplace(mesh, new MeshInstanceData(buffer_, model_matrices));
+}
+
+void Mesh::on_existing_mesh_retrieved(Mesh* mesh)
+{
+    MeshInstanceData* instancing_data = instance_buffers_[mesh];
+    ++instancing_data->existing_instance_count;
+#if CREATION_DEBUG_LOGS
+    std::cout << "Retrieving Existing Mesh for File: " << mesh->file_path_ << " | Instance Count: " << instancing_data->existing_instance_count << std::endl;
+#endif
+
+    if (instancing_data->existing_instance_count < instancing_data->instance_matrices.size())
+        return; // We don't need to resize our instancing buffer.
+
+    // We need to resize our instancing buffer.
+    // Determine required values for our new instancing buffer.
+    constexpr float kResizeValue = 1.5f;
+    int new_max_size = (int)std::ceil(instancing_data->instance_matrices.size() * kResizeValue);
+    //int existing_instance_count = instancing_data->existing_instance_count;
+
+    // Resize the buffer.
+    instancing_data->instance_matrices.resize(new_max_size, glm::mat4(1.0f));
+    glBindBuffer(GL_ARRAY_BUFFER, instancing_data->buffer);
+    glBufferData(GL_ARRAY_BUFFER, new_max_size * sizeof(glm::mat4), instancing_data->get_data(), GL_STATIC_DRAW);
+
+#if CREATION_DEBUG_LOGS
+    std::cout << "Resized Instance Buffer for Mesh: " << mesh->file_path_ << " | New Capacity: " << new_max_size << std::endl;
+#endif
+}
+
+
+void Mesh::set_instance_matrix(const unsigned int index, const glm::mat4& value)
+{
+    assert(index < instance_buffers_[this]->instance_matrices.size());
+    instance_buffers_[this]->instance_matrices[index] = value;
+}

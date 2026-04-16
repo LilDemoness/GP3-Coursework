@@ -10,45 +10,31 @@
 #include "Vertex.h"
 
 constexpr int kDefaultMeshInstanceCount = 20;
+#define CREATION_DEBUG_LOGS true
 
 class Mesh {
 public:
+    static Mesh* create_mesh(const std::string& file_name, size_t max_count = kDefaultMeshInstanceCount);
+
 	~Mesh();
     static void clear();
 
 
-    template <size_t MaxCount>
-    static Mesh* create_mesh(const std::string& file_name)
-    {
-        if (file_to_mesh_map_.find(file_name) != file_to_mesh_map_.end())
-        {
-            Mesh* existing_mesh = file_to_mesh_map_[file_name];
-            ++instance_buffers_[existing_mesh]->existing_instance_count;
-            std::cout << "Retrieving Existing Mesh for File: " << file_name << " | Instance Count: " << instance_buffers_[existing_mesh]->existing_instance_count << std::endl;
-            return existing_mesh;
-        }
-
-        std::cout << "Creating New Mesh for File: " << file_name << std::endl;
-
-        // Create, cache, and return a new mesh.
-        Mesh* mesh = new Mesh(file_name);
-        Mesh::initialise_mesh_instancing<MaxCount>(mesh);
-        file_to_mesh_map_.emplace(file_name, mesh);
-        return mesh;
-    }
-    static Mesh* create_mesh(const std::string& file_name) { return create_mesh<kDefaultMeshInstanceCount>(file_name); }
-
+    // ----- Rendering -----
 
 	void draw();
 	void draw_instanced(GLsizei instance_count);
 	const void bind_vao() const;
 
+    // ----- Mesh Instancing -----
+
 	void set_instance_matrix(const unsigned int index, const glm::mat4& value);
 	
-	const std::vector<glm::vec3>& get_vertex_positions() const;
+    // ----- Other -----
+    
+    const std::vector<glm::vec3>& get_vertex_positions() const;
 
 private:
-	Mesh(Vertex* vertices, unsigned int num_vertices, unsigned int* indices, unsigned int num_indices);
 	Mesh(const std::string& file_name);
 
     // Delete copy constructors.
@@ -56,24 +42,23 @@ private:
 	Mesh& operator= (const Mesh& other) = delete;
 
 
-    std::string file_path_;
-
-
 	void init_model();
 	std::shared_ptr<IndexedModel> model_;
+    std::string file_path_;
+
+    // ----- Rendering -----
 
 	GLuint vertex_array_object_ = 0;	// Vertex Array Object.
 	GLuint vertex_buffer_object_ = 0;	// Interleaved Vertex Buffer Object.
 	GLuint element_buffer_object_ = 0;  // Index Buffer Object.
 	unsigned int draw_count_ = 0;		// Number of Indices.
 
+	// ----- Mesh Instancing -----
 
-	// Mesh Instancing.
     struct MeshInstanceData
     {
-        unsigned int buffer;
-        glm::mat4* instance_matrices;
-        unsigned int count;
+        const unsigned int buffer;
+        std::vector<glm::mat4> instance_matrices;   // DO NOT RESIZE.
         unsigned int existing_instance_count;
 
         /*MeshInstanceData() = default;
@@ -83,53 +68,18 @@ private:
             instance_matrices(&instance_matrices[0]),
             count(MaxCount)
         { }*/
-        MeshInstanceData(unsigned int buffer, glm::mat4* instance_matrices, unsigned int count) :
+        MeshInstanceData(unsigned int buffer, std::vector<glm::mat4> instance_matrices) :
             buffer(buffer),
             instance_matrices(instance_matrices),
-            count(count),
             existing_instance_count(1)
         { }
+
+
+        const void* get_data() { return &(instance_matrices.data())[0]; }
     };
 
 	static std::unordered_map<std::string, Mesh*> file_to_mesh_map_;
 	static std::unordered_map<Mesh*, Mesh::MeshInstanceData*> instance_buffers_;
-    template <size_t MaxCount>
-    static void initialise_mesh_instancing(Mesh* mesh)
-    {
-        if (instance_buffers_.find(mesh) != instance_buffers_.end())
-            return; // We've already initialised an instance buffer for this mesh type.
-
-        glm::mat4 model_matrices[MaxCount] = { glm::mat4(1.0f) };
-
-
-        // Configure Instanced Array.
-        unsigned int buffer_;
-        glGenBuffers(1, &buffer_);
-        glBindBuffer(GL_ARRAY_BUFFER, buffer_);
-        glBufferData(GL_ARRAY_BUFFER, MaxCount * sizeof(glm::mat4), &model_matrices[0], GL_STATIC_DRAW);
-
-        // Set our transformation matrices as an instance vertex attribute.
-        mesh->bind_vao();
-        // Set attribute pointers for the matrix (4 vec4s)
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-        glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-        glEnableVertexAttribArray(6);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-        glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-        glVertexAttribDivisor(5, 1);
-        glVertexAttribDivisor(6, 1);
-
-        // Unbind array.
-        glBindVertexArray(0);
-
-        // Cache instancing values.
-        //instance_buffers_.emplace(mesh, new MeshInstanceData<MaxCount>(buffer_, model_matrices));
-        instance_buffers_.emplace(mesh, new MeshInstanceData(buffer_, &model_matrices[0], MaxCount));
-    }
+    static void initialise_mesh_instancing(Mesh* mesh, size_t max_count);
+    static void on_existing_mesh_retrieved(Mesh* mesh);
 };

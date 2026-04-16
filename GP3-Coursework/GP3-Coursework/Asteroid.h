@@ -42,7 +42,7 @@ private:
 
 
 	// Mesh Instancing.
-	static const int kMaxAsteroids = 200;
+	static constexpr int kMaxAsteroids = 50;
 
 	// Spawning.
 	static glm::vec3 get_random_direction_vector(std::mt19937 gen);
