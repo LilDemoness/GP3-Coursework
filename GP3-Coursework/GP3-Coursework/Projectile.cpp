@@ -3,7 +3,7 @@
 
 
 float Projectile::kSpeed = 15.0f;
-Projectile::Projectile() : GameObject(get_projectile_mesh(), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), true)
+Projectile::Projectile() : GameObject(Mesh::create_mesh(PROJECTILE_MODEL_PATH), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), true)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Projectile::on_collision_enter, this, std::placeholders::_1, std::placeholders::_2));
 }
@@ -46,13 +46,6 @@ void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot, glm::vec3 player
 }
 
 
-Mesh* Projectile::get_projectile_mesh()
-{
-	static Mesh* projectile_mesh = Mesh::create_mesh(PROJECTILE_MODEL_PATH);
-	return projectile_mesh;
-}
-
-
 std::unordered_set<std::shared_ptr<Projectile>> Projectile::active_projectiles_ = std::unordered_set<std::shared_ptr<Projectile>>();
 void Projectile::update_projectiles(float delta_time)
 {
@@ -67,10 +60,13 @@ void Projectile::draw_all(const Camera& camera)
 }
 void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 {
+	if (active_projectiles_.empty())
+		return;
+
 	shader->bind();
 	shader->update_matrices_ubo(camera);
 
-	Mesh* projectile_mesh = get_projectile_mesh();
+	Mesh* projectile_mesh = active_projectiles_.begin()->get()->get_mesh();
 
 	// Bind all model matrices.
 	int i = 0;

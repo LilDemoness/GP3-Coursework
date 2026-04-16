@@ -95,7 +95,7 @@ public:
 
 		glm::vec3 min = vertex_positions[0];
 		glm::vec3 max = vertex_positions[0];
-		for (int i = 1; i < vertex_positions.size(); ++i)
+		for (unsigned int i = 1; i < vertex_positions.size(); ++i)
 		{
 			// Min checks.
 			if (vertex_positions[i].x < min.x) { min.x = vertex_positions[i].x; }

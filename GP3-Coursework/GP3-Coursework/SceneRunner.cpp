@@ -3,9 +3,9 @@
 
 
 SceneRunner::SceneRunner() :
-	game_display_("OpenGL Game", WINDOW_WIDTH, WINDOW_HEIGHT),
+	game_display_("OpenGL Game", kWindowWidth, kWindowHeight),
 	delta_time_(0.0f),
-	last_frame_start_time_(0.0f)
+	last_frame_start_time_(0)
 {
 	fixed_time_step_ = 1.0f / get_refresh_rate();
 
@@ -94,7 +94,7 @@ void SceneRunner::cap_framerate(Uint64 frame_start_time, Uint64 frame_end_time)
 
 	// Cap our framerate.
 	// Note: Can be innaccurate by a small amount for high framerates (E.g. 120FPS).
-	const float kDelayMS = (1.0f / (float)MAX_FRAMERATE) * 1000.0f;
+	const float kDelayMS = (1.0f / (float)kMaxFramerate) * 1000.0f;
 	float duration = std::floor(kDelayMS - elapsed_ms);
 	if (duration > 0)
 	{

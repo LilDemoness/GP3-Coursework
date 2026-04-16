@@ -9,7 +9,7 @@
 #include <vector>
 #include "Vertex.h"
 
-#define DEFAULT_MESH_INSTANCE_COUNT 20
+constexpr int kDefaultMeshInstanceCount = 20;
 
 class Mesh {
 public:
@@ -21,7 +21,12 @@ public:
     static Mesh* create_mesh(const std::string& file_name)
     {
         if (file_to_mesh_map_.find(file_name) != file_to_mesh_map_.end())
-            return file_to_mesh_map_[file_name];
+        {
+            Mesh* existing_mesh = file_to_mesh_map_[file_name];
+            ++instance_buffers_[existing_mesh]->existing_instance_count;
+            std::cout << "Retrieving Existing Mesh for File: " << file_name << " | Instance Count: " << instance_buffers_[existing_mesh]->existing_instance_count << std::endl;
+            return existing_mesh;
+        }
 
         std::cout << "Creating New Mesh for File: " << file_name << std::endl;
 
@@ -31,12 +36,12 @@ public:
         file_to_mesh_map_.emplace(file_name, mesh);
         return mesh;
     }
-    static Mesh* create_mesh(const std::string& file_name) { return create_mesh<DEFAULT_MESH_INSTANCE_COUNT>(file_name); }
+    static Mesh* create_mesh(const std::string& file_name) { return create_mesh<kDefaultMeshInstanceCount>(file_name); }
 
 
 	void draw();
 	void draw_instanced(GLsizei instance_count);
-	void bind_vao();
+	const void bind_vao() const;
 
 	void set_instance_matrix(const unsigned int index, const glm::mat4& value);
 	
@@ -69,6 +74,7 @@ private:
         unsigned int buffer;
         glm::mat4* instance_matrices;
         unsigned int count;
+        unsigned int existing_instance_count;
 
         /*MeshInstanceData() = default;
         template <size_t MaxCount>
@@ -80,7 +86,8 @@ private:
         MeshInstanceData(unsigned int buffer, glm::mat4* instance_matrices, unsigned int count) :
             buffer(buffer),
             instance_matrices(instance_matrices),
-            count(count)
+            count(count),
+            existing_instance_count(1)
         { }
     };
 

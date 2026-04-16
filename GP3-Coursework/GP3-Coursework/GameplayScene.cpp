@@ -30,8 +30,8 @@ GameplayScene::GameplayScene() :
 	Asteroid::on_any_asteroid_destroyed.subscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
 	Asteroid::on_all_asteroids_destroyed.subscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
 
-	Transform::set_world_radius(PLAY_SPACE_RADIUS);
-	WorldBorderVisuals::initialise_world_border(PLAY_SPACE_RADIUS);
+	Transform::set_world_radius(kPlaySpaceRadius);
+	WorldBorderVisuals::initialise_world_border(kPlaySpaceRadius);
 
 	glGenVertexArrays(1, &world_border_vao_);
 
@@ -129,7 +129,7 @@ void GameplayScene::load_physics_engine()
 
 void GameplayScene::update(float delta_time)
 {
-	if (player_death_time_ > 0.0f && counter_ > (player_death_time_ + PLAYER_RESPAWN_TIME))
+	if (player_death_time_ > 0.0f && counter_ > (player_death_time_ + kPlayerRespawnTime))
 	{
 		on_exit_requested.invoke(kGameOver);
 		player_death_time_ = 0.0f;
@@ -311,8 +311,8 @@ void GameplayScene::respawn_asteroids()
 	const float kBaseMinSpeed = 0.2f;
 	const float kBaseMaxSpeed = 3.0f;
 
-	float scaling_factor = std::powf(1.5f, asteroid_spawn_iteration_);
-	Asteroid::create_initial_asteroids((int)(kBaseAsteroidSpawns * scaling_factor), kBaseAsteroidSplits + (int)(asteroid_spawn_iteration_ / 3), kBaseMinSpeed * scaling_factor, kBaseMaxSpeed * scaling_factor, PLAY_SPACE_RADIUS - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
+	float scaling_factor = std::powf(1.5f, (float)asteroid_spawn_iteration_);
+	Asteroid::create_initial_asteroids((int)(kBaseAsteroidSpawns * scaling_factor), kBaseAsteroidSplits + (int)(asteroid_spawn_iteration_ / 3), kBaseMinSpeed * scaling_factor, kBaseMaxSpeed * scaling_factor, kPlaySpaceRadius - 2.5f);	// We're subtracting a delta for the spawn radius to prevent spawning an asteroid which immediately moves out of the world border.
 
 	++asteroid_spawn_iteration_;
 }

@@ -5,7 +5,7 @@
 #include "Event.h"
 #include <random>
 
-#define ASTEROIDS_MODEL_PATH "..\\res\\cube1m.obj"
+#define ASTEROIDS_MODEL_PATH "..\\res\\Asteroid.obj"
 
 class Asteroid : public GameObject
 {
@@ -42,12 +42,7 @@ private:
 
 
 	// Mesh Instancing.
-	static const std::string ubo_tag_;
 	static const int kMaxAsteroids = 200;
-
-
-	// Meshes.
-	static Mesh* get_asteroid_mesh();
 
 	// Spawning.
 	static glm::vec3 get_random_direction_vector(std::mt19937 gen);

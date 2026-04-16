@@ -33,13 +33,9 @@
 #include <set>
 
 
-#define MAX_FRAMERATE 60
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+constexpr float kPlaySpaceRadius = 25.0f;
 
-#define PLAY_SPACE_RADIUS 25.0f
-
-#define PLAYER_RESPAWN_TIME 3.0f
+constexpr float kPlayerRespawnTime = 3.0f;
 
 #define PHYSICS_ENGINE_DLL_NAME "PhysicsEngine.dll"
 using HelloWorldFunc = void(*)();
@@ -76,11 +72,6 @@ private:
 
 	void quit_game();
 
-
-	void calculate_delta_time(Uint64 frame_start_time);
-	void cap_framerate(Uint64 frame_start_time);
-	void display_framerate(Uint64 frame_start_time);
-	float get_refresh_rate();
 
 	void fire_projectile();
 

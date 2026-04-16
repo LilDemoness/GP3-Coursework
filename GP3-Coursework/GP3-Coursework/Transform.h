@@ -391,7 +391,7 @@ public:
 	}
 
 
-	void set_ignore_bounds(const bool const new_value) { ignore_bounds_ = new_value; }
+	void set_ignore_bounds(const bool new_value) { ignore_bounds_ = new_value; }
 
 
 protected:
@@ -404,7 +404,7 @@ private:
 	bool ignore_bounds_;
 
 
-	glm::vec3 loop_position_within_bounds(glm::vec3 world_pos)
+	const glm::vec3 loop_position_within_bounds(const glm::vec3& world_pos) const
 	{
 		if (ignore_bounds_)
 			return world_pos;

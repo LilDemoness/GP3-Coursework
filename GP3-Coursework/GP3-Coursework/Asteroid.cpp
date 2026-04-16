@@ -3,13 +3,13 @@
 
 
 Asteroid::Asteroid()
-	: GameObject(get_asteroid_mesh(), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
+	: GameObject(Mesh::create_mesh<kMaxAsteroids>(ASTEROIDS_MODEL_PATH), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
 	remaining_splits_(0)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits)
-	: GameObject(get_asteroid_mesh(), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
+	: GameObject(Mesh::create_mesh<kMaxAsteroids>(ASTEROIDS_MODEL_PATH), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
 	remaining_splits_(remaining_splits)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
@@ -36,10 +36,13 @@ void Asteroid::draw_all(const Camera& camera)
 }
 void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 {
+	if (all_active_asteroids_.empty())
+		return;
+
 	shader->bind();
 	shader->update_matrices_ubo(camera);
 
-	Mesh* asteroid_mesh = get_asteroid_mesh();
+	Mesh* asteroid_mesh = all_active_asteroids_.begin()->get()->get_mesh();
 
 	// Bind all model matrices.
 	int i = 0;
@@ -58,11 +61,6 @@ void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 }
 
 
-// ----- Mesh Instancing -----
-
-const std::string Asteroid::ubo_tag_ = "";
-
-
 
 // ----- Spawning -----
 
@@ -71,7 +69,7 @@ void Asteroid::create_initial_asteroids(const int asteroids_count, const int ast
 	const glm::vec3 kForward = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	// Setup randomness.
-	const float kFloatResolution = 10.0f;
+	constexpr float kFloatResolution = 10.0f;
 	std::random_device rd;
 	std::mt19937 gen(rd());
 
@@ -195,13 +193,6 @@ void Asteroid::split()
 }
 
 
-Mesh* Asteroid::get_asteroid_mesh()
-{
-	static Mesh* asteroids_mesh = Mesh::create_mesh<kMaxAsteroids>(ASTEROIDS_MODEL_PATH);
-	return asteroids_mesh;
-}
-
-
 float Asteroid::get_scale_for_remaining_splits(int remaining_splits)
 {
 	/*
@@ -212,7 +203,7 @@ float Asteroid::get_scale_for_remaining_splits(int remaining_splits)
 
 	// Doubles each time.
 	const float kBaseScale = 0.35f;
-	return std::powf(2, remaining_splits) * kBaseScale;
+	return std::powf(2, (float)remaining_splits) * kBaseScale;
 }
 
 
@@ -220,7 +211,7 @@ int Asteroid::get_score_for_size(int remaining_splits)
 {
 	const int SMALL_ASTEROID_SCORE = 200;
 	const float SCORE_DECREASE_RATE = 2.0f;
-	return (int)(SMALL_ASTEROID_SCORE / std::powf(SCORE_DECREASE_RATE, remaining_splits));
+	return (int)(SMALL_ASTEROID_SCORE / std::powf(SCORE_DECREASE_RATE, (float)remaining_splits));
 }
 
 

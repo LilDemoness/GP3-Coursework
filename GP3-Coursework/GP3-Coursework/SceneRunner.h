@@ -9,9 +9,9 @@
 #include "TextRenderer.h"
 #include "InputManager.h"
 
-#define MAX_FRAMERATE 60
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+constexpr int kMaxFramerate = 60;
+constexpr int kWindowWidth = 1280;
+constexpr int kWindowHeight = 720;
 
 #define DISPLAY_FRAMERATE true
 
@@ -34,7 +34,7 @@ private:
 
 	float delta_time_;
 	Uint64 last_frame_start_time_;
-	float fixed_time_step_ = 60;	// Default 60 physics updates per second.
+	float fixed_time_step_ = 60.0f;	// Default 60 physics updates per second.
 
 
 	// Scenes.

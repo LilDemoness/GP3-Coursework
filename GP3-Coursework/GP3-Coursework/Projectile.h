@@ -28,9 +28,6 @@ private:
 	static float kSpeed;
 
 
-	// Mesh.
-	static Mesh* get_projectile_mesh();
-
 	static std::unordered_set<std::shared_ptr<Projectile>> active_projectiles_;
 
 	// Object Pooling.

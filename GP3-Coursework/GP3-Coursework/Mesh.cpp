@@ -11,6 +11,9 @@ Mesh::~Mesh()
     glDeleteBuffers(1, &vertex_buffer_object_);
     glDeleteBuffers(1, &element_buffer_object_);
     glDeleteVertexArrays(1, &vertex_array_object_);
+
+    if (instance_buffers_.find(this) != instance_buffers_.end())
+        --instance_buffers_[this]->existing_instance_count;
 }
 void Mesh::clear()
 {
@@ -109,7 +112,7 @@ void Mesh::draw_instanced(const GLsizei instance_count)
     glDrawElementsInstanced(GL_TRIANGLES, draw_count_, GL_UNSIGNED_INT, 0, instance_count);
     glBindVertexArray(0);
 }
-void Mesh::bind_vao()
+const void Mesh::bind_vao() const
 {
     glBindVertexArray(vertex_array_object_);
 }
