@@ -16,6 +16,7 @@ public:
 	~Texture();
 
 	static std::shared_ptr<Texture> create_texture(const std::string& file_path);
+	static void clear();
 
 
 	void bind(unsigned int unit); // bind upto 32 textures

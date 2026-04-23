@@ -22,7 +22,9 @@ GameObject::GameObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture> diff
 
 }
 GameObject::~GameObject()
-{}
+{
+	mesh_->return_instance();
+}
 
 
 void GameObject::draw(const Camera& camera)

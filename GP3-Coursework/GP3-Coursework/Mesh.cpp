@@ -27,14 +27,13 @@ std::shared_ptr<Mesh> Mesh::create_mesh(const std::string& file_name, size_t max
 }
 
 
-Mesh::~Mesh()
+Mesh::~Mesh() // Called only when the final instance of a mesh is cleared.
 {
     glDeleteBuffers(1, &vertex_buffer_object_);
     glDeleteBuffers(1, &element_buffer_object_);
     glDeleteVertexArrays(1, &vertex_array_object_);
 
-    if (instance_buffers_.find(this) != instance_buffers_.end())
-        --instance_buffers_[this]->existing_instance_count;
+    instance_buffers_.erase(this);
 }
 void Mesh::clear()
 {
@@ -47,6 +46,13 @@ void Mesh::clear()
     // Cleanup our maps as their data is now outdated.
     instance_buffers_.clear();
     file_to_mesh_map_.clear();
+}
+
+
+void Mesh::return_instance()
+{
+    if (instance_buffers_.find(this) != instance_buffers_.end())
+        --instance_buffers_[this]->existing_instance_count;
 }
 
 

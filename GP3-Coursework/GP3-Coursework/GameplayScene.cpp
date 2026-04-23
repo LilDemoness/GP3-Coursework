@@ -36,7 +36,7 @@ GameplayScene::GameplayScene() :
 		// Movement.
 		SDLK_LSHIFT,
 	});
-	InputManager::register_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
+	InputManager::register_input_event(SDLK_SPACE, std::bind(&GameplayScene::fire_projectile, this));
 	InputManager::register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
 	InputManager::register_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 

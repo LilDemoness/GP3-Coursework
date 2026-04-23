@@ -33,6 +33,11 @@ Texture::~Texture()
 	glDeleteTextures(1, &texture_id_); // number of and address of textures
 }
 
+void Texture::clear()
+{
+	all_loaded_textures_.clear();
+}
+
 
 std::unordered_map<std::string, std::shared_ptr<Texture>> Texture::all_loaded_textures_;
 std::shared_ptr<Texture> Texture::create_texture(const std::string& file_path)

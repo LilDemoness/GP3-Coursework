@@ -30,6 +30,7 @@ public:
     // ----- Mesh Instancing -----
 
 	void set_instance_matrix(const unsigned int index, const glm::mat4& value);
+    void return_instance();
 	
     // ----- Other -----
     
