@@ -163,6 +163,9 @@ public:
 	static const bool is_valid_collision(Collider* a, Collider* b) { return test_collision_pair(a->tag_, b->tag_); } //{ return test_collision_pair(a->tag_, b->tag_) && test_collision_pair(b->tag_, a->tag_); }
 	static const bool test_collision_pair(CollisionTag a, CollisionTag b)
 	{
+		if (a == CollisionTag::kUndefined || b == CollisionTag::kUndefined)
+			return false;	// Undefined Collision Tags ignore collisions.
+
 		switch (a)
 		{
 		case CollisionTag::kAsteroid: return b != kAsteroid;
