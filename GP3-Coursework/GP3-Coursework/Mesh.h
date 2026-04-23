@@ -14,8 +14,9 @@ constexpr int kDefaultMeshInstanceCount = 20;
 
 class Mesh {
 public:
-    static Mesh* create_mesh(const std::string& file_name, size_t max_count = kDefaultMeshInstanceCount);
+    static std::shared_ptr<Mesh> create_mesh(const std::string& file_name, size_t max_count = kDefaultMeshInstanceCount);
 
+	Mesh(const std::string& file_name);
 	~Mesh();
     static void clear();
 
@@ -35,8 +36,6 @@ public:
     const std::vector<glm::vec3>& get_vertex_positions() const;
 
 private:
-	Mesh(const std::string& file_name);
-
     // Delete copy constructors.
 	Mesh(Mesh& other) = delete;
 	Mesh& operator= (const Mesh& other) = delete;
@@ -78,8 +77,8 @@ private:
         const void* get_data() { return &(instance_matrices.data())[0]; }
     };
 
-	static std::unordered_map<std::string, Mesh*> file_to_mesh_map_;
+	static std::unordered_map<std::string, std::shared_ptr<Mesh>> file_to_mesh_map_;
 	static std::unordered_map<Mesh*, Mesh::MeshInstanceData*> instance_buffers_;
-    static void initialise_mesh_instancing(Mesh* mesh, size_t max_count);
-    static void on_existing_mesh_retrieved(Mesh* mesh);
+    static void initialise_mesh_instancing(std::shared_ptr<Mesh> mesh, size_t max_count);
+    static void on_existing_mesh_retrieved(std::shared_ptr<Mesh> mesh);
 };

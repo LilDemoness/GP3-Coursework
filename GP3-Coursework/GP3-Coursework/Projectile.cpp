@@ -3,7 +3,7 @@
 
 
 float Projectile::kSpeed = 15.0f;
-Projectile::Projectile() : GameObject(Mesh::create_mesh(PROJECTILE_MODEL_PATH), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), true)
+Projectile::Projectile() : GameObject(Mesh::create_mesh(PROJECTILE_MODEL_PATH), Texture::create_texture(PROJECTILE_TEXTURE_PATH), Collider::CollisionTag::kPlayerProjectile, glm::vec3(0.0f), glm::quat(), glm::vec3(0.2f), true)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Projectile::on_collision_enter, this, std::placeholders::_1, std::placeholders::_2));
 }
@@ -66,7 +66,8 @@ void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 	shader->bind();
 	shader->update_matrices_ubo(camera);
 
-	Mesh* projectile_mesh = active_projectiles_.begin()->get()->get_mesh();
+	std::shared_ptr<Mesh> projectile_mesh = active_projectiles_.begin()->get()->get_mesh();
+	active_projectiles_.begin()->get()->get_texture()->bind(0);
 
 	// Bind all model matrices.
 	int i = 0;

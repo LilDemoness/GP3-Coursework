@@ -81,9 +81,9 @@ private:
 
 	GameState game_state_;
 	std::shared_ptr<GameObject> player_;
+	std::shared_ptr<GameObject> centre_indicator_;
 	GLuint world_border_vao_;
 	std::unique_ptr<Camera> camera_;
-	Texture texture_;
 
 	Skybox skybox_;
 

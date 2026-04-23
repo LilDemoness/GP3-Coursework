@@ -15,11 +15,17 @@ public:
 	Texture(const GLuint& texture_id);
 	~Texture();
 
+	static std::shared_ptr<Texture> create_texture(const std::string& file_path);
+
+
 	void bind(unsigned int unit); // bind upto 32 textures
 
 	inline const GLuint get_texture_id() const { return texture_id_; }
 
 protected:
 private:
+
 	GLuint texture_id_;
+
+	static std::unordered_map<std::string, std::shared_ptr<Texture>> all_loaded_textures_;
 };

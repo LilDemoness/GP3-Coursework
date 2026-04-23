@@ -3,13 +3,13 @@
 
 
 Asteroid::Asteroid()
-	: GameObject(Mesh::create_mesh(ASTEROIDS_MODEL_PATH, kMaxAsteroids), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
+	: GameObject(Mesh::create_mesh(ASTEROIDS_MODEL_PATH, kMaxAsteroids), Texture::create_texture(ASTEROIDS_TEXTURE_PATH), Collider::CollisionTag::kAsteroid, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f), true),
 	remaining_splits_(0)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
 }
 Asteroid::Asteroid(glm::vec3 position, glm::quat rot, glm::vec3 scale, int remaining_splits)
-	: GameObject(Mesh::create_mesh(ASTEROIDS_MODEL_PATH, kMaxAsteroids), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
+	: GameObject(Mesh::create_mesh(ASTEROIDS_MODEL_PATH, kMaxAsteroids), Texture::create_texture(ASTEROIDS_TEXTURE_PATH), Collider::CollisionTag::kAsteroid, position, rot, scale, true),
 	remaining_splits_(remaining_splits)
 {
 	collider_->on_collision_event.subscribe(std::bind(&Asteroid::on_collision, this, std::placeholders::_1, std::placeholders::_2));
@@ -42,7 +42,8 @@ void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 	shader->bind();
 	shader->update_matrices_ubo(camera);
 
-	Mesh* asteroid_mesh = all_active_asteroids_.begin()->get()->get_mesh();
+	std::shared_ptr<Mesh> asteroid_mesh = all_active_asteroids_.begin()->get()->get_mesh();
+	all_active_asteroids_.begin()->get()->get_texture()->bind(0);
 
 	// Bind all model matrices.
 	int i = 0;

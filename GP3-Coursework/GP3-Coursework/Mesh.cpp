@@ -6,11 +6,11 @@ Mesh::Mesh(const std::string& file_name) :
 {
     init_model();
 }
-Mesh* Mesh::create_mesh(const std::string& file_name, size_t max_count)
+std::shared_ptr<Mesh> Mesh::create_mesh(const std::string& file_name, size_t max_count)
 {
     if (file_to_mesh_map_.find(file_name) != file_to_mesh_map_.end())
     {
-        Mesh* existing_mesh = file_to_mesh_map_[file_name];
+        std::shared_ptr<Mesh> existing_mesh = file_to_mesh_map_[file_name];
         on_existing_mesh_retrieved(existing_mesh);
         return existing_mesh;
     }
@@ -20,7 +20,7 @@ Mesh* Mesh::create_mesh(const std::string& file_name, size_t max_count)
 #endif
 
     // Create, cache, and return a new mesh.
-    Mesh* mesh = new Mesh(file_name);
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(file_name);
     Mesh::initialise_mesh_instancing(mesh, max_count);
     file_to_mesh_map_.emplace(file_name, mesh);
     return mesh;
@@ -149,12 +149,12 @@ const std::vector<glm::vec3>& Mesh::get_vertex_positions() const { return model_
 // ----- Mesh Instancing -----
 
 
-std::unordered_map<std::string, Mesh*> Mesh::file_to_mesh_map_;
+std::unordered_map<std::string, std::shared_ptr<Mesh>> Mesh::file_to_mesh_map_;
 std::unordered_map<Mesh*, Mesh::MeshInstanceData*> Mesh::instance_buffers_;
 
-void Mesh::initialise_mesh_instancing(Mesh* mesh, size_t max_count)
+void Mesh::initialise_mesh_instancing(std::shared_ptr<Mesh> mesh, size_t max_count)
 {
-    if (instance_buffers_.find(mesh) != instance_buffers_.end())
+    if (instance_buffers_.find(mesh.get()) != instance_buffers_.end())
         return; // We've already initialised an instance buffer for this mesh type.
 
     //glm::mat4 model_matrices[MaxCount] = { glm::mat4(1.0f) };
@@ -189,12 +189,12 @@ void Mesh::initialise_mesh_instancing(Mesh* mesh, size_t max_count)
 
     // Cache instancing values.
     //instance_buffers_.emplace(mesh, new MeshInstanceData<MaxCount>(buffer_, model_matrices));
-    instance_buffers_.emplace(mesh, new MeshInstanceData(buffer_, model_matrices));
+    instance_buffers_.emplace(mesh.get(), new MeshInstanceData(buffer_, model_matrices));
 }
 
-void Mesh::on_existing_mesh_retrieved(Mesh* mesh)
+void Mesh::on_existing_mesh_retrieved(std::shared_ptr<Mesh> mesh)
 {
-    MeshInstanceData* instancing_data = instance_buffers_[mesh];
+    MeshInstanceData* instancing_data = instance_buffers_[mesh.get()];
     ++instancing_data->existing_instance_count;
 #if CREATION_DEBUG_LOGS
     std::cout << "Retrieving Existing Mesh for File: " << mesh->file_path_ << " | Instance Count: " << instancing_data->existing_instance_count << std::endl;

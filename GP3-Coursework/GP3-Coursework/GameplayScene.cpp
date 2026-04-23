@@ -8,8 +8,8 @@ GameplayScene::GameplayScene() :
 
 	asteroid_spawn_iteration_(0),
 
-	texture_("..\\res\\bricks.jpg"),
-	player_(std::make_shared<GameObject>("..\\res\\PlayerModel.obj", Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
+	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
+	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	camera_(nullptr),
 	skybox_()
@@ -225,8 +225,6 @@ void GameplayScene::handle_continuous_input(float delta_time)
 
 void GameplayScene::draw(DisplayFacade* display_facade)
 {
-	texture_.bind(0);
-
 	// Render all objects.
 	if (player_death_time_ > 0.0f)
 	{
@@ -237,6 +235,8 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	}
 	else
 		player_->draw(*camera_);
+
+	centre_indicator_->draw(*camera_);
 	Asteroid::draw_all(*camera_);
 	Projectile::draw_all(*camera_);
 

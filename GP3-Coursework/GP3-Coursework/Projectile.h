@@ -4,6 +4,7 @@
 #include "ObjectPool.h"
 
 #define PROJECTILE_MODEL_PATH "..\\res\\cube1m.obj"
+#define PROJECTILE_TEXTURE_PATH "..\\res\\BlackPixel.jpg"
 
 class Projectile : public GameObject
 {

@@ -34,6 +34,19 @@ Texture::~Texture()
 }
 
 
+std::unordered_map<std::string, std::shared_ptr<Texture>> Texture::all_loaded_textures_;
+std::shared_ptr<Texture> Texture::create_texture(const std::string& file_path)
+{
+	auto it = all_loaded_textures_.find(file_path);
+	if (it != all_loaded_textures_.end())
+		return it->second;
+
+	std::shared_ptr<Texture> new_texture = std::make_shared<Texture>(file_path);
+	all_loaded_textures_.emplace(file_path, new_texture);
+	return new_texture;
+}
+
+
 void Texture::bind(unsigned int unit)
 {
 	assert(unit >= 0 && unit <= 31); // check we are working with one of the 32 textures

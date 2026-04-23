@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include "Mesh.h"
+#include "Texture.h"
 #include "Transform.h"
 #include "Collider.h"
 #include "ShaderManager.h"
@@ -11,11 +12,11 @@
 #include "Event.h"
 
 // A Temporary GameObject class which will be replaced at some point for code efficiency.
-class GameObject : public std::enable_shared_from_this<GameObject>
+class GameObject
 {
 public:
-	GameObject(const std::string& mesh_file_name, Collider::CollisionTag tag, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), bool add_to_all_objects = false);
-	GameObject(Mesh* mesh, Collider::CollisionTag tag, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), bool add_to_all_objects = false);
+	GameObject(const std::string& mesh_file_name, const std::string& diffuse_texture_file_name, Collider::CollisionTag tag, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), bool add_to_all_objects = false);
+	GameObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture> diffuse_texture, Collider::CollisionTag tag, const glm::vec3& position = glm::vec3(0.0f), const glm::quat& rotation = glm::quat(), const glm::vec3& scale = glm::vec3(1.0f), bool add_to_all_objects = false);
 	virtual ~GameObject();
 
 
@@ -24,7 +25,8 @@ public:
 
 	Transform* get_transform() const;
 	Collider* get_collider() const;
-	Mesh* get_mesh() const;
+	std::shared_ptr<Mesh> get_mesh() const;
+	std::shared_ptr<Texture> get_texture() const;
 
 	inline void set_shader_tag(const std::string& new_value) { shader_tag_ = new_value; }
 
@@ -40,7 +42,8 @@ protected:
 	std::shared_ptr<Collider> collider_;
 
 private:
-	Mesh* mesh_;	// SharedPtr for when meshes can be shared?
+	std::shared_ptr<Mesh> mesh_;	// SharedPtr for when meshes can be shared?
+	std::shared_ptr<Texture> texture_;
 	bool is_active_;
 	std::string shader_tag_;
 };

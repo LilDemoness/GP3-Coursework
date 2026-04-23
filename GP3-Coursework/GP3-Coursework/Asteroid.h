@@ -6,6 +6,7 @@
 #include <random>
 
 #define ASTEROIDS_MODEL_PATH "..\\res\\Asteroid.obj"
+#define ASTEROIDS_TEXTURE_PATH "..\\res\\bricks.jpg"
 
 class Asteroid : public GameObject
 {
