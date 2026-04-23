@@ -12,8 +12,8 @@
 class Cubemap
 {
 public:
-	static std::unique_ptr<Texture> create_cubemap_texture(const std::string& file_path_no_extension, const std::string& file_type);
-	static std::unique_ptr<Texture> create_cubemap_texture_from_single(const std::string& file_path_no_extension, const std::string& file_type);
+	static std::shared_ptr<Texture> create_cubemap_texture(const std::string& file_path_no_extension, const std::string& file_type);
+	static std::shared_ptr<Texture> create_cubemap_texture_from_single(const std::string& file_path_no_extension, const std::string& file_type);
 
 private:
 	static std::string get_face_name(const std::string file_name, const unsigned int face_index, const std::string& file_type);

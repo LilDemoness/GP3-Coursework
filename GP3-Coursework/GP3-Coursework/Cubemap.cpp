@@ -1,8 +1,15 @@
 #pragma once
 #include "Cubemap.h"
 
-std::unique_ptr<Texture> Cubemap::create_cubemap_texture(const std::string& file_path_no_extension, const std::string& file_type)
+std::shared_ptr<Texture> Cubemap::create_cubemap_texture(const std::string& file_path_no_extension, const std::string& file_type)
 {
+    std::shared_ptr<Texture> cubemap_texture = nullptr;
+    if (Texture::try_load_texture(file_path_no_extension, cubemap_texture))
+    {
+        // Cubemap texture already existed and was successfully loaded.
+        return cubemap_texture;
+    }
+
     // Load our Cubemap Faces.
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -36,11 +43,22 @@ std::unique_ptr<Texture> Cubemap::create_cubemap_texture(const std::string& file
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 
-    // Create and return our Cubemap Texture.
-    return std::make_unique<Texture>(textureID);
+    // Create and register our Cubemap Texture so that it can be shared between objects.
+    cubemap_texture = std::make_shared<Texture>(textureID);
+    Texture::register_texture_instance(file_path_no_extension, cubemap_texture);
+
+    // Return our Cubemap texture.
+    return cubemap_texture;
 };
-std::unique_ptr<Texture> Cubemap::create_cubemap_texture_from_single(const std::string& file_path_no_extension, const std::string& file_type)
+std::shared_ptr<Texture> Cubemap::create_cubemap_texture_from_single(const std::string& file_path_no_extension, const std::string& file_type)
 {
+    std::shared_ptr<Texture> cubemap_texture = nullptr;
+    if (Texture::try_load_texture(file_path_no_extension, cubemap_texture))
+    {
+        // Cubemap texture already existed and was successfully loaded.
+        return cubemap_texture;
+    }
+
     // Load our Cubemap Faces.
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -94,7 +112,12 @@ std::unique_ptr<Texture> Cubemap::create_cubemap_texture_from_single(const std::
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 
 
-    return std::make_unique<Texture>(textureID);
+    // Create and register our Cubemap Texture so that it can be shared between objects.
+    cubemap_texture = std::make_shared<Texture>(textureID);
+    Texture::register_texture_instance(file_path_no_extension, cubemap_texture);
+
+    // Return our Cubemap texture.
+    return cubemap_texture;
 }
 
 std::string Cubemap::get_face_name(const std::string file_name, const unsigned int face_index, const std::string& file_type)

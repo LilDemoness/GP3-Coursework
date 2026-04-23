@@ -50,6 +50,24 @@ std::shared_ptr<Texture> Texture::create_texture(const std::string& file_path)
 	all_loaded_textures_.emplace(file_path, new_texture);
 	return new_texture;
 }
+bool Texture::try_load_texture(const std::string& file_path, std::shared_ptr<Texture>& loaded_texture)
+{
+	auto it = all_loaded_textures_.find(file_path);
+	if (it != all_loaded_textures_.end())
+	{
+		loaded_texture = it->second;
+		return true;
+	}
+	else
+	{
+		loaded_texture = nullptr;
+		return false;
+	}
+}
+void Texture::register_texture_instance(const std::string& file_path, std::shared_ptr<Texture> loaded_texture)
+{
+	all_loaded_textures_.emplace(file_path, loaded_texture);
+}
 
 
 void Texture::bind(unsigned int unit)

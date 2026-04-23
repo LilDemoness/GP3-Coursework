@@ -14,9 +14,11 @@ public:
 	Texture(const std::string& file_path);
 	Texture(const GLuint& texture_id);
 	~Texture();
+	static void clear();
 
 	static std::shared_ptr<Texture> create_texture(const std::string& file_path);
-	static void clear();
+	static bool try_load_texture(const std::string& file_path, std::shared_ptr<Texture>& loaded_texture);
+	static void register_texture_instance(const std::string& file_path, const std::shared_ptr<Texture> texture);
 
 
 	void bind(unsigned int unit); // bind upto 32 textures

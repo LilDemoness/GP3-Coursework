@@ -28,7 +28,7 @@ private:
 	const std::string kSkyboxImagesPaths[kSkyboxCount] = {
 		"..\\res\\Skyboxes\\StarfieldSkybox",
 	};
-	std::unique_ptr<Texture> skybox_textures_[Skybox::kSkyboxCount];
+	std::shared_ptr<Texture> skybox_textures_[Skybox::kSkyboxCount];
 
 
 	unsigned int vertex_array_object_, vertex_buffer_object_;
