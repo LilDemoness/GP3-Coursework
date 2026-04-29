@@ -1,7 +1,7 @@
 #version 400 core
 
 // Constants.
-const float max_float = 999999;
+const float max_float = 999999.0;
 const float PI = 3.1415926538;
 
 // Inputs.
@@ -23,10 +23,17 @@ uniform vec3 disc_normal;
 uniform vec3 black_hole_centre;
 uniform float black_hole_radius;
 
-uniform float disc_width = 0.2;
+
+uniform float disc_width = 0.01;
 uniform float disc_outer_radius = 0.75;
-uniform float disc_inner_radius = 0;
+uniform float disc_inner_radius = 0.25;
 uniform float disc_rotation_speed = 2;
+
+uniform vec3 disc_color = vec3(0.75, 0.188, 0.0);
+uniform float doppler_beaming_factor = 66.0;
+uniform float hue_radius = 0.75;
+uniform float hue_shift_factor = -0.03;
+
 
 uniform vec2 screen_size;
 
@@ -44,6 +51,14 @@ float intersect_disc(vec3 ray_origin, vec3 ray_dir, vec3 bottom_cap_pos, vec3 to
 
 float remap(float v, float min_old, float max_old, float min_new, float max_new);
 vec2 disc_uv(vec3 planar_disc_pos, vec3 disc_normal, vec3 disc_centre, float radius);
+vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_normal, vec3 camera_pos, float u, float radius);
+
+vec3 linear_to_gamma_space(vec3 linear_rgb);
+vec3 gamma_to_linear_space(vec3 s_rgb);
+vec3 hdr_intensity(vec3 emmissive_color, float intensity);
+vec3 rgb_to_hsv(vec3 color);
+vec3 hsv_to_rgb(vec3 color);
+vec3 rotate_about_axis(vec3 in_pos, vec3 axis, float rotation);
 
 
 void main()
@@ -75,8 +90,8 @@ void main()
     }
 
     // Calculate disc UVs.
-    vec2 uv = vec2(0,0);
-    vec3 planar_disc_pos = vec3(0,0,0);
+    vec2 uv = vec2(0.0,0.0);
+    vec3 planar_disc_pos = vec3(0.0,0.0,0.0);
     if (sample_pos.x < max_float)
     {
         planar_disc_pos = sample_pos - dot(sample_pos - black_hole_centre, disc_normal) * disc_normal - black_hole_centre;
@@ -89,6 +104,7 @@ void main()
     // Sample background colour.
     vec2 screen_uv = (v_in.position_cs.xy / v_in.position_cs.w) * 0.5 + 0.5;
     vec3 background_color = texture(screen_texture, screen_uv).rgb;
+    vec3 accretion_disc_color = calculate_disc_color(disc_color, planar_disc_pos, disc_normal, camera_pos_ws, uv.x, disc_radius);
 
     // Calculate and output final colour.
     transmittance *= disc_colour;
@@ -113,7 +129,7 @@ vec2 intersect_sphere(vec3 ray_origin, vec3 ray_dir, vec3 centre, float radius)
     {
         // Discriminant > 0 = 2 Intersections = Intersection.
         float sqrt_d = sqrt(discriminant);
-        float dst_to_sphere_near = max(0, (-b, -sqrt_d) / (2 * a));
+        float dst_to_sphere_near = max(0, (-b - sqrt_d) / (2 * a));
         float dst_to_sphere_far = (-b + sqrt_d) / (2 * a);
 
         if (dst_to_sphere_far >= 0.0)
@@ -235,7 +251,7 @@ vec2 disc_uv(vec3 planar_disc_pos, vec3 disc_normal, vec3 disc_centre, float rad
     vec3 tangent_test_vector = vec3(1.0, 0.0, 0.0);
     if (abs(dot(disc_normal, tangent_test_vector)) >= 1)
     {
-        tangent_test_vector = vec3(0.0, 1.0, 0.0f);
+        tangent_test_vector = vec3(0.0, 1.0, 0.0);
     }
 
     vec3 tangent = normalize(cross(disc_normal, tangent_test_vector));
@@ -249,4 +265,97 @@ vec2 disc_uv(vec3 planar_disc_pos, vec3 disc_normal, vec3 disc_centre, float rad
     float v = phi;
 
     return vec2(u,v);
+}
+
+
+// ----- Accretion Disc Colour -----
+// Calculates the colour of the accretion disc.
+// Intensity fades towards edges, is affected by doppler beaming (Parts moving towards the camera are more intense), and has the hue affected by the radial distance.
+vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_normal, vec3 camera_pos, float u, float radius)
+{
+    vec3 new_color = base_color;
+
+    // Distance intensity falloff.
+    float intensity = remap(u, 0, 1, 0.5, -1.2);
+    intensity *= abs(intensity);
+
+    // Doppler beaming intensity change.
+    vec3 rotate_pos = rotate_about_axis(planar_disc_pos, disc_normal, 0.01);
+    float doppler_distance = (length(rotate_pos - camera_pos) - length(planar_disc_pos - camera_pos)) / radius;
+    intensity += doppler_distance * disc_rotation_speed * doppler_beaming_factor;
+
+
+    new_color = hdr_intensity(base_color, intensity);
+
+    // Distance hue shift.
+    vec3 hue_color = rgb_to_hsv(new_color);
+    float hue_shift = clamp(remap(u, hue_radius, 1, 0, 1), 0, 1);
+    hue_color.r += hue_shift * hue_shift_factor;
+    new_color = hsv_to_rgb(hue_color);
+
+    return new_color;
+}
+
+
+
+// ----- Color Conversion Functions -----
+vec3 linear_to_gamma_space(vec3 linear_rgb)
+{
+    linear_rgb = max(linear_rgb, vec3(0.0, 0.0, 0.0));
+    return max(1.055 * pow(linear_rgb, 0.416666667) - 0.055, 0.0);
+}
+
+vec3 gamma_to_linear_space(vec3 s_rgb)
+{
+    return s_rgb * (s_rgb * (s_rgb * 0.305306011 + 0.682171111) + 0.012522878);
+}
+
+// Based upon 'https://forum.unity.com/threads/how-to-change-hdr-colors-intensity-via-shader.531861/'.
+vec3 hdr_intensity(vec3 emissive_color, float intensity)
+{
+    emissive_color = linear_to_gamma_space(emissive_color);
+
+    // Apply intensity exposure.
+    emissive_color *= pow(2.0, intensity);
+
+    emissive_color = gamma_to_linear_space(emissive_color);
+
+    return emissive_color;
+}
+
+// Based upon Unity's shadergraph library functions.
+vec3 rgb_to_hsv(vec3 color)
+{
+    vec4 k = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(color.bg, k.wz), vec4(color.gb, k.xy), step(color.b, color.g));
+    vec4 q = mix(vec4(p.xyw, color.r), vec4(color.r, p.yzx), step(p.x, color.r));
+    float d = q.x - min(q.w, q.y);
+    float e = 1e-10;
+
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+// Based upon Unity's shadergraph library functions.
+vec3 hsv_to_rgb(vec3 color)
+{
+    vec4 k = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(frac(vec3(color.x) + k.xyz) * 6.0 - vec3(k.w));
+    return color.z * mix(vec3(k.x), clamp(p - vec3(k.x), 0, 1), color.y);
+}
+
+// Based upon Unity's shadergraph library functions.
+vec3 rotate_about_axis(vec3 in_pos, vec3 axis, float rotation)
+{
+    float sin_rot = sin(rotation);
+    float cos_rot = cos(rotation);
+    float one_minus_cos = 1.0 - cos_rot;
+
+    axis = normalize(axis);
+    mat3 rot_mat = mat3(
+        vec3(one_minus_cos * axis.x * axis.x + cos_rot, one_minus_cos * axis.x * axis.y - axis.z * sin_rot, one_minus_cos * axis.z * axis.x + axis.y * sin_rot),
+        vec3(one_minus_cos * axis.x * axis.y + axis.z * sin_rot, one_minus_cos * axis.y * axis.y + cos_rot, one_minus_cos * axis.y * axis.z - axis.x * sin_rot),
+        vec3(one_minus_cos * axis.z * axis.x - axis.y * sin_rot, one_minus_cos * axis.y * axis.z + axis.x * sin_rot, one_minus_cos * axis.z * axis.z + cos_rot)
+    );
+
+    return rot_mat * in_pos;
 }
