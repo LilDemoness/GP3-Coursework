@@ -9,8 +9,10 @@ GameplayScene::GameplayScene() :
 	asteroid_spawn_iteration_(0),
 
 	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
-	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f))),
+	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(2.0f, 5.0f, 5.0f))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
+
+	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
 
 	camera_(nullptr),
 	skybox_()
@@ -254,12 +256,16 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	
 	std::shared_ptr<Shader> black_hole_shader = ShaderManager::get_shader("BlackHole");
 	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
+	black_hole_shader->set_vec3("disc_normal", centre_indicator_->get_transform()->get_up(), true);
 	black_hole_shader->set_vec3("black_hole_centre", centre_indicator_->get_transform()->get_pos(), true);
-	black_hole_shader->set_float("black_hole_radius", 0.2f, true);
+	black_hole_shader->set_float("black_hole_radius", 1.0f, true);
 	black_hole_shader->set_vec2("screen_size", glm::vec2(display_facade->get_width(), display_facade->get_height()), true);
+	black_hole_shader->set_float("time", counter_);
 
 	display_facade->bind_screen_texture();
+	black_hole_noise_texture_->bind(1);
 	black_hole_shader->set_int("screen_texture", 0);
+	black_hole_shader->set_int("disc_texture", 1);
 	centre_indicator_->draw(*camera_, false);
 
 	glBindTexture(GL_TEXTURE_2D, 0);

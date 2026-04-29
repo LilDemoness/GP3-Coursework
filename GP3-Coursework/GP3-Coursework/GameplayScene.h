@@ -84,6 +84,7 @@ private:
 	std::shared_ptr<GameObject> centre_indicator_;
 	GLuint world_border_vao_;
 	std::unique_ptr<Camera> camera_;
+	std::shared_ptr<Texture> black_hole_noise_texture_;
 
 	Skybox skybox_;
 
