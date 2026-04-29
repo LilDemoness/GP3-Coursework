@@ -14,6 +14,9 @@ in VertexData
 
     vec3 normal_ws;
     vec2 texture_coordinate;
+
+    mat4 view_matrix;
+    mat4 projection_matrix;
 } v_in;
 
 
@@ -26,7 +29,7 @@ uniform sampler2D screen_texture;
 
 // Black Hole.
 uniform vec3 black_hole_centre;
-uniform float black_hole_radius;
+uniform float sphere_radius;
 
 // Black Hole Raymarching.
 int raymarching_steps = 256;
@@ -76,13 +79,13 @@ void main()
 {
     vec3 ray_origin = camera_pos_ws;
     vec3 ray_dir = normalize(v_in.position_ws - ray_origin);
-    vec2 outer_sphere_intersection = intersect_sphere(ray_origin, ray_dir, black_hole_centre, black_hole_radius);
+    vec2 outer_sphere_intersection = intersect_sphere(ray_origin, ray_dir, black_hole_centre, sphere_radius);
 
     // Accretion Disc Information.
     vec3 bottom_cap_pos = black_hole_centre - (0.5 * disc_width * disc_normal);
     vec3 top_cap_pos = black_hole_centre + (0.5 * disc_width * disc_normal);
-    float disc_radius = black_hole_radius * disc_outer_radius;
-    float inner_radius = black_hole_radius * disc_inner_radius;
+    float disc_radius = sphere_radius * disc_outer_radius;
+    float inner_radius = sphere_radius * disc_inner_radius;
 
 
     // Ray Information.
@@ -93,7 +96,7 @@ void main()
     vec3 current_ray_dir = ray_dir;
 
 
-    // Ray intersects with the outer sphere.
+    // Ray intersects with the outer sphere (The black hole's area of effect).
     if (outer_sphere_intersection.x < max_float)
     {
         for(int i = 0; i < raymarching_steps; ++i)
@@ -103,7 +106,7 @@ void main()
             float dst_to_centre = length(dir_to_centre);
             dir_to_centre /= dst_to_centre;
 
-            if (dst_to_centre > black_hole_radius + raymarching_step_size)
+            if (dst_to_centre > sphere_radius + raymarching_step_size)
             {
                 // Outside of the black hole's radius of effect.
                 // Exit to save performance.
@@ -116,7 +119,7 @@ void main()
             // Move the ray forward.
             current_ray_pos += current_ray_dir * raymarching_step_size;
 
-            float black_hole_distance = intersect_sphere(current_ray_pos, current_ray_dir, black_hole_centre, relative_schwarzschild_radius * black_hole_radius).x;
+            float black_hole_distance = intersect_sphere(current_ray_pos, current_ray_dir, black_hole_centre, relative_schwarzschild_radius * sphere_radius).x;
             if (black_hole_distance <= raymarching_step_size)
             {
                 // We're within the black hole's schwarzschild radius.
@@ -150,7 +153,24 @@ void main()
 
     // Sample background colour.
     vec2 screen_uv = (v_in.position_cs.xy / v_in.position_cs.w) * 0.5 + 0.5;
-    vec3 background_color = texture(screen_texture, screen_uv).rgb * (1.0 - black_hole_mask);
+
+    // Space Warping.
+    // Ray direction projection.
+    vec3 distorted_ray_dir = normalize(current_ray_pos - ray_origin);
+    vec4 ray_camera_space = v_in.view_matrix * vec4(distorted_ray_dir, 0);
+    vec4 ray_uv_projection = v_in.projection_matrix * vec4(ray_camera_space);
+    vec2 distorted_screen_uv = (ray_uv_projection.xy + vec2(1.0)) * 0.5;
+
+    // Screen & object edge transition smoothing.
+    float edge_fade_x = smoothstep(0, 0.25, 1.0 - abs(remap(screen_uv.x, 0, 1, -1, 1)));
+    float edge_fade_y = smoothstep(0, 0.25, 1.0 - abs(remap(screen_uv.y, 0, 1, -1, 1)));
+    float t = clamp(remap(outer_sphere_intersection.y, sphere_radius, 2 * sphere_radius, 0, 1), 0, 1) * edge_fade_x * edge_fade_y;
+    distorted_screen_uv = mix(screen_uv, distorted_screen_uv, t);
+
+    // Sample background colour.
+    vec3 background_color = texture(screen_texture, distorted_screen_uv).rgb * (1.0 - black_hole_mask);
+
+
     const float accretion_disc_intensity = 5.28;
     vec3 accretion_disc_color = calculate_disc_color(disc_color.rgb, planar_disc_pos, disc_normal, camera_pos_ws, uv.x, disc_radius) * accretion_disc_intensity;
 

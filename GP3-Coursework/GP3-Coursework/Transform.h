@@ -136,6 +136,8 @@ public:
 	{
 		if (local_rot_ == new_local_rot)
 			return;
+		if (new_local_rot != new_local_rot)	// NAN check (May not work with our compiler).
+			return;
 		local_rot_ = new_local_rot;
 
 		// Update our children's rotation.

@@ -18,6 +18,9 @@ out VertexData
 
     vec3 normal_ws;
     vec2 texture_coordinate;
+
+    mat4 view_matrix;
+    mat4 projection_matrix;
 } v_out;
 
 
@@ -29,4 +32,7 @@ void main()
     v_out.position_cs = gl_Position;
     v_out.normal_ws = VertexNormal;
     v_out.texture_coordinate = TextureCoordinate;
+
+    v_out.view_matrix = view;
+    v_out.projection_matrix = projection;
 }
