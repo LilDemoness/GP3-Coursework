@@ -265,5 +265,17 @@
     <None Include="..\res\explode.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\Shaders\BlackHoleShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\Shaders\BlackHoleShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\Shaders\ScreenDisplayShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\Shaders\ScreenDisplayShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

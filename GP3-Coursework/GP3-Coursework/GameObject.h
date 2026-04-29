@@ -20,8 +20,8 @@ public:
 	virtual ~GameObject();
 
 
-	void draw(const Camera& camera);
-	void draw(const Camera& camera, std::shared_ptr<Shader> shader);
+	void draw(const Camera& camera, const bool bind_texture = true);
+	void draw(const Camera& camera, std::shared_ptr<Shader> shader, const bool bind_texture = true);
 
 	Transform* get_transform() const;
 	Collider* get_collider() const;

@@ -30,6 +30,11 @@ private:
 	void display_framerate(Uint64 frame_start_time, Uint64 frame_end_time);
 	float get_refresh_rate();
 
+	unsigned int empty_vao_;
+	void initialise_screen_vao();
+	void dispose_screen_vao();
+	void draw_to_screen_quad();
+
 	DisplayFacade game_display_;
 
 	float delta_time_;

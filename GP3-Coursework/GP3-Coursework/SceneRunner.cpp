@@ -12,6 +12,8 @@ SceneRunner::SceneRunner() :
 	Scene::on_exit_requested.subscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 
 	InputManager::register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
+	ShaderManager::load_shader("ScreenDisplayShader", "..\\res\\Shaders\\ScreenDisplayShader");
+	initialise_screen_vao();
 	game_display_.set_clear_color(0.15f, 0.15f, 0.15f, 1.0f);
 }
 SceneRunner::~SceneRunner()
@@ -21,6 +23,8 @@ SceneRunner::~SceneRunner()
 	DLLManager::clear();
 	Mesh::clear();
 	Texture::clear();
+
+	dispose_screen_vao();
 
 	Scene::on_exit_requested.unsubscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 }
@@ -47,6 +51,8 @@ void SceneRunner::run()
 		Uint64 start = SDL_GetPerformanceCounter();
 		calculate_delta_time(start);
 
+		game_display_.set_draw_to_framebuffer();
+
 		// Detect Input.
 		InputManager::process_input();
 
@@ -66,9 +72,11 @@ void SceneRunner::run()
 		display_framerate(start, SDL_GetPerformanceCounter());
 
 		// Display the scene.
+		draw_to_screen_quad();
 		game_display_.swap_buffers();
 #else
 		// Display the scene.
+		draw_to_screen_quad();
 		game_display_.swap_buffers();
 
 		// Limit and (optionally) display our framerate.
@@ -118,6 +126,25 @@ float SceneRunner::get_refresh_rate()
 	const float kDefaultRefreshRate = 60.0f;
 	std::cout << "Failed to retrieve monitor Refresh Rate. Defaulting to " << kDefaultRefreshRate << std::endl;
 	return kDefaultRefreshRate;
+}
+
+
+void SceneRunner::initialise_screen_vao()
+{
+	glGenVertexArrays(1, &empty_vao_);
+}
+void SceneRunner::dispose_screen_vao()
+{
+	glDeleteVertexArrays(1, &empty_vao_);
+}
+void SceneRunner::draw_to_screen_quad()
+{
+	game_display_.set_draw_to_screen();
+
+	ShaderManager::get_shader("ScreenDisplayShader")->bind();
+	ShaderManager::get_shader("ScreenDisplayShader")->set_int("screen_texture", 0);
+	glBindVertexArray(empty_vao_);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 

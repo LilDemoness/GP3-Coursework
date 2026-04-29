@@ -8,7 +8,8 @@ GameplayScene::GameplayScene() :
 
 	asteroid_spawn_iteration_(0),
 
-	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
+	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
+	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(1.0f))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	camera_(nullptr),
@@ -17,7 +18,10 @@ GameplayScene::GameplayScene() :
 	ShaderManager::load_shader("DefaultShader", "..\\res\\shader");
 	ShaderManager::load_shader("PlayerDeathShader", "..\\res\\explode.vert", "..\\res\\explode.geom", "..\\res\\shader.frag");
 	ShaderManager::load_shader("SolidColor", "..\\res\\SolidColourShader")->set_vec3("color", glm::vec3(0.5f));
+	ShaderManager::load_shader("BlackHole", "..\\res\\Shaders\\BlackHoleShader");
 	ShaderManager::set_active_shader("DefaultShader");
+
+	centre_indicator_->set_shader_tag("BlackHole");
 
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
@@ -236,7 +240,6 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	else
 		player_->draw(*camera_);
 
-	centre_indicator_->draw(*camera_);
 	Asteroid::draw_all(*camera_);
 	Projectile::draw_all(*camera_);
 
@@ -248,13 +251,26 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	TextRenderer::render_text("Score", display_facade->get_width() / 2.0f, display_facade->get_height() - 50.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 	TextRenderer::render_text(std::to_string(score_), display_facade->get_width() / 2.0f, display_facade->get_height() - 100.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 
+	
+	std::shared_ptr<Shader> black_hole_shader = ShaderManager::get_shader("BlackHole");
+	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
+	black_hole_shader->set_vec3("black_hole_centre", centre_indicator_->get_transform()->get_pos(), true);
+	black_hole_shader->set_float("black_hole_radius", 0.2f, true);
+	black_hole_shader->set_vec2("screen_size", glm::vec2(display_facade->get_width(), display_facade->get_height()), true);
+
+	display_facade->bind_screen_texture();
+	black_hole_shader->set_int("screen_texture", 0);
+	centre_indicator_->draw(*camera_, false);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 	if (player_->get_is_active())
 	{
 		// Render the world border only if the player isn't dead.
 		WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
 	}
 }
-
 
 
 void GameplayScene::fire_projectile()

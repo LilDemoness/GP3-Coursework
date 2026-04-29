@@ -201,6 +201,10 @@
     <None Include="..\res\ParalaxSkybox.vert" />
     <None Include="..\res\shader.frag" />
     <None Include="..\res\shader.vert" />
+    <None Include="..\res\Shaders\BlackHoleShader.frag" />
+    <None Include="..\res\Shaders\BlackHoleShader.vert" />
+    <None Include="..\res\Shaders\ScreenDisplayShader.frag" />
+    <None Include="..\res\Shaders\ScreenDisplayShader.vert" />
     <None Include="..\res\SolidColourShader.frag" />
     <None Include="..\res\SolidColourShader.vert" />
     <None Include="..\res\WorldBorderShader.frag" />

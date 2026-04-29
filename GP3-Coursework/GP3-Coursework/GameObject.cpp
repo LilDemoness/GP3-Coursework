@@ -27,17 +27,18 @@ GameObject::~GameObject()
 }
 
 
-void GameObject::draw(const Camera& camera)
+void GameObject::draw(const Camera& camera, const bool bind_texture)
 {
 	std::shared_ptr<Shader> shader = shader_tag_.empty() ? ShaderManager::get_active_shader() : ShaderManager::get_shader(shader_tag_);
-	draw(camera, shader);
+	draw(camera, shader, bind_texture);
 }
-void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader)
+void GameObject::draw(const Camera& camera, std::shared_ptr<Shader> shader, const bool bind_texture)
 {
 	shader->bind();
 	shader->update_matrices_ubo(camera);
 
-	texture_->bind(0);
+	if (bind_texture)
+		texture_->bind(0);
 
 	mesh_->set_instance_matrix(0, transform_->get_model());
 	mesh_->draw();
