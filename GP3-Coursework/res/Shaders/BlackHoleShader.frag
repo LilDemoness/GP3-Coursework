@@ -1,10 +1,12 @@
 #version 400 core
 
-// Constants.
+
+// ----- Constants -----
 const float max_float = 999999;
 const float PI = 3.1415926538;
 
-// Inputs.
+
+// ----- Inputs -----
 in VertexData
 {
     vec3 position_ws;
@@ -14,15 +16,27 @@ in VertexData
     vec2 texture_coordinate;
 } v_in;
 
-// Uniforms.
-uniform sampler2D screen_texture;
-uniform sampler2D disc_texture;
-uniform vec3 camera_pos_ws;
-uniform vec3 disc_normal;
 
+// ----- Uniforms -----
+uniform vec3 camera_pos_ws;
+uniform float time;
+
+uniform vec2 screen_size;
+uniform sampler2D screen_texture;
+
+// Black Hole.
 uniform vec3 black_hole_centre;
 uniform float black_hole_radius;
 
+// Black Hole Raymarching.
+int raymarching_steps = 256;
+float raymarching_step_size = 0.05;
+float relative_schwarzschild_radius = 0.02;
+float gravitational_constant = 0.15;
+
+// Accretion Disc.
+uniform sampler2D disc_texture;
+uniform vec3 disc_normal;
 
 uniform float disc_width = 0.01;
 uniform float disc_outer_radius = 0.75;
@@ -35,15 +49,12 @@ uniform float hue_radius = 0.75;
 uniform float hue_shift_factor = -0.03;
 
 
-uniform vec2 screen_size;
 
-uniform float time;
-
-
-// Output Colour.
+// ----- Output -----
 out vec4 FragColor;
 
-// Function Predeclerations.
+
+// ----- Function Predeclerations -----
 vec2 intersect_sphere(vec3 ray_origin, vec3 ray_dir, vec3 centre, float radius);
 vec2 intersect_infinite_cylinder(vec3 ray_origin, vec3 ray_dir, vec3 cylinder_origin, vec3 cylinder_dir, float cylinder_radius);
 float intersect_infinite_plane(vec3 ray_origin, vec3 ray_dir, vec3 plane_origin, vec3 plane_normal);
@@ -74,18 +85,53 @@ void main()
     float inner_radius = black_hole_radius * disc_inner_radius;
 
 
-    // Ray information.
+    // Ray Information.
     float transmittance = 0;
+    float black_hole_mask = 0; // If equal to 1, then we're within the schwarzschild radius of the black hole.
     vec3 sample_pos = vec3(max_float, 0, 0);
+    vec3 current_ray_pos = ray_origin + ray_dir * outer_sphere_intersection.x;
+    vec3 current_ray_dir = ray_dir;
+
 
     // Ray intersects with the outer sphere.
     if (outer_sphere_intersection.x < max_float)
     {
-        float dst_to_disc = intersect_disc(ray_origin, ray_dir, bottom_cap_pos, top_cap_pos, disc_normal, disc_radius, inner_radius);
-        if (dst_to_disc < max_float)
+        for(int i = 0; i < raymarching_steps; ++i)
         {
-            transmittance = 1;
-            sample_pos = ray_origin + (ray_dir * dst_to_disc);
+            // Apply gravity.
+            vec3 dir_to_centre = black_hole_centre - current_ray_pos;
+            float dst_to_centre = length(dir_to_centre);
+            dir_to_centre /= dst_to_centre;
+
+            if (dst_to_centre > black_hole_radius + raymarching_step_size)
+            {
+                // Outside of the black hole's radius of effect.
+                // Exit to save performance.
+                break;
+            }
+            float force = gravitational_constant / (dst_to_centre * dst_to_centre);
+            current_ray_dir = normalize(current_ray_dir + dir_to_centre * force * raymarching_step_size);
+
+
+            // Move the ray forward.
+            current_ray_pos += current_ray_dir * raymarching_step_size;
+
+            float black_hole_distance = intersect_sphere(current_ray_pos, current_ray_dir, black_hole_centre, relative_schwarzschild_radius * black_hole_radius).x;
+            if (black_hole_distance <= raymarching_step_size)
+            {
+                // We're within the black hole's schwarzschild radius.
+                black_hole_mask = 1;
+                break; // Light cannot escape a black hole, so we don't need to perform more marches.
+            }
+
+
+            // Check for a disc intersection.
+            float dst_to_disc = intersect_disc(current_ray_pos, current_ray_dir, bottom_cap_pos, top_cap_pos, disc_normal, disc_radius, inner_radius);
+            if (transmittance < 1 && dst_to_disc < raymarching_step_size)
+            {
+                transmittance = 1;
+                sample_pos = current_ray_pos + (current_ray_dir * dst_to_disc);
+            }
         }
     }
 
@@ -104,7 +150,7 @@ void main()
 
     // Sample background colour.
     vec2 screen_uv = (v_in.position_cs.xy / v_in.position_cs.w) * 0.5 + 0.5;
-    vec3 background_color = texture(screen_texture, screen_uv).rgb;
+    vec3 background_color = texture(screen_texture, screen_uv).rgb * (1.0 - black_hole_mask);
     const float accretion_disc_intensity = 5.28;
     vec3 accretion_disc_color = calculate_disc_color(disc_color.rgb, planar_disc_pos, disc_normal, camera_pos_ws, uv.x, disc_radius) * accretion_disc_intensity;
 
