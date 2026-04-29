@@ -258,7 +258,7 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
 	black_hole_shader->set_vec3("disc_normal", centre_indicator_->get_transform()->get_up(), true);
 	black_hole_shader->set_vec3("black_hole_centre", centre_indicator_->get_transform()->get_pos(), true);
-	black_hole_shader->set_float("black_hole_radius", 1.0f, true);
+	black_hole_shader->set_float("black_hole_radius", centre_indicator_->get_transform()->get_scale().x / 2.0f, true);
 	black_hole_shader->set_vec2("screen_size", glm::vec2(display_facade->get_width(), display_facade->get_height()), true);
 	black_hole_shader->set_float("time", counter_);
 

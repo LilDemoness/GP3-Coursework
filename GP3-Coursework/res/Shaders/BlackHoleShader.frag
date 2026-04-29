@@ -1,7 +1,7 @@
 #version 400 core
 
 // Constants.
-const float max_float = 999999.0;
+const float max_float = 999999;
 const float PI = 3.1415926538;
 
 // Inputs.
@@ -29,7 +29,7 @@ uniform float disc_outer_radius = 0.75;
 uniform float disc_inner_radius = 0.25;
 uniform float disc_rotation_speed = 2;
 
-uniform vec3 disc_color = vec3(0.75, 0.188, 0.0);
+uniform vec4 disc_color = vec4(1.0, 0.25, 0.0, 1.0);
 uniform float doppler_beaming_factor = 66.0;
 uniform float hue_radius = 0.75;
 uniform float hue_shift_factor = -0.03;
@@ -55,7 +55,7 @@ vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_norma
 
 vec3 linear_to_gamma_space(vec3 linear_rgb);
 vec3 gamma_to_linear_space(vec3 s_rgb);
-vec3 hdr_intensity(vec3 emmissive_color, float intensity);
+vec3 hdr_intensity(vec3 emissive_color, float intensity);
 vec3 rgb_to_hsv(vec3 color);
 vec3 hsv_to_rgb(vec3 color);
 vec3 rotate_about_axis(vec3 in_pos, vec3 axis, float rotation);
@@ -90,25 +90,27 @@ void main()
     }
 
     // Calculate disc UVs.
-    vec2 uv = vec2(0.0,0.0);
-    vec3 planar_disc_pos = vec3(0.0,0.0,0.0);
+    vec2 uv = vec2(0.0, 0.0);
+    vec3 planar_disc_pos = vec3(0.0, 0.0, 0.0);
     if (sample_pos.x < max_float)
     {
         planar_disc_pos = sample_pos - dot(sample_pos - black_hole_centre, disc_normal) * disc_normal - black_hole_centre;
         uv = disc_uv(planar_disc_pos, disc_normal, black_hole_centre, disc_radius);
         uv.y += time * disc_rotation_speed;
     }
-    float disc_colour = texture(disc_texture, uv).r;
+    const vec2 tiling = vec2(4.0, 1.0);
+    float texture_color =  texture(disc_texture, uv * tiling).r;
 
 
     // Sample background colour.
     vec2 screen_uv = (v_in.position_cs.xy / v_in.position_cs.w) * 0.5 + 0.5;
     vec3 background_color = texture(screen_texture, screen_uv).rgb;
-    vec3 accretion_disc_color = calculate_disc_color(disc_color, planar_disc_pos, disc_normal, camera_pos_ws, uv.x, disc_radius);
+    const float accretion_disc_intensity = 5.28;
+    vec3 accretion_disc_color = calculate_disc_color(disc_color.rgb, planar_disc_pos, disc_normal, camera_pos_ws, uv.x, disc_radius) * accretion_disc_intensity;
 
     // Calculate and output final colour.
-    transmittance *= disc_colour;
-    vec3 color = mix(background_color, vec3(1.0, 0.0, 0.0), transmittance);
+    transmittance *= texture_color * disc_color.a;
+    vec3 color = mix(background_color, accretion_disc_color, transmittance);
     FragColor = vec4(color, 1.0);
 }
 
@@ -276,7 +278,7 @@ vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_norma
     vec3 new_color = base_color;
 
     // Distance intensity falloff.
-    float intensity = remap(u, 0, 1, 0.5, -1.2);
+    float intensity = remap(u, 0.0, 1.0, 0.5, -1.2);
     intensity *= abs(intensity);
 
     // Doppler beaming intensity change.
@@ -289,7 +291,7 @@ vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_norma
 
     // Distance hue shift.
     vec3 hue_color = rgb_to_hsv(new_color);
-    float hue_shift = clamp(remap(u, hue_radius, 1, 0, 1), 0, 1);
+    float hue_shift = clamp(remap(u, hue_radius, 1.0, 0.0, 1.0), 0.0, 1.0);
     hue_color.r += hue_shift * hue_shift_factor;
     new_color = hsv_to_rgb(hue_color);
 
@@ -302,7 +304,8 @@ vec3 calculate_disc_color(vec3 base_color, vec3 planar_disc_pos, vec3 disc_norma
 vec3 linear_to_gamma_space(vec3 linear_rgb)
 {
     linear_rgb = max(linear_rgb, vec3(0.0, 0.0, 0.0));
-    return max(1.055 * pow(linear_rgb, 0.416666667) - 0.055, 0.0);
+    return max(1.055 * vec3(pow(linear_rgb.r, 0.416666667), pow(linear_rgb.g, 0.416666667), pow(linear_rgb.b, 0.416666667)) - 0.055, 0.0);
+    //return max(1.055 * pow(linear_rgb, 0.416666667) - 0.055, 0.0);
 }
 
 vec3 gamma_to_linear_space(vec3 s_rgb)
@@ -339,7 +342,7 @@ vec3 rgb_to_hsv(vec3 color)
 vec3 hsv_to_rgb(vec3 color)
 {
     vec4 k = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(frac(vec3(color.x) + k.xyz) * 6.0 - vec3(k.w));
+    vec3 p = abs(fract(vec3(color.x) + k.xyz) * 6.0 - vec3(k.w));
     return color.z * mix(vec3(k.x), clamp(p - vec3(k.x), 0, 1), color.y);
 }
 
