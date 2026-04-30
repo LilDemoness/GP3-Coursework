@@ -104,10 +104,14 @@ void SceneRunner::cap_framerate(Uint64 frame_start_time, Uint64 frame_end_time)
 }
 void SceneRunner::display_framerate(Uint64 frame_start_time, Uint64 frame_end_time)
 {
+	// We set up our text position in 1280x720p. This should make it resolution-independent.
+	float height_offset_multiplier = game_display_.get_height() / 720.0f;
+	float scale_multiplier = game_display_.get_height() / 720.0f;	// Assumes 16:9 ratio.
+
 	// Output our Framerate.
 	float elapsed_s = (frame_end_time - frame_start_time) / (float)SDL_GetPerformanceFrequency();
-	TextRenderer::render_text("Current FPS: " + std::to_string((int)std::round(1.0 / elapsed_s)), 5.0f, game_display_.get_height() - 25.0f, 0.5f, glm::vec3(1.0f), TextRenderer::kLeftAligned);
-	TextRenderer::render_text("Delta Time : " + std::to_string((int)(delta_time_ * 1000.0f)) + "ms", 5.0f, game_display_.get_height() - 55.0f, 0.5f, glm::vec3(1.0f), TextRenderer::kLeftAligned);
+	TextRenderer::render_text(&game_display_, "Current FPS: " + std::to_string((int)std::round(1.0 / elapsed_s)), 5.0f, game_display_.get_height() - (25.0f * height_offset_multiplier), 0.5f * scale_multiplier, glm::vec3(1.0f), TextRenderer::kLeftAligned);
+	TextRenderer::render_text(&game_display_, "Delta Time : " + std::to_string((int)(delta_time_ * 1000.0f)) + "ms", 5.0f, game_display_.get_height() - (55.0f * height_offset_multiplier), 0.5f * scale_multiplier, glm::vec3(1.0f), TextRenderer::kLeftAligned);
 }
 
 

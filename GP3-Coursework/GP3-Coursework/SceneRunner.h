@@ -10,8 +10,8 @@
 #include "InputManager.h"
 
 constexpr int kMaxFramerate = 60;
-constexpr int kWindowWidth = 1280;
-constexpr int kWindowHeight = 720;
+constexpr int kWindowWidth = 960;
+constexpr int kWindowHeight = 540;
 
 #define DISPLAY_FRAMERATE true
 

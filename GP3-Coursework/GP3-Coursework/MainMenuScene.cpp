@@ -15,8 +15,12 @@ void MainMenuScene::update(float delta_time)
 {}
 void MainMenuScene::draw(DisplayFacade* display_facade)
 {
-	TextRenderer::render_text("Main Menu", display_facade->get_width() / 2.0f, display_facade->get_height() - 100.0f, 2.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
-	TextRenderer::render_text("Press [enter] to start", display_facade->get_width() / 2.0f, display_facade->get_height() / 2.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
+	// We set up our text position in 1280x720p. This should make it resolution-independent.
+	float height_offset_multiplier = display_facade->get_height() / 720.0f;
+	float scale_multiplier = display_facade->get_height() / 720.0f;	// Assumes 16:9 ratio.
+
+	TextRenderer::render_text(display_facade, "Main Menu", display_facade->get_width() / 2.0f, display_facade->get_height() - (100.0f * height_offset_multiplier), 2.0f * scale_multiplier, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
+	TextRenderer::render_text(display_facade, "Press [enter] to start", display_facade->get_width() / 2.0f, display_facade->get_height() / 2.0f, 1.0f * scale_multiplier, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 }
 
 void MainMenuScene::on_exit_fulfilled()

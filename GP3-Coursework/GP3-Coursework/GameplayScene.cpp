@@ -276,9 +276,15 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 
 	draw_black_hole(display_facade);
 
+
 	// Render on-screen text (Score, etc).
-	TextRenderer::render_text("Score", display_facade->get_width() / 2.0f, display_facade->get_height() - 50.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
-	TextRenderer::render_text(std::to_string(score_), display_facade->get_width() / 2.0f, display_facade->get_height() - 100.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
+
+	// We set up our text position in 1280x720p. This should make it resolution-independent.
+	float height_offset_multiplier = display_facade->get_height() / 720.0f;
+	float scale_multiplier = display_facade->get_height() / 720.0f;	// Assumes 16:9 ratio.
+
+	TextRenderer::render_text(display_facade, "Score", display_facade->get_width() / 2.0f, display_facade->get_height() - (50.0f * height_offset_multiplier), 1.0f * scale_multiplier, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
+	TextRenderer::render_text(display_facade, std::to_string(score_), display_facade->get_width() / 2.0f, display_facade->get_height() - (100.0f * height_offset_multiplier), 1.0f * scale_multiplier, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 
 	
 	if (player_->get_is_active())

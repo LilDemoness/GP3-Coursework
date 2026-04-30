@@ -4,10 +4,7 @@
 
 TextRenderer::TextRenderer()
 {
-    std::shared_ptr<Shader> font_shader = ShaderManager::load_shader(FONT_SHADER_TAG, FONT_SHADER_PATH);
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(1280), 0.0f, static_cast<float>(720));
-    font_shader->set_mat4("projection", projection);
-
+    ShaderManager::load_shader(FONT_SHADER_TAG, FONT_SHADER_PATH);
     initialise_text();
     initialise_vertex_buffers();
 }
@@ -20,10 +17,23 @@ TextRenderer* TextRenderer::get_instance()
     return instance;
 }
 
+void TextRenderer::set_projection_for_size(const int width, const int height)
+{
+    if (cached_width_ == width && cached_height_ == height)
+        return;
 
-void TextRenderer::render_text(const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification)
+    cached_width_ = width;
+    cached_height_ = height;
+
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
+    ShaderManager::get_shader(FONT_SHADER_TAG)->set_mat4("projection", projection);
+}
+
+
+void TextRenderer::render_text(DisplayFacade* display_facade, const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification)
 {
     TextRenderer* text_renderer = get_instance();
+    text_renderer->set_projection_for_size(display_facade->get_width(), display_facade->get_height());
 
 
     // Calculate the correct starting position for our given alignment.

@@ -4,6 +4,7 @@
 #include FT_FREETYPE_H
 
 #include "ShaderManager.h"
+#include "DisplayFacade.h"
 
 #include <glm/glm.hpp>
 #include <GL/glew.h>
@@ -28,7 +29,7 @@ public:
 	};
 
 	// Note: Text should be rendered after everything that is drawn behind it, otherwise transparency becomes funky and you can sometimes see the original/uninitialised background through the edges of the glyphs.
-	static void render_text(const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification = TextJustification::kLeftAligned);
+	static void render_text(DisplayFacade* display_facade, const std::string& text, float x, float y, float scale, glm::vec3 font_color, TextJustification justification = TextJustification::kLeftAligned);
 
 
 private:
@@ -40,6 +41,7 @@ private:
 	TextRenderer& operator= (const TextRenderer& other) = delete;
 
 	static float get_string_display_width(const std::string& text, const float scale);
+	void set_projection_for_size(const int width, const int height);
 
 	static TextRenderer* get_instance();
 
@@ -57,4 +59,7 @@ private:
 	void initialise_vertex_buffers();
 	GLuint vertex_array_object_;
 	GLuint vertex_buffer_object_;
+
+
+	int cached_width_ = 0, cached_height_ = 0;
 };
