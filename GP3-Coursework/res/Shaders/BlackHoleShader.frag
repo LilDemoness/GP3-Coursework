@@ -34,8 +34,8 @@ uniform float sphere_radius;
 // Black Hole Raymarching.
 int raymarching_steps = 256;
 float raymarching_step_size = 0.05;
-float relative_schwarzschild_radius = 0.02;
-float gravitational_constant = 0.15;
+float relative_schwarzschild_radius = 0.1;
+float gravitational_constant = 0.3;
 
 // Accretion Disc.
 uniform sampler2D disc_texture;

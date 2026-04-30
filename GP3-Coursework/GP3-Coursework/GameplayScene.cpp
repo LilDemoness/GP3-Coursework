@@ -9,7 +9,7 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	asteroid_spawn_iteration_(0),
 
 	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
-	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(2.0f))),
+	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
@@ -266,6 +266,8 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 }
 void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 {
+	display_facade->set_cull_backface(false);
+
 	// Setup shader information.
 	std::shared_ptr<Shader> black_hole_shader = ShaderManager::get_shader("BlackHole");
 	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
@@ -288,6 +290,7 @@ void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 	// Draw the Black Hole.
 	centre_indicator_->draw(*camera_, false);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	display_facade->set_cull_backface(true);
 }
 
 
