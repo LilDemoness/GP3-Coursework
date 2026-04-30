@@ -23,6 +23,8 @@ extern "C" PHYSICS_API void add_roll(Transform* const transform, float roll_radi
 
 
 extern "C" PHYSICS_API void update_physics(Transform* const transform, float gravity_multiplier, bool apply_drag, float delta_time);
+extern "C" PHYSICS_API void apply_physics(Transform* const transform, float world_radius, float delta_time);
+extern "C" PHYSICS_API glm::vec3 loop_position_within_bounds(const glm::vec3& world_pos, const float world_radius);
 
 
 // Determines if a collision is occuring using the radius of two colliders.

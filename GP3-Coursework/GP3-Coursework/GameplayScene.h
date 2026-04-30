@@ -116,6 +116,7 @@ private:
 	void (*add_roll)(Transform* const, float) = nullptr;
 
 	void (*update_physics)(Transform* const, float, bool, float) = nullptr;
+	void (*apply_physics)(Transform* const, float, float) = nullptr;
 
 	bool (*check_collisions_radius)(Collider* const, Collider* const) = nullptr;
 	bool (*check_collisions_aabb)(Collider* const, Collider* const) = nullptr;

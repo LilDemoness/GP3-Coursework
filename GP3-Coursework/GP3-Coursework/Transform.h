@@ -42,9 +42,6 @@ public:
 	Event<> on_scale_changed;
 
 
-	static void set_world_radius(float world_radius) { world_radius_ = world_radius; }
-
-
 	// ----- Position -----
 	inline glm::vec3 get_pos() const
 	{
@@ -70,10 +67,6 @@ public:
 			return;
 
 		local_pos_ = new_local_pos;
-		if (!has_parent())
-		{
-			local_pos_ = pos_world_to_local(loop_position_within_bounds(pos_local_to_world(local_pos_)));
-		}
 
 		// Set our children's position.
 		for (int i = 0; i < this->get_child_count(); ++i)
@@ -288,14 +281,6 @@ public:
 		this->angular_velocity_ += torque;
 	}
 
-	void apply_physics(float delta_time)
-	{
-		set_pos(get_pos() + this->velocity_ * delta_time);
-
-		if (this->angular_velocity_ != glm::vec3(0.0f))
-			rotate(angular_velocity_, glm::length(angular_velocity_) * delta_time);
-	}
-
 
 	// Transform Hierarchy.
 	bool has_parent() const { return parent_ != nullptr; }
@@ -398,6 +383,7 @@ public:
 
 
 	void set_ignore_bounds(const bool new_value) { ignore_bounds_ = new_value; }
+	const bool get_ignore_bounds() const { return ignore_bounds_; }
 
 
 protected:
@@ -406,34 +392,7 @@ private:
 	const glm::vec3 kWorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	const glm::vec3 kWorldRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
-	static float world_radius_;
 	bool ignore_bounds_;
-
-
-	const glm::vec3 loop_position_within_bounds(const glm::vec3& world_pos) const
-	{
-		if (ignore_bounds_)
-			return world_pos;
-
-		float sqrDistanceFromOrigin = (world_pos.x * world_pos.x) + (world_pos.y * world_pos.y) + (world_pos.z * world_pos.z);
-
-		if (sqrDistanceFromOrigin <= (world_radius_ * world_radius_))
-			return world_pos;	// We are within the world radius.
-
-		// We are outwith the world radius.
-		// Loop our movement outside of the world radius, ensuring to account for if were > 2x the radius.
-
-		glm::vec3 direction_from_origin = glm::normalize(world_pos);
-		float distance_from_origin = std::sqrt(sqrDistanceFromOrigin);	// Alt: world_pos.length();
-
-		// Calculate the fractional part of how far we're outside the radius (Accounts for distance > 2 x kWorldRadius).
-		int distance_from_origin_int = (int)distance_from_origin;
-		float outside_distance_remainder = (distance_from_origin_int % (int)world_radius_) + (distance_from_origin - (float)distance_from_origin_int);
-
-
-		// Move to re-enter from the other side of the radius.
-		return (-direction_from_origin * world_radius_) + (direction_from_origin * outside_distance_remainder);
-	}
 
 
 	// If Has Parent: Local Space. Else: World Space

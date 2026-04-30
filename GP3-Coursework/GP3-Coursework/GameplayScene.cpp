@@ -26,12 +26,14 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 
 	centre_indicator_->set_shader_tag("BlackHole");
 
+	
+	player_->get_transform()->set_velocity(player_->get_transform()->get_forward() * 5.0f);
+
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
 	Asteroid::on_any_asteroid_destroyed.subscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
 	Asteroid::on_all_asteroids_destroyed.subscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
 
-	Transform::set_world_radius(kPlaySpaceRadius);
 	WorldBorderVisuals::initialise_world_border(kPlaySpaceRadius);
 
 	glGenVertexArrays(1, &world_border_vao_);
@@ -121,6 +123,7 @@ void GameplayScene::load_physics_engine()
 	add_roll = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
 
 	update_physics = DLLManager::get_function<void(*)(Transform* const, float, bool, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
+	apply_physics = DLLManager::get_function<void(*)(Transform* const, float, float)>(PHYSICS_ENGINE_DLL_NAME, "apply_physics");
 
 	check_collisions_radius = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
 	check_collisions_aabb = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
@@ -151,27 +154,27 @@ void GameplayScene::update(float delta_time)
 
 	handle_continuous_input(delta_time);
 
-	if (update_physics)
+	if (update_physics && apply_physics)
 	{
 		if (player_)
 		{
 			const float kPlayerGravityMultiplier = 1.0f;
 			update_physics(player_->get_transform(), kPlayerGravityMultiplier, true, delta_time);
-			player_->get_transform()->apply_physics(delta_time);
+			apply_physics(player_->get_transform(), kPlaySpaceRadius, delta_time);
 		}
 		
 		const float kProjectileGravityMultiplier = 10.0f;
 		for (auto it = Projectile::active_projectiles_.begin(); it != Projectile::active_projectiles_.end(); ++it)
 		{
 			update_physics((*it)->get_transform(), kProjectileGravityMultiplier, false, delta_time);
-			(*it)->get_transform()->apply_physics(delta_time);
+			apply_physics((*it)->get_transform(), kPlaySpaceRadius, delta_time);
 		}
 
-		const float kAsteroidGravityMultiplier = 5.0f;
+		const float kAsteroidGravityMultiplier = 2.0f;
 		for (auto it = Asteroid::all_active_asteroids_.begin(); it != Asteroid::all_active_asteroids_.end(); ++it)
 		{
 			update_physics((*it)->get_transform(), kAsteroidGravityMultiplier, false, delta_time);
-			(*it)->get_transform()->apply_physics(delta_time);
+			apply_physics((*it)->get_transform(), kPlaySpaceRadius, delta_time);
 		}
 	}
 
