@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <iostream>
 
+#include "ShaderManager.h"
+
 class OpenGLContext
 {
 public:
@@ -15,8 +17,8 @@ public:
     void set_cull_face(const bool should_cull);
 
     void set_draw_to_framebuffer();
-    void set_draw_to_screen();
-    void bind_screen_texture();
+    void draw_to_screen();
+    void copy_screen_texture(GLuint texture_id);
 
 private:
     OpenGLContext() = delete;
@@ -27,4 +29,6 @@ private:
     unsigned int framebuffer_;
     unsigned int texture_colorbuffer_;
     unsigned int render_buffer_object_;
+
+    unsigned int empty_vao_;
 };

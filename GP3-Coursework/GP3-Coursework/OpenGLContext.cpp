@@ -22,6 +22,9 @@ OpenGLContext::OpenGLContext(SDL_Window* window)
     glEnable(GL_CULL_FACE);
 
     generate_screen_texture(window);
+
+    glGenVertexArrays(1, &empty_vao_);
+    ShaderManager::load_shader("ScreenDisplayShader", "..\\res\\Shaders\\ScreenDisplayShader");
 }
 void OpenGLContext::generate_screen_texture(SDL_Window* window)
 {
@@ -69,6 +72,7 @@ OpenGLContext::~OpenGLContext()
     glDeleteRenderbuffers(1, &render_buffer_object_);
     glDeleteFramebuffers(1, &framebuffer_);
 
+    glDeleteVertexArrays(1, &empty_vao_);
     SDL_GL_DeleteContext(gl_context_);
 }
 
@@ -93,7 +97,7 @@ void OpenGLContext::set_draw_to_framebuffer()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 }
-void OpenGLContext::set_draw_to_screen()
+void OpenGLContext::draw_to_screen()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
@@ -101,8 +105,31 @@ void OpenGLContext::set_draw_to_screen()
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindTexture(GL_TEXTURE_2D, texture_colorbuffer_);
+
+    // Draw to the screen texture.
+    ShaderManager::get_shader("ScreenDisplayShader")->bind();
+    ShaderManager::get_shader("ScreenDisplayShader")->set_int("screen_texture", 0);
+    glBindVertexArray(empty_vao_);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
-void OpenGLContext::bind_screen_texture()
+void OpenGLContext::copy_screen_texture(GLuint texture_id)
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glBindTexture(GL_TEXTURE_2D, texture_colorbuffer_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
+
+    glDisable(GL_DEPTH_TEST);
+
+    // Draw to the texture.
+    ShaderManager::get_shader("ScreenDisplayShader")->bind();
+    ShaderManager::get_shader("ScreenDisplayShader")->set_int("screen_texture", 0);
+    glBindVertexArray(empty_vao_);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // Reset bindings.
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_colorbuffer_, 0);
+
+    glEnable(GL_DEPTH_TEST);
 }

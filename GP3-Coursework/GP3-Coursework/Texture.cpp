@@ -12,6 +12,19 @@ Texture::Texture(const std::string& file_path)
 		std::cerr << "texture load failed" << file_path << std::endl;
 	}
 
+	generate_texture(width, height, GL_RGBA, imageData);
+	stbi_image_free(imageData);
+}
+Texture::Texture(const GLuint& texture_id) :
+	texture_id_(texture_id)
+{}
+Texture::Texture(const unsigned int width, const unsigned int height, GLint format)
+{
+	generate_texture(width, height, format, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+void Texture::generate_texture(const unsigned int width, const unsigned int height, GLint format, unsigned char* image_data)
+{
 	glGenTextures(1, &texture_id_); // number of and address of textures
 	glBindTexture(GL_TEXTURE_2D, texture_id_); //bind texture - define type 
 
@@ -21,18 +34,15 @@ Texture::Texture(const std::string& file_path)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // linear filtering for minification (texture is smaller than area)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // linear filtering for magnifcation (texture is larger)
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData); //Target, Mipmapping Level, Pixel Format, Width, Height, Border Size, Input Format, Data Type of Texture, Image Data
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image_data); //Target, Mipmapping Level, Pixel Format, Width, Height, Border Size, Input Format, Data Type of Texture, Image Data
 
-	stbi_image_free(imageData);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
-Texture::Texture(const GLuint& texture_id) :
-	texture_id_(texture_id)
-{}
+
 Texture::~Texture()
 {
 	glDeleteTextures(1, &texture_id_); // number of and address of textures
 }
-
 void Texture::clear()
 {
 	all_loaded_textures_.clear();
@@ -67,6 +77,11 @@ bool Texture::try_load_texture(const std::string& file_path, std::shared_ptr<Tex
 void Texture::register_texture_instance(const std::string& file_path, std::shared_ptr<Texture> loaded_texture)
 {
 	all_loaded_textures_.emplace(file_path, loaded_texture);
+}
+
+std::shared_ptr<Texture> Texture::create_empty_texture(const unsigned int width, const unsigned int height, GLint format)
+{
+	return std::make_shared<Texture>(width, height, format);
 }
 
 

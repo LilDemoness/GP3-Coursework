@@ -2,7 +2,7 @@
 
 #include "GameplayScene.h"
 
-GameplayScene::GameplayScene() :
+GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	game_state_(GameState::kPlay),
 	counter_(0.0f),
 
@@ -13,6 +13,7 @@ GameplayScene::GameplayScene() :
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
 
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
+	black_hole_opaque_texture_(Texture::create_empty_texture(display_facade->get_width(), display_facade->get_height(), GL_RGB)),
 
 	camera_(nullptr),
 	skybox_()
@@ -249,11 +250,23 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	// Render the skybox.
 	skybox_.draw(*camera_);
 
+
+	draw_black_hole(display_facade);
+
 	// Render on-screen text (Score, etc).
 	TextRenderer::render_text("Score", display_facade->get_width() / 2.0f, display_facade->get_height() - 50.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 	TextRenderer::render_text(std::to_string(score_), display_facade->get_width() / 2.0f, display_facade->get_height() - 100.0f, 1.0f, glm::vec3(1.0f), TextRenderer::TextJustification::kCentreAligned);
 
 	
+	if (player_->get_is_active())
+	{
+		// Render the world border only if the player isn't dead.
+		WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
+	}
+}
+void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
+{
+	// Setup shader information.
 	std::shared_ptr<Shader> black_hole_shader = ShaderManager::get_shader("BlackHole");
 	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
 	black_hole_shader->set_vec3("disc_normal", centre_indicator_->get_transform()->get_up(), true);
@@ -262,20 +275,19 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	black_hole_shader->set_vec2("screen_size", glm::vec2(display_facade->get_width(), display_facade->get_height()), true);
 	black_hole_shader->set_float("time", counter_);
 
-	display_facade->bind_screen_texture();
-	black_hole_noise_texture_->bind(1);
+
+	// Bind & reference our textures.
+	display_facade->copy_screen_texture(black_hole_opaque_texture_->get_texture_id());	// Copies the current screen opaque texture for the black hole to use. Without using a separate texture, we get rendering artefacts while space warping.
+	black_hole_opaque_texture_->bind(0);
 	black_hole_shader->set_int("screen_texture", 0);
+
+	black_hole_noise_texture_->bind(1);
 	black_hole_shader->set_int("disc_texture", 1);
+
+
+	// Draw the Black Hole.
 	centre_indicator_->draw(*camera_, false);
-
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	if (player_->get_is_active())
-	{
-		// Render the world border only if the player isn't dead.
-		WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
-	}
 }
 
 
