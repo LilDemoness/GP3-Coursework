@@ -61,6 +61,7 @@ public:
 	Collider(std::shared_ptr<Transform> transform, const Mesh* mesh, Collider::CollisionTag tag) :
 		tag_(tag),
 		enabled_(true),
+		use_radius_(false),
 		transform_(transform),
 		edges_{ new Collider::Edge(this, true), new Collider::Edge(this, false) }
 	{
@@ -78,6 +79,15 @@ public:
 
 	inline void set_enabled(const bool& new_value) { enabled_ = new_value; }
 	const bool get_enabled() const { return enabled_; }
+
+
+	void override_radius(const float radius_override)
+	{
+		radius_ = radius_override;
+		half_extents_ = glm::vec3(radius_override, radius_override, radius_override);
+	}
+	void set_use_radius(const bool use_radius) { use_radius_ = use_radius; }
+	const bool get_use_radius() const { return use_radius_; }
 
 
 	const float get_radius() const { return radius_; }
@@ -165,6 +175,8 @@ public:
 	{
 		if (a == CollisionTag::kUndefined || b == CollisionTag::kUndefined)
 			return false;	// Undefined Collision Tags ignore collisions.
+		if (a == CollisionTag::kBlackHole || b == CollisionTag::kBlackHole)
+			return true;	// Black Holes collide with everything.
 
 		switch (a)
 		{
@@ -190,6 +202,7 @@ private:
 
 	float radius_;
 	glm::vec3 half_extents_;
+	bool use_radius_;
 
 	bool bounds_dirty_;
 	glm::vec3 aabb_half_extents_;

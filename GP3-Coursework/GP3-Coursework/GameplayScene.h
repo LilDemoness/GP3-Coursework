@@ -118,8 +118,7 @@ private:
 	void (*update_physics)(Transform* const, float, bool, float) = nullptr;
 	void (*apply_physics)(Transform* const, float, float) = nullptr;
 
-	bool (*check_collisions_radius)(Collider* const, Collider* const) = nullptr;
-	bool (*check_collisions_aabb)(Collider* const, Collider* const) = nullptr;
+	bool (*check_collisions)(Collider* const, Collider* const) = nullptr;
 
 	bool (*sweep_and_prune)(std::vector<Collider::Edge*>& edges, std::set<std::pair<Collider*, Collider*>>&) = nullptr;
 

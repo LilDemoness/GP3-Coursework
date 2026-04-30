@@ -7,7 +7,8 @@ GameObject::GameObject(const std::string& mesh_file_name, const std::string& dif
 	texture_(Texture::create_texture(diffuse_texture_file_name)),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	shader_tag_(),
-	is_active_(true)
+	is_active_(true),
+	is_shown_(true)
 {
 	collider_ = std::make_shared<Collider>(transform_, mesh_.get(), tag);
 }
@@ -16,7 +17,8 @@ GameObject::GameObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture> diff
 	texture_(diffuse_texture),
 	transform_(std::make_shared<Transform>(position, rotation, scale)),
 	shader_tag_(),
-	is_active_(true)
+	is_active_(true),
+	is_shown_(true)
 {
 	collider_ = std::make_shared<Collider>(transform_, mesh_.get(), tag);
 

@@ -50,7 +50,7 @@ void Asteroid::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 	asteroid_mesh->bind_vao();
 	for (const std::shared_ptr<Asteroid> asteroid : all_active_asteroids_)
 	{
-		if (asteroid->get_is_active())
+		if (asteroid->get_is_active() && asteroid->get_is_shown())
 		{
 			asteroid_mesh->set_instance_matrix(i, asteroid->get_transform()->get_model());
 			i++;
@@ -134,7 +134,11 @@ Event<int> Asteroid::on_any_asteroid_destroyed;
 Event<> Asteroid::on_all_asteroids_destroyed;
 void Asteroid::on_collision(Collider* self, Collider* other)
 {
-	on_any_asteroid_destroyed.invoke(get_score_for_size(remaining_splits_));
+	float score = get_score_for_size(remaining_splits_);
+	if (other->get_collision_tag() != Collider::kPlayerProjectile)
+		score /= 2.0f;	// Non-player projectile collisions are worth less points.
+
+	on_any_asteroid_destroyed.invoke(score);
 	split();
 
 	if (all_active_asteroids_.empty())

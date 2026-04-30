@@ -37,6 +37,9 @@ public:
 		collider_->set_enabled(new_value);
 	}
 
+	inline const bool get_is_shown() const { return is_shown_; }
+	inline void set_is_shown(bool new_value) { is_shown_ = new_value; }
+
 protected:
 	std::shared_ptr<Transform> transform_;
 	std::shared_ptr<Collider> collider_;
@@ -45,5 +48,6 @@ private:
 	std::shared_ptr<Mesh> mesh_;	// SharedPtr for when meshes can be shared?
 	std::shared_ptr<Texture> texture_;
 	bool is_active_;
+	bool is_shown_;
 	std::string shader_tag_;
 };

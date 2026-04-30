@@ -27,6 +27,9 @@ extern "C" PHYSICS_API void apply_physics(Transform* const transform, float worl
 extern "C" PHYSICS_API glm::vec3 loop_position_within_bounds(const glm::vec3& world_pos, const float world_radius);
 
 
+// Determines if a collision is occuring using either a radius or AABB check depending on the settings of the passed colliders.
+// Radius check takes priority.
+extern "C" PHYSICS_API bool check_collisions(Collider* const a, Collider* const b);
 // Determines if a collision is occuring using the radius of two colliders.
 extern "C" PHYSICS_API bool check_collisions_radius(Collider* const a, Collider* const b);
 // Determines if a collision is occuring using the Axis-Aligned Bounding Boxes of two colliders.

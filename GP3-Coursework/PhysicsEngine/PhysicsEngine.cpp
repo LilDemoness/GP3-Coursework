@@ -118,6 +118,18 @@ extern "C" PHYSICS_API glm::vec3 loop_position_within_bounds(const glm::vec3& wo
 
 
 
+extern "C" PHYSICS_API bool check_collisions(Collider* const a, Collider* const b)
+{
+	if (a->get_use_radius() || b->get_use_radius())
+	{
+		return check_collisions_radius(a, b);
+	}
+	else
+	{
+		return check_collisions_aabb(a, b);
+	}
+}
+
 extern "C" PHYSICS_API bool check_collisions_radius(Collider* const a, Collider* const b)
 {
 	float sqrDistance = glm::distance2(a->get_transform()->get_pos(), b->get_transform()->get_pos());

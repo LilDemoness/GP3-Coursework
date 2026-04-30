@@ -69,7 +69,7 @@ void Projectile::draw_all(const Camera& camera, std::shared_ptr<Shader> shader)
 	projectile_mesh->bind_vao();
 	for (const std::shared_ptr<Projectile> projectile : active_projectiles_)
 	{
-		if (projectile->get_is_active())
+		if (projectile->get_is_active() && projectile->get_is_shown())
 		{
 			projectile_mesh->set_instance_matrix(i, projectile->get_transform()->get_model());
 			i++;

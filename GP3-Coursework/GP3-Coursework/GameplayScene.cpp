@@ -9,7 +9,7 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	asteroid_spawn_iteration_(0),
 
 	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
-	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
+	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kBlackHole, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 10.0f, 0.0f))),
 
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
@@ -25,6 +25,8 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	ShaderManager::set_active_shader("DefaultShader");
 
 	centre_indicator_->set_shader_tag("BlackHole");
+	centre_indicator_->get_collider()->set_use_radius(true);
+	centre_indicator_->get_collider()->override_radius(centre_indicator_->get_transform()->get_scale().x * 0.25f);
 
 	
 	player_->get_transform()->set_velocity(player_->get_transform()->get_forward() * 5.0f);
@@ -125,8 +127,7 @@ void GameplayScene::load_physics_engine()
 	update_physics = DLLManager::get_function<void(*)(Transform* const, float, bool, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
 	apply_physics = DLLManager::get_function<void(*)(Transform* const, float, float)>(PHYSICS_ENGINE_DLL_NAME, "apply_physics");
 
-	check_collisions_radius = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
-	check_collisions_aabb = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
+	check_collisions = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions");
 
 	sweep_and_prune = DLLManager::get_function<bool(*)(std::vector<Collider::Edge*>&edges, std::set<std::pair<Collider*, Collider*>>&)>(PHYSICS_ENGINE_DLL_NAME, "sweep_and_prune");
 }
@@ -196,13 +197,19 @@ void GameplayScene::handle_collisions()
 			continue;	// One of the colliders is disabled.
 		if (!Collider::is_valid_collision(overlap.first, overlap.second))
 			continue;	// Invalid collision tags.
-		if (!check_collisions_aabb || !check_collisions_aabb(overlap.first, overlap.second))
-			continue;	// AABBs aren't overlapping.
+		if (!check_collisions || !check_collisions(overlap.first, overlap.second))
+			continue;	// Colliders aren't overlapping.
 
 		// Valid Collision. Invoke overlap events.
 		overlap.first->on_collision_event.invoke(overlap.first, overlap.second);
 		overlap.second->on_collision_event.invoke(overlap.second, overlap.first);
 	}
+
+	// For the player only, run an extra radius collision check for the black hole.
+	// We're doing this as with how we're rendering the black hole, the player vanishes before actually entering the black hole's collider radius, while other objects do so fine.
+	float black_hole_player_collision_radius = centre_indicator_->get_collider()->get_radius() * 0.75f;
+	if (glm::length2(player_->get_transform()->get_pos() + centre_indicator_->get_transform()->get_pos()) < (black_hole_player_collision_radius * black_hole_player_collision_radius))
+		player_->get_collider()->on_collision_event.invoke(player_->get_collider(), centre_indicator_->get_collider());
 }
 
 
@@ -246,15 +253,18 @@ void GameplayScene::handle_continuous_input(float delta_time)
 void GameplayScene::draw(DisplayFacade* display_facade)
 {
 	// Render all objects.
-	if (player_death_time_ > 0.0f)
+	if (player_->get_is_shown())
 	{
-		// Disable backface culling for the player when rendering them in their death animation, allowing us to see their inner faces while exploding.
-		display_facade->set_cull_backface(false);
-		player_->draw(*camera_);
-		display_facade->set_cull_backface(true);
+		if (player_death_time_ > 0.0f)
+		{
+			// Disable backface culling for the player when rendering them in their death animation, allowing us to see their inner faces while exploding.
+			display_facade->set_cull_backface(false);
+			player_->draw(*camera_);
+			display_facade->set_cull_backface(true);
+		}
+		else
+			player_->draw(*camera_);
 	}
-	else
-		player_->draw(*camera_);
 
 	Asteroid::draw_all(*camera_);
 	Projectile::draw_all(*camera_);
@@ -316,20 +326,28 @@ void GameplayScene::fire_projectile()
 
 void GameplayScene::increment_score(int score_increase)
 {
+	if (player_death_time_ > 0.0f && counter_ > player_death_time_ + 0.1f)
+		return;	// Don't count score once the player is dead (With a little lee-way so that the death collision still increments score).
+
 	score_ += score_increase;
 }
-void GameplayScene::on_player_collided(Collider* player, Collider* other)
+void GameplayScene::on_player_collided(Collider* player_collider, Collider* other)
 {
-	if (other->get_collision_tag() == Collider::CollisionTag::kAsteroid)
+	if (!player_->get_is_active())
+		return;
+
+	player_->set_is_active(false);
+	player_->get_transform()->set_ignore_bounds(true);
+	player_death_time_ = counter_;
+	camera_->get_transform()->clear_parent();
+
+	if (other->get_collision_tag() == Collider::CollisionTag::kBlackHole)
 	{
-		player_->set_is_active(false);
-		player_->get_transform()->set_ignore_bounds(true);
-		player_death_time_ = counter_;
-
-		player_->set_shader_tag("PlayerDeathShader");
-
-		camera_->get_transform()->clear_parent();
+		player_->set_is_shown(false);
+		return;
 	}
+	
+	player_->set_shader_tag("PlayerDeathShader");
 }
 
 
