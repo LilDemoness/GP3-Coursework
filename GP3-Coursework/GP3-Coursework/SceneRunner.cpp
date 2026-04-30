@@ -12,6 +12,7 @@ SceneRunner::SceneRunner() :
 	Scene::on_exit_requested.subscribe(std::bind(&SceneRunner::start_scene_change, this, std::placeholders::_1));
 
 	InputManager::register_input_event(SDLK_0, std::bind(&SceneRunner::return_to_main_menu, this));
+	InputManager::register_event(SDL_QUIT, std::bind(&SceneRunner::quit_game, this));
 	game_display_.set_clear_color(0.15f, 0.15f, 0.15f, 1.0f);
 }
 SceneRunner::~SceneRunner()
@@ -169,4 +170,20 @@ void SceneRunner::return_to_main_menu()
 {
 	Scene::GameMode new_game_mode = Scene::GameMode::kMainMenu;
 	start_scene_change(new_game_mode);
+}
+
+
+void SceneRunner::quit_game()
+{
+	if (active_scene_ != nullptr)
+	{
+		// Exit the active scene.
+		active_scene_->on_exit_fulfilled();
+
+		// Dispose of the active scene.
+		active_scene_.reset();
+		active_scene_ = nullptr;
+	}
+
+	current_game_mode_ = Scene::GameMode::kExitGame;
 }

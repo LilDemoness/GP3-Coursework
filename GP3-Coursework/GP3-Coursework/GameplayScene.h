@@ -72,9 +72,6 @@ private:
 	void draw_black_hole(DisplayFacade* display_facade);
 
 
-	void quit_game();
-
-
 	void fire_projectile();
 
 	void on_player_collided(Collider* player, Collider* other);

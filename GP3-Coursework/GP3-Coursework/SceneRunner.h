@@ -45,4 +45,7 @@ private:
 	void start_scene_change(Scene::GameMode new_game_mode);
 	void set_active_scene();
 	void return_to_main_menu();
+
+
+	void quit_game();
 };

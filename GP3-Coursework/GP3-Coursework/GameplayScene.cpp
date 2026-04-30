@@ -51,7 +51,6 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	});
 	InputManager::register_input_event(SDLK_SPACE, std::bind(&GameplayScene::fire_projectile, this));
 	InputManager::register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
-	InputManager::register_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
 	respawn_asteroids();
 }
@@ -62,7 +61,6 @@ GameplayScene::~GameplayScene()
 
 	InputManager::deregister_input_event(SDLK_1, std::bind(&GameplayScene::fire_projectile, this));
 	InputManager::deregister_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
-	InputManager::deregister_event(SDL_QUIT, std::bind(&GameplayScene::quit_game, this));
 
 	Asteroid::on_any_asteroid_destroyed.unsubscribe(std::bind(&GameplayScene::increment_score, this, std::placeholders::_1));
 	Asteroid::on_all_asteroids_destroyed.unsubscribe(std::bind(&GameplayScene::prepare_to_respawn_asteroids, this));
@@ -212,12 +210,6 @@ void GameplayScene::handle_collisions()
 		player_->get_collider()->on_collision_event.invoke(player_->get_collider(), centre_indicator_->get_collider());
 }
 
-
-void GameplayScene::quit_game()
-{
-	on_exit_requested.invoke(Scene::GameMode::kExitGame);
-	game_state_ = GameState::kExit;
-}
 void GameplayScene::handle_continuous_input(float delta_time)
 {
 	if (!player_)
