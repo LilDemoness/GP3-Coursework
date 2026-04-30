@@ -66,6 +66,8 @@ public:
 	{
 		if (local_pos_ == new_local_pos)
 			return;
+		if (std::isnan(new_local_pos.x) || std::isnan(new_local_pos.y) || std::isnan(new_local_pos.z))	// NAN Check.
+			return;
 
 		local_pos_ = new_local_pos;
 		if (!has_parent())
@@ -136,7 +138,7 @@ public:
 	{
 		if (local_rot_ == new_local_rot)
 			return;
-		if (new_local_rot != new_local_rot)	// NAN check (May not work with our compiler).
+		if (std::isnan(new_local_rot.x) || std::isnan(new_local_rot.y) || std::isnan(new_local_rot.z))	// NAN Check.
 			return;
 		local_rot_ = new_local_rot;
 
@@ -180,6 +182,8 @@ public:
 	inline void set_local_scale(glm::vec3 new_local_scale)
 	{
 		if (local_scale_ == new_local_scale)
+			return;
+		if (std::isnan(new_local_scale.x) || std::isnan(new_local_scale.y) || std::isnan(new_local_scale.z))	// NAN Check.
 			return;
 		local_scale_ = new_local_scale; 
 

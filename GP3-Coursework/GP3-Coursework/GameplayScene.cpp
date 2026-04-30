@@ -10,7 +10,7 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 
 	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
 	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
-	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 0.0f, 0.0f))),
+	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 10.0f, 0.0f))),
 
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
 	black_hole_opaque_texture_(Texture::create_empty_texture(display_facade->get_width(), display_facade->get_height(), GL_RGB)),

@@ -41,6 +41,23 @@ extern "C" PHYSICS_API void update_physics(Transform* const transform, float del
 	//if (glm::length2(transform->get_velocity()) <= kBasicallyZeroSqrLength)
 	//	transform->set_velocity(glm::vec3(0.0f));
 
+	// Gravity.
+	glm::vec3 dir_to_centre = -transform->get_pos();
+	float dst_to_centre = glm::length(dir_to_centre);
+	if (dst_to_centre >= 0.1f)
+	{
+		const float kMaxGravityConstant = 1.0f;
+		const float kMinGravityConstant = 0.15f;
+		const float kMaxEffectRange = 15.0f;
+		dir_to_centre /= dst_to_centre;
+		float effect_range_percent = dst_to_centre / kMaxEffectRange;
+		if (effect_range_percent < 0.0f) { effect_range_percent = 0.0f; } else if (effect_range_percent > 1.0f) { effect_range_percent = 1.0f; } // Clamp01.
+		float gravity_force_scale = kMaxGravityConstant + effect_range_percent * (kMinGravityConstant - kMaxGravityConstant);	// Lerp.
+		std::cout << "Range Percent: " << effect_range_percent << ". Force Scale: " << gravity_force_scale << std::endl;
+
+		transform->add_force(dir_to_centre * gravity_force_scale * delta_time);
+	}
+
 	// Clamp to maximum.
 	const float kMaxVelocityMagnitude = 30.0f;
 	const float kSqrMaxVelocityMagnitude = kMaxVelocityMagnitude * kMaxVelocityMagnitude;
