@@ -30,18 +30,17 @@ extern "C" PHYSICS_API void add_roll(Transform* const transform, float roll_radi
 }
 
 
-extern "C" PHYSICS_API void update_physics(Transform* const transform, float delta_time)
+extern "C" PHYSICS_API void update_physics(Transform* const transform, float gravity_multiplier, bool apply_drag, float delta_time)
 {
-	const float kBasicallyZeroSqrLength = 0.01f * 0.01f;
-
-	// ----- Velocity -----
+	// ----- Velocity Changes -----
 	// Drag.
-	float drag_factor = 1.0f - (0.1f * delta_time);
-	transform->set_velocity(transform->get_velocity() * drag_factor);
-	//if (glm::length2(transform->get_velocity()) <= kBasicallyZeroSqrLength)
-	//	transform->set_velocity(glm::vec3(0.0f));
-
-	// Gravity.
+	if (apply_drag)
+	{
+		float drag_factor = 1.0f - (0.1f * delta_time);
+		transform->set_velocity(transform->get_velocity() * drag_factor);
+	}
+	
+	// Black Hole Gravity.
 	glm::vec3 dir_to_centre = -transform->get_pos();
 	float dst_to_centre = glm::length(dir_to_centre);
 	if (dst_to_centre >= 0.1f)
@@ -53,9 +52,8 @@ extern "C" PHYSICS_API void update_physics(Transform* const transform, float del
 		float effect_range_percent = dst_to_centre / kMaxEffectRange;
 		if (effect_range_percent < 0.0f) { effect_range_percent = 0.0f; } else if (effect_range_percent > 1.0f) { effect_range_percent = 1.0f; } // Clamp01.
 		float gravity_force_scale = kMaxGravityConstant + effect_range_percent * (kMinGravityConstant - kMaxGravityConstant);	// Lerp.
-		std::cout << "Range Percent: " << effect_range_percent << ". Force Scale: " << gravity_force_scale << std::endl;
 
-		transform->add_force(dir_to_centre * gravity_force_scale * delta_time);
+		transform->add_force(dir_to_centre * gravity_force_scale * gravity_multiplier * delta_time);
 	}
 
 	// Clamp to maximum.
@@ -67,10 +65,11 @@ extern "C" PHYSICS_API void update_physics(Transform* const transform, float del
 
 	// ----- Angular Velocity -----
 	// Drag.
-	float angular_drag_factor = 1.0f - (2.0f * delta_time);
-	transform->set_angular_velocity(transform->get_angular_velocity() * angular_drag_factor);
-	//if (glm::length2(transform->get_angular_velocity()) <= kBasicallyZeroSqrLength)
-	//	transform->set_angular_velocity(glm::vec3(0.0f));
+	if (apply_drag)
+	{
+		float angular_drag_factor = 1.0f - (2.0f * delta_time);
+		transform->set_angular_velocity(transform->get_angular_velocity() * angular_drag_factor);
+	}
 
 	// Clamp to maximum.
 	const float kMaxAngularVelocityMagnitude = glm::radians(360.0f);

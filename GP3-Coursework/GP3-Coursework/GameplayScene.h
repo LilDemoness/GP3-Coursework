@@ -64,7 +64,6 @@ private:
 	void load_physics_engine();
 
 
-	void update_player(float delta_time);
 	void handle_collisions();
 
 	void handle_continuous_input(float delta_time);
@@ -116,7 +115,7 @@ private:
 	void (*add_yaw)(Transform* const, float) = nullptr;
 	void (*add_roll)(Transform* const, float) = nullptr;
 
-	void (*update_physics)(Transform* const, float) = nullptr;
+	void (*update_physics)(Transform* const, float, bool, float) = nullptr;
 
 	bool (*check_collisions_radius)(Collider* const, Collider* const) = nullptr;
 	bool (*check_collisions_aabb)(Collider* const, Collider* const) = nullptr;

@@ -20,7 +20,7 @@ public:
 	void on_collision_enter(Collider* self, Collider* other);
 
 	static void spawn_projectile(glm::vec3 position, glm::quat rotation, glm::vec3 player_velocity);
-	static void update_projectiles(float delta_time);
+	static std::unordered_set<std::shared_ptr<Projectile>> active_projectiles_;
 
 	static void draw_all(const Camera& camera);
 	static void draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader);
@@ -28,8 +28,6 @@ public:
 private:
 	static float kSpeed;
 
-
-	static std::unordered_set<std::shared_ptr<Projectile>> active_projectiles_;
 
 	// Object Pooling.
 	static ObjectPool<Projectile> projectile_pool_;

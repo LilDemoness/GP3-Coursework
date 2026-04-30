@@ -217,11 +217,6 @@ int Asteroid::get_score_for_size(int remaining_splits)
 
 
 std::unordered_set<std::shared_ptr<Asteroid>> Asteroid::all_active_asteroids_ = std::unordered_set<std::shared_ptr<Asteroid>>();
-void Asteroid::update_all_asteroids(float delta_time)
-{
-	for (auto it = all_active_asteroids_.begin(); it != all_active_asteroids_.end(); ++it)
-		(*it)->get_transform()->apply_physics(delta_time);
-}
 
 
 ObjectPool<Asteroid> Asteroid::asteroids_pool_ = ObjectPool<Asteroid>(

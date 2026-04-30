@@ -19,10 +19,10 @@ extern "C" PHYSICS_API void add_thrust(Transform* const transform, float thrust_
 
 extern "C" PHYSICS_API void add_pitch(Transform* const transform, float pitch_radians);
 extern "C" PHYSICS_API void add_yaw(Transform* const transform, float yaw_radians);
-extern "C" PHYSICS_API void add_roll(Transform* const  transform, float roll_radians);
+extern "C" PHYSICS_API void add_roll(Transform* const transform, float roll_radians);
 
 
-extern "C" PHYSICS_API void update_physics(Transform* const  transform, float delta_time);
+extern "C" PHYSICS_API void update_physics(Transform* const transform, float gravity_multiplier, bool apply_drag, float delta_time);
 
 
 // Determines if a collision is occuring using the radius of two colliders.

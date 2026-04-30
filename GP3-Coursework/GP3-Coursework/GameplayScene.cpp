@@ -42,6 +42,8 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 		SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_q, SDLK_e,
 		// Movement.
 		SDLK_LSHIFT,
+		// Combat.
+		SDLK_SPACE,
 	});
 	InputManager::register_input_event(SDLK_SPACE, std::bind(&GameplayScene::fire_projectile, this));
 	InputManager::register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
@@ -118,7 +120,7 @@ void GameplayScene::load_physics_engine()
 	add_yaw = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_yaw");
 	add_roll = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "add_roll");
 
-	update_physics = DLLManager::get_function<void(*)(Transform* const, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
+	update_physics = DLLManager::get_function<void(*)(Transform* const, float, bool, float)>(PHYSICS_ENGINE_DLL_NAME, "update_physics");
 
 	check_collisions_radius = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_radius");
 	check_collisions_aabb = DLLManager::get_function<bool(*)(Collider* const, Collider* const)>(PHYSICS_ENGINE_DLL_NAME, "check_collisions_aabb");
@@ -149,27 +151,35 @@ void GameplayScene::update(float delta_time)
 
 	handle_continuous_input(delta_time);
 
-	update_player(delta_time);
-	Projectile::update_projectiles(delta_time);
-	Asteroid::update_all_asteroids(delta_time);
+	if (update_physics)
+	{
+		if (player_)
+		{
+			const float kPlayerGravityMultiplier = 1.0f;
+			update_physics(player_->get_transform(), kPlayerGravityMultiplier, true, delta_time);
+			player_->get_transform()->apply_physics(delta_time);
+		}
+		
+		const float kProjectileGravityMultiplier = 10.0f;
+		for (auto it = Projectile::active_projectiles_.begin(); it != Projectile::active_projectiles_.end(); ++it)
+		{
+			update_physics((*it)->get_transform(), kProjectileGravityMultiplier, false, delta_time);
+			(*it)->get_transform()->apply_physics(delta_time);
+		}
+
+		const float kAsteroidGravityMultiplier = 5.0f;
+		for (auto it = Asteroid::all_active_asteroids_.begin(); it != Asteroid::all_active_asteroids_.end(); ++it)
+		{
+			update_physics((*it)->get_transform(), kAsteroidGravityMultiplier, false, delta_time);
+			(*it)->get_transform()->apply_physics(delta_time);
+		}
+	}
+
 	skybox_.update(delta_time);
 
 	handle_collisions();
 
 	counter_ += delta_time;
-}
-
-void GameplayScene::update_player(float delta_time)
-{
-	if (!player_)
-		return;
-
-	if (update_physics)
-	{
-		update_physics(player_->get_transform(), delta_time);
-	}
-
-	player_->get_transform()->apply_physics(delta_time);
 }
 
 void GameplayScene::handle_collisions()

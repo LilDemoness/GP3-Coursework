@@ -47,11 +47,6 @@ void Projectile::spawn_projectile(glm::vec3 pos, glm::quat rot, glm::vec3 player
 
 
 std::unordered_set<std::shared_ptr<Projectile>> Projectile::active_projectiles_ = std::unordered_set<std::shared_ptr<Projectile>>();
-void Projectile::update_projectiles(float delta_time)
-{
-	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ++it)
-		(*it)->get_transform()->apply_physics(delta_time);
-}
 
 
 void Projectile::draw_all(const Camera& camera)

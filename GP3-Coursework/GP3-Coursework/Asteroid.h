@@ -24,7 +24,7 @@ public:
 	void setup_asteroid(int remaining_splits, glm::vec3 position, glm::quat rot, float scale, glm::vec3 velocity, glm::vec3 angular_velocity);
 
 
-	static void update_all_asteroids(float delta_time);
+	static std::unordered_set<std::shared_ptr<Asteroid>> all_active_asteroids_;
 
 	static void draw_all(const Camera& camera);
 	static void draw_all(const Camera& camera, std::shared_ptr<Shader> override_shader);
@@ -51,8 +51,6 @@ private:
 	static float get_scale_for_remaining_splits(int remaining_splits);
 
 	static int get_score_for_size(int remaining_splits);
-
-	static std::unordered_set<std::shared_ptr<Asteroid>> all_active_asteroids_;
 
 
 	// Object Pooling.
