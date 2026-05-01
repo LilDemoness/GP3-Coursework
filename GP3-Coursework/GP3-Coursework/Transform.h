@@ -68,15 +68,19 @@ public:
 
 		local_pos_ = new_local_pos;
 
-		// Set our children's position.
+		// Notify our children's listeners about their world position change.
 		for (int i = 0; i < this->get_child_count(); ++i)
-		{
-			Transform* child = this->get_child(i);
-			child->set_local_pos(child->get_local_pos());
-		}
+			this->get_child(i)->propagate_parent_position_change();
 
 		// Notify listeners of the change.
 		on_position_changed.invoke();
+	}
+	inline void propagate_parent_position_change()
+	{
+		on_position_changed.invoke();
+
+		for (int i = 0; i < this->get_child_count(); ++i)
+			this->get_child(i)->propagate_parent_position_change();
 	}
 	
 	
@@ -110,7 +114,7 @@ public:
 	inline glm::quat get_rot() const
 	{
 		if (has_parent())
-			return diff(parent_->get_rot(), local_rot_);
+			return add(parent_->get_rot(), local_rot_);
 		else
 			return local_rot_;
 	}
@@ -121,7 +125,7 @@ public:
 	{
 		// Set our rotation through our local rotation.
 		if (parent_ != nullptr)
-			set_local_rot(diff(parent_->get_rot(), get_rot()));
+			set_local_rot(diff(parent_->get_rot(), new_rot));
 		else
 			set_local_rot(new_rot);
 	}
@@ -133,24 +137,24 @@ public:
 			return;
 		if (std::isnan(new_local_rot.x) || std::isnan(new_local_rot.y) || std::isnan(new_local_rot.z))	// NAN Check.
 			return;
+		glm::quat rot_difference = diff(local_rot_, new_local_rot);
+
 		local_rot_ = new_local_rot;
 
-		// Update our children's rotation.
+		// Notify our children's listeners about their change in world position and rotation.
 		for (int i = 0; i < this->get_child_count(); ++i)
-		{
-			Transform* child = this->get_child(i);
-
-			// Update Child Position using their local position.
-			// This automatically accounts for rotation.
-			child->set_local_pos(child->get_local_pos());
-
-			// Update Child Rotation using their local rotation (Still the value from before we rotated).
-			glm::quat new_world_rot = add(this->get_rot(), child->get_local_rot());
-			child->set_rot(new_world_rot);
-		}
-
+			this->get_child(i)->propagate_parent_rotation_change();
+		
 		// Notify listeners of the change.
 		on_rotation_changed.invoke();
+	}
+	inline void propagate_parent_rotation_change()
+	{
+		on_position_changed.invoke();
+		on_rotation_changed.invoke();
+
+		for (int i = 0; i < this->get_child_count(); ++i)
+			this->get_child(i)->propagate_parent_rotation_change();
 	}
 
 
@@ -180,23 +184,19 @@ public:
 			return;
 		local_scale_ = new_local_scale; 
 
-		// Update our children's scale & relative positions.
+		// Notify our children's listeners about their world scale change.
 		for (int i = 0; i < this->get_child_count(); ++i)
-		{
-			Transform* child = this->get_child(i);
-
-			// Update Child Position using their local position.
-			// This automatically accounts for scale.
-			child->set_local_pos(child->get_local_pos());
-
-
-			// Update child scale using their local scale (Still the value from before we rotated).
-			glm::vec3 new_world_scale = this->get_scale() / child->get_local_scale();
-			child->set_scale(new_world_scale);
-		}
+			this->get_child(i)->propagate_parent_scale_change();
 
 		// Notify listeners of the change.
 		on_scale_changed.invoke();
+	}
+	inline void propagate_parent_scale_change()
+	{
+		on_scale_changed.invoke();
+
+		for (int i = 0; i < this->get_child_count(); ++i)
+			this->get_child(i)->propagate_parent_scale_change();
 	}
 
 
