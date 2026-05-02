@@ -205,7 +205,7 @@ void GameplayScene::handle_collisions()
 
 	// For the player only, run an extra radius collision check for the black hole.
 	// We're doing this as with how we're rendering the black hole, the player vanishes before actually entering the black hole's collider radius, while other objects do so fine.
-	float black_hole_player_collision_radius = centre_indicator_->get_collider()->get_radius() * 0.75f;
+	float black_hole_player_collision_radius = centre_indicator_->get_collider()->get_radius() * 0.8f;
 	if (glm::length2(player_->get_transform()->get_pos() + centre_indicator_->get_transform()->get_pos()) < (black_hole_player_collision_radius * black_hole_player_collision_radius))
 		player_->get_collider()->on_collision_event.invoke(player_->get_collider(), centre_indicator_->get_collider());
 }
@@ -246,6 +246,7 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 {
 	// Render all objects.
 	if (player_->get_is_shown())
+		// Only render the player is they wish to be visible.
 	{
 		if (player_death_time_ > 0.0f)
 		{
@@ -280,11 +281,13 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 
 	
 	if (player_->get_is_active())
-	{
 		// Render the world border only if the player isn't dead.
+	{
 		WorldBorderVisuals::draw_world_border(player_->get_transform()->get_pos());
 	}
 }
+
+
 void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 {
 	display_facade->set_cull_backface(false);

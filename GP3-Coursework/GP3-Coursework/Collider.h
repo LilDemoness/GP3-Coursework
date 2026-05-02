@@ -5,6 +5,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 
 #include "Transform.h"
 #include "Collision.h"
@@ -65,6 +66,7 @@ public:
 		transform_(transform),
 		edges_{ new Collider::Edge(this, true), new Collider::Edge(this, false) }
 	{
+		initialise_vertices(mesh);
 		update_from_mesh(mesh);
 		update_bounds();
 		transform_->on_rotation_changed.subscribe(std::bind(&Collider::mark_bounds_as_dirty, this));
@@ -91,6 +93,44 @@ public:
 
 
 	const float get_radius() const { return radius_; }
+
+
+	// Returns the furthest vertex point in the desired direction, in world space.
+	const glm::vec3 find_furthest_point(glm::vec3 direction) const
+	{
+		// Account for the object's rotation by rotating our desired direction (World -> Local).
+		direction = direction * glm::inverse(transform_->get_rot());
+
+		// Find the furthest vertex along the local direction.
+		glm::vec3 max_point;
+		float max_distance = -FLT_MAX;
+		for (const glm::vec3& vertex : vertices_)
+		{
+			glm::vec3 rotated_vertex = vertex * transform_->get_rot();	// Rotation.
+			float distance = glm::dot(vertex, direction);
+			if (distance > max_distance)
+			{
+				max_distance = distance;
+				max_point = vertex;
+			}
+		}
+
+		// Rotate our max point to reverse our initial rotation of the direction (Local -> World).
+		max_point = max_point * transform_->get_rot();
+
+		// Account for the object's position & scale (Can be calculated here as they don't affect the direction of collider vertices, just their offset).
+		max_point *= transform_->get_scale();	// Scale.
+		max_point += transform_->get_pos();	// Offset.
+
+
+		return max_point; // Return the furthest vertex along the direction, in world space.
+	}
+
+	// Returns the vertex on the minkowski difference to allow us to construct a collision hull for narrow-phase detection.
+	static glm::vec3 support(const Collider* collider_a, const Collider* collider_b, glm::vec3 direction)
+	{
+		return collider_a->find_furthest_point(direction) - collider_b->find_furthest_point(-direction);
+	}
 
 
 	void update_from_mesh(const Mesh* const mesh)
@@ -195,6 +235,28 @@ public:
 	Event<Collider*, Collider*> on_collision_event;
 
 private:
+	// Initialises the vertices vector to contain all the unique vertices of the mesh.
+	void initialise_vertices(const Mesh* mesh)
+	{
+		std::vector<glm::vec3> potential_verticies = mesh->get_vertex_positions();
+		vertices_ = std::vector<glm::vec3>();
+		for (int i = 0; i < potential_verticies.size(); ++i)
+		{
+			bool already_contains = false;
+			for (int j = 0; j < vertices_.size(); ++j)
+			{
+				if (vertices_[j] == potential_verticies[i])
+				{
+					already_contains = true;
+					break;
+				}
+			}
+
+			if (!already_contains)
+				vertices_.emplace_back(potential_verticies[i]);
+		}
+	}
+
 	void mark_bounds_as_dirty() { bounds_dirty_ = true; }
 	bool enabled_;
 	CollisionTag tag_;
@@ -208,5 +270,6 @@ private:
 	glm::vec3 aabb_half_extents_;
 
 	std::shared_ptr<Transform> transform_;
+	std::vector<glm::vec3> vertices_;
 	Edge* edges_[2];
 };

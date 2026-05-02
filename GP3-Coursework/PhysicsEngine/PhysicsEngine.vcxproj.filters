@@ -24,6 +24,9 @@
     <ClInclude Include="PhysicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Simplex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Simplex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
