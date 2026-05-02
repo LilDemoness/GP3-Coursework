@@ -267,9 +267,7 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	skybox_.draw(*camera_);
 
 	// Draw the play-space bounds indicator.
-	ShaderManager::get_active_shader()->set_float("alpha", 0.2f);
-	bounds_indicator_->draw(*camera_);
-	ShaderManager::get_active_shader()->set_float("alpha", 1.0f);
+	draw_play_space_indicator(display_facade);
 
 	// Render the black hole (Anything drawn before can be rendered behind & be affected by gravity distortions).
 	draw_black_hole(display_facade);
@@ -293,6 +291,20 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 }
 
 
+void GameplayScene::draw_play_space_indicator(DisplayFacade* display_facade)
+{
+	// Prep.
+	display_facade->set_cull_backface(false);
+	ShaderManager::get_active_shader()->set_float("alpha", 0.2f);
+
+	// Draw.
+	bounds_indicator_->draw(*camera_);
+	
+	// Cleanup.
+	display_facade->set_cull_backface(true);
+	ShaderManager::get_active_shader()->set_float("alpha", 1.0f);
+
+}
 void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 {
 	display_facade->set_cull_backface(false);

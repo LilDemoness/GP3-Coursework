@@ -69,6 +69,7 @@ private:
 	void handle_continuous_input(float delta_time);
 
 
+	void draw_play_space_indicator(DisplayFacade* display_facade);
 	void draw_black_hole(DisplayFacade* display_facade);
 
 
