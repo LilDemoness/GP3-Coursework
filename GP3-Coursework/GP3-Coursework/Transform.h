@@ -125,7 +125,7 @@ public:
 	{
 		// Set our rotation through our local rotation.
 		if (parent_ != nullptr)
-			set_local_rot(diff(parent_->get_rot(), new_rot));
+			set_local_rot(diff(new_rot, parent_->get_rot()));
 		else
 			set_local_rot(new_rot);
 	}
@@ -251,7 +251,7 @@ public:
 	}
 	void rotate_around_point(glm::vec3 point, glm::quat rotation)
 	{
-		// rotate our position around the specified point.
+		// Rotate our position around the specified point in the opposite direction of our rotation.
 		glm::vec3 rotated_point = point + ((this->get_pos() - point) * rotation);
 		this->set_pos(rotated_point);
 
