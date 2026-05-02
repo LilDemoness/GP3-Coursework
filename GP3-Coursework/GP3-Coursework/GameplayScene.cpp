@@ -8,8 +8,9 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 
 	asteroid_spawn_iteration_(0),
 
-	//centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
-	centre_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kBlackHole, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
+	//black_hole_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\IcoSphere1m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(0.25f))),
+	black_hole_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\UVSphere2m.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kBlackHole, glm::vec3(0.0f), glm::quat(), glm::vec3(5.0f))),
+	bounds_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\BoundsFrameTest.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(kPlaySpaceRadius))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 10.0f, 0.0f))),
 
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
@@ -24,9 +25,9 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	ShaderManager::load_shader("BlackHole", "..\\res\\Shaders\\BlackHoleShader");
 	ShaderManager::set_active_shader("DefaultShader");
 
-	centre_indicator_->set_shader_tag("BlackHole");
-	centre_indicator_->get_collider()->set_use_radius(true);
-	centre_indicator_->get_collider()->override_radius(centre_indicator_->get_transform()->get_scale().x * 0.25f);
+	black_hole_->set_shader_tag("BlackHole");
+	black_hole_->get_collider()->set_use_radius(true);
+	black_hole_->get_collider()->override_radius(black_hole_->get_transform()->get_scale().x * 0.25f);
 
 	
 	player_->get_transform()->set_velocity(player_->get_transform()->get_forward() * 5.0f);
@@ -205,9 +206,9 @@ void GameplayScene::handle_collisions()
 
 	// For the player only, run an extra radius collision check for the black hole.
 	// We're doing this as with how we're rendering the black hole, the player vanishes before actually entering the black hole's collider radius, while other objects do so fine.
-	float black_hole_player_collision_radius = centre_indicator_->get_collider()->get_radius() * 0.8f;
-	if (glm::length2(player_->get_transform()->get_pos() + centre_indicator_->get_transform()->get_pos()) < (black_hole_player_collision_radius * black_hole_player_collision_radius))
-		player_->get_collider()->on_collision_event.invoke(player_->get_collider(), centre_indicator_->get_collider());
+	float black_hole_player_collision_radius = black_hole_->get_collider()->get_radius() * 0.8f;
+	if (glm::length2(player_->get_transform()->get_pos() + black_hole_->get_transform()->get_pos()) < (black_hole_player_collision_radius * black_hole_player_collision_radius))
+		player_->get_collider()->on_collision_event.invoke(player_->get_collider(), black_hole_->get_collider());
 }
 
 void GameplayScene::handle_continuous_input(float delta_time)
@@ -262,11 +263,15 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 	Asteroid::draw_all(*camera_);
 	Projectile::draw_all(*camera_);
 
-
 	// Render the skybox.
 	skybox_.draw(*camera_);
 
+	// Draw the play-space bounds indicator.
+	ShaderManager::get_active_shader()->set_float("alpha", 0.2f);
+	bounds_indicator_->draw(*camera_);
+	ShaderManager::get_active_shader()->set_float("alpha", 1.0f);
 
+	// Render the black hole (Anything drawn before can be rendered behind & be affected by gravity distortions).
 	draw_black_hole(display_facade);
 
 
@@ -295,9 +300,9 @@ void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 	// Setup shader information.
 	std::shared_ptr<Shader> black_hole_shader = ShaderManager::get_shader("BlackHole");
 	black_hole_shader->set_vec3("camera_pos_ws", camera_->get_transform()->get_pos(), true);
-	black_hole_shader->set_vec3("disc_normal", centre_indicator_->get_transform()->get_up(), true);
-	black_hole_shader->set_vec3("black_hole_centre", centre_indicator_->get_transform()->get_pos(), true);
-	black_hole_shader->set_float("sphere_radius", centre_indicator_->get_transform()->get_scale().x, true);
+	black_hole_shader->set_vec3("disc_normal", black_hole_->get_transform()->get_up(), true);
+	black_hole_shader->set_vec3("black_hole_centre", black_hole_->get_transform()->get_pos(), true);
+	black_hole_shader->set_float("sphere_radius", black_hole_->get_transform()->get_scale().x, true);
 	black_hole_shader->set_vec2("screen_size", glm::vec2(display_facade->get_width(), display_facade->get_height()), true);
 	black_hole_shader->set_float("time", counter_);
 
@@ -312,7 +317,7 @@ void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 
 
 	// Draw the Black Hole.
-	centre_indicator_->draw(*camera_, false);
+	black_hole_->draw(*camera_, false);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	display_facade->set_cull_backface(true);
 }
