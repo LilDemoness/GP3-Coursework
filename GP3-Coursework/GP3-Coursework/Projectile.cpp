@@ -22,10 +22,16 @@ void Projectile::on_collision_enter(Collider* self, Collider* other)
 {
 	for (auto it = active_projectiles_.begin(); it != active_projectiles_.end();)
 	{
-		auto current = it++;
-		if ((current->get()) == this)
+		std::shared_ptr<Projectile> instance = *(it++);
+		if (instance.get() == this)
 		{
-			projectile_pool_.release(*current);
+			projectile_pool_.release(instance);
+
+			// Ensure that the projectile is removed they are occasionally missed.
+			instance->set_is_active(false);
+			active_projectiles_.erase(instance);
+
+			return;
 		}
 	}
 }
