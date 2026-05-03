@@ -135,7 +135,7 @@ Event<> Asteroid::on_all_asteroids_destroyed;
 void Asteroid::on_collision(Collider* self, Collider* other)
 {
 	float score = get_score_for_size(remaining_splits_);
-	if (other->get_collision_tag() != Collider::kPlayerProjectile)
+	if (other != nullptr && other->get_collision_tag() != Collider::kPlayerProjectile)
 		score /= 2.0f;	// Non-player projectile collisions are worth less points.
 
 	on_any_asteroid_destroyed.invoke(score);

@@ -86,6 +86,9 @@ private:
 	GLuint world_border_vao_;
 	std::unique_ptr<Camera> camera_;
 
+	std::shared_ptr<GameObject> player_thrust_indicator_;
+	bool player_is_thrusting_;
+
 	std::shared_ptr<Texture> black_hole_noise_texture_;
 	std::shared_ptr<Texture> black_hole_opaque_texture_;
 

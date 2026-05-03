@@ -13,6 +13,9 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 	bounds_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\BoundsFrameTest.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f), glm::quat(), glm::vec3(kPlaySpaceRadius))),
 	player_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerModel.obj"), Texture::create_texture("..\\res\\bricks.jpg"), Collider::CollisionTag::kPlayer, glm::vec3(0.0f, 10.0f, 0.0f))),
 
+	player_thrust_indicator_(std::make_shared<GameObject>(Mesh::create_mesh("..\\res\\PlayerThrusterFlame.obj"), Texture::create_texture("..\\res\\WhitePixel.jpg"), Collider::CollisionTag::kUndefined, glm::vec3(0.0f))),
+	player_is_thrusting_(false),
+
 	black_hole_noise_texture_(Texture::create_texture("..\\res\\NoiseTexture.png")),
 	black_hole_opaque_texture_(Texture::create_empty_texture(display_facade->get_width(), display_facade->get_height(), GL_RGB)),
 
@@ -31,6 +34,8 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 
 	
 	player_->get_transform()->set_velocity(player_->get_transform()->get_forward() * 5.0f);
+	player_thrust_indicator_->get_transform()->set_parent(player_->get_transform(), true);
+	player_thrust_indicator_->get_transform()->set_local_pos(glm::vec3(0.0f, 0.0f, -0.5f * player_->get_transform()->get_scale().z));
 
 
 	player_->get_collider()->on_collision_event.subscribe(std::bind(&GameplayScene::on_player_collided, this, std::placeholders::_1, std::placeholders::_2));
@@ -47,8 +52,6 @@ GameplayScene::GameplayScene(DisplayFacade* display_facade) :
 		SDLK_w, SDLK_s, SDLK_a, SDLK_d, SDLK_q, SDLK_e,
 		// Movement.
 		SDLK_LSHIFT,
-		// Combat.
-		SDLK_SPACE,
 	});
 	InputManager::register_input_event(SDLK_SPACE, std::bind(&GameplayScene::fire_projectile, this));
 	InputManager::register_input_event(SDLK_5, std::bind(&Asteroid::kill_all_asteroids));
@@ -219,7 +222,8 @@ void GameplayScene::handle_continuous_input(float delta_time)
 		return;
 
 	const float kPlayerThrust = 5.0f;
-	if (InputManager::get_key_held(SDLK_LSHIFT) && add_thrust)
+	player_is_thrusting_ = InputManager::get_key_held(SDLK_LSHIFT) && add_thrust;
+	if (player_is_thrusting_)
 		add_thrust(player_->get_transform(), kPlayerThrust * delta_time);
 
 	// Rotation.
@@ -257,7 +261,11 @@ void GameplayScene::draw(DisplayFacade* display_facade)
 			display_facade->set_cull_backface(true);
 		}
 		else
+		{
 			player_->draw(*camera_);
+			if (player_is_thrusting_)
+				player_thrust_indicator_->draw(*camera_);
+		}
 	}
 
 	Asteroid::draw_all(*camera_);
