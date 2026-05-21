@@ -340,6 +340,12 @@ void GameplayScene::draw_black_hole(DisplayFacade* display_facade)
 	black_hole_->draw(*camera_, false);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	display_facade->set_cull_backface(true);
+
+
+	// Unbind values.
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 

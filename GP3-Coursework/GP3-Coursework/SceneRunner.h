@@ -13,7 +13,7 @@ constexpr int kMaxFramerate = 60;
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 720;
 
-#define DISPLAY_FRAMERATE true
+#define DISPLAY_FRAMERATE false
 
 class SceneRunner
 {
